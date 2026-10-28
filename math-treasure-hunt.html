@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Treasure Hunt — Petualangan Matriks Kelas XI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1d3557; --paper:#fffdf7; --gold:#ffcf3f; --goldD:#8a5a00;
+  --ok:#2ecc71; --okD:#1b8a4a; --bad:#ff5d5d; --badD:#c0392b;
+  --isl:#ff8f2d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);min-height:100vh;overflow-x:hidden;
+  background:linear-gradient(180deg,#9fe7ff 0%,#c8f0ff 22%,#7fd4f7 46%,#3aa6e6 78%,#2b8fd0 100%);
+}
+/* dekorasi langit */
+.sun{position:fixed;top:26px;right:6vw;width:66px;height:66px;border-radius:50%;z-index:0;
+  background:radial-gradient(circle,#fff6c8,#ffd23f 70%);
+  box-shadow:0 0 0 14px rgba(255,210,63,.30),0 0 46px rgba(255,210,63,.8);
+  animation:sunP 3.4s ease-in-out infinite alternate;}
+@keyframes sunP{to{box-shadow:0 0 0 22px rgba(255,210,63,.18),0 0 70px rgba(255,210,63,.95);}}
+.cloud{position:fixed;font-size:44px;opacity:.95;z-index:0;animation:drift linear infinite;filter:drop-shadow(0 6px 4px rgba(29,53,87,.15));}
+.cl1{top:46px;animation-duration:52s;}
+.cl2{top:110px;font-size:32px;animation-duration:38s;animation-delay:-16s;}
+.cl3{top:20px;font-size:28px;animation-duration:64s;animation-delay:-30s;}
+@keyframes drift{from{left:-90px}to{left:105vw}}
+
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:12px 14px 46px;}
+
+/* ===== HEADER ===== */
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 2px 10px;}
+.logo{font-family:'Lilita One',cursive;font-size:clamp(24px,4.6vw,40px);color:#fff;line-height:1;
+  text-shadow:0 3px 0 var(--ink),0 7px 12px rgba(29,53,87,.4);}
+.logo small{display:block;font-family:'Fredoka';font-weight:600;font-size:clamp(11px,1.9vw,14px);
+  color:#ffefb0;text-shadow:0 2px 0 rgba(29,53,87,.6);margin-top:5px;letter-spacing:.4px;}
+.sndBtn{margin-left:auto;width:48px;height:48px;font-size:21px;border-radius:14px;cursor:pointer;
+  background:linear-gradient(#fff,#ffe9b0);border:3px solid var(--ink);box-shadow:0 5px 0 var(--ink);transition:.15s;}
+.sndBtn:hover{transform:translateY(-2px) rotate(-4deg);}
+.sndBtn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink);}
+
+/* ===== PETA LAUT ===== */
+.seaMap{position:relative;background:linear-gradient(180deg,#7fd4f7,#2d9cdb 80%);
+  border:4px solid var(--ink);border-radius:20px;box-shadow:0 8px 0 rgba(29,53,87,.55);
+  height:clamp(104px,16vw,132px);margin-bottom:14px;overflow:hidden;}
+.seaMap .wave{position:absolute;left:-40px;right:-40px;height:16px;background-size:30px 16px;
+  background-image:radial-gradient(circle at 15px -6px,transparent 12px,rgba(255,255,255,.55) 13px);
+  animation:wv 5s linear infinite;}
+.wave.w1{bottom:22px;opacity:.5;} .wave.w2{bottom:2px;animation-duration:3.4s;opacity:.75;}
+@keyframes wv{from{background-position-x:0}to{background-position-x:60px}}
+.track{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 3% 10px;}
+.stop{position:relative;text-align:center;flex:1;max-width:78px;}
+.isle{font-size:clamp(26px,5vw,40px);line-height:1;filter:drop-shadow(0 5px 3px rgba(29,53,87,.35));
+  position:relative;display:inline-block;transition:transform .4s;}
+.stop .lockB{position:absolute;top:-6px;right:-10px;font-size:14px;}
+.stop.done .isle{transform:scale(1.05);}
+.stop.done .lockB{display:none;}
+.stop.done .isle::after{content:'✅';position:absolute;top:-10px;right:-12px;font-size:14px;}
+.stop.now .isle{animation:bob 1.1s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 10px #fff) drop-shadow(0 5px 3px rgba(29,53,87,.35));}
+.stop.locked .isle{filter:grayscale(.85) drop-shadow(0 4px 3px rgba(29,53,87,.3));opacity:.8;}
+@keyframes bob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-7px) rotate(2deg)}}
+.sLbl{font-weight:700;font-size:clamp(8px,1.5vw,11.5px);color:#fff;text-shadow:0 2px 0 rgba(29,53,87,.7);
+  margin-top:2px;white-space:nowrap;}
+.boat{position:absolute;bottom:34px;font-size:clamp(26px,4.6vw,38px);left:6%;
+  transform:translateX(-50%);transition:left 1.5s cubic-bezier(.5,.1,.4,1);
+  animation:boatBob 1.6s ease-in-out infinite alternate;z-index:2;
+  filter:drop-shadow(0 4px 3px rgba(29,53,87,.4));}
+@keyframes boatBob{from{margin-bottom:0;rotate:-3deg}to{margin-bottom:6px;rotate:3deg}}
+
+/* ===== HUD ===== */
+.hud{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+.hudBox{background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:6px 14px;
+  box-shadow:0 5px 0 rgba(29,53,87,.6);font-weight:700;display:flex;align-items:center;gap:8px;}
+#islandChip{background:linear-gradient(180deg,#fff,#ffe9c4);font-family:'Lilita One';letter-spacing:.5px;
+  font-size:clamp(13px,2.2vw,17px);}
+#hearts span{font-size:20px;margin:0 1px;display:inline-block;}
+#hearts span.lose{animation:hBreak .6s ease forwards;}
+@keyframes hBreak{40%{transform:scale(1.5) rotate(-14deg);}100%{transform:scale(1);}}
+#coinBox .cNum{font-family:'Lilita One';font-size:20px;color:#b45309;}
+#coinBox.pop{animation:cPop .5s var(--ease, ease);}
+@keyframes cPop{35%{transform:scale(1.18) rotate(-2deg);}}
+.timer{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--paper);
+  border:3px solid var(--ink);border-radius:16px;padding:4px 12px 4px 6px;box-shadow:0 5px 0 rgba(29,53,87,.6);}
+.timer svg{transform:rotate(-90deg);}
+.tBg{fill:none;stroke:#e5e9f2;stroke-width:6;}
+.tFg{fill:none;stroke:var(--ok);stroke-width:6;stroke-linecap:round;stroke-dasharray:144.5;transition:stroke-dashoffset 1s linear,stroke .4s;}
+.timer.mid .tFg{stroke:#f5a623;} .timer.low .tFg{stroke:var(--bad);}
+#tNum{font-family:'Lilita One';font-size:22px;min-width:30px;text-align:center;}
+.timer.low #tNum{color:var(--bad);animation:blinkT .5s steps(2) infinite;}
+@keyframes blinkT{50%{opacity:.35;}}
+
+/* ===== KARTU SOAL ===== */
+.qCard{background:var(--paper);border:4px solid var(--ink);border-radius:24px;
+  box-shadow:0 10px 0 rgba(29,53,87,.55),0 18px 30px rgba(29,53,87,.2);
+  padding:18px;position:relative;overflow:hidden;}
+.qCard::before{content:'';position:absolute;top:0;left:0;right:0;height:9px;background:var(--isl);transition:.4s;}
+.qTop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 10px;}
+.topicChip{font-family:'Lilita One';background:var(--isl);color:#fff;padding:5px 14px;border-radius:999px;
+  border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);font-size:clamp(12px,2vw,15px);letter-spacing:.5px;}
+.qCount{font-weight:700;opacity:.75;font-size:14px;}
+.qText{font-size:clamp(16px,2.7vw,21px);font-weight:600;line-height:1.5;}
+.mathRow{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px 0 6px;}
+/* matriks dengan kurung */
+.mtx{display:inline-flex;flex-direction:column;gap:3px;padding:4px 10px;position:relative;vertical-align:middle;}
+.mtx::before,.mtx::after{content:'';position:absolute;top:-2px;bottom:-2px;width:6px;border:3px solid var(--ink);}
+.mtx::before{left:0;border-right:none;border-radius:10px 0 0 10px;}
+.mtx::after{right:0;border-left:none;border-radius:0 10px 10px 0;}
+.mr{display:flex;gap:10px;justify-content:center;}
+.mr b{min-width:1.5em;text-align:center;font-weight:700;font-size:clamp(15px,2.6vw,18px);}
+.bigOp{font-family:'Lilita One';font-size:26px;}
+
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.opt{position:relative;background:#fff;border:3px solid var(--ink);border-radius:18px;min-height:64px;
+  box-shadow:0 6px 0 rgba(29,53,87,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  gap:10px;padding:10px 14px;font-family:'Fredoka';font-weight:700;font-size:clamp(15px,2.4vw,18px);color:var(--ink);
+  transition:transform .15s,box-shadow .15s,background .25s;text-align:center;flex-wrap:wrap;}
+.opt:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 9px 0 rgba(29,53,87,.7);background:#fff8e2;}
+.opt:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 rgba(29,53,87,.7);}
+.opt:disabled{cursor:default;}
+.opt .ol{flex:0 0 30px;height:30px;border-radius:50%;background:var(--isl);color:#fff;display:grid;
+  place-items:center;font-family:'Lilita One';font-size:14px;border:2px solid var(--ink);}
+.opt .mark{position:absolute;top:-12px;right:-8px;font-size:26px;transform:scale(0);animation:markPop .4s var(--e2,cubic-bezier(.34,1.56,.64,1)) forwards;}
+@keyframes markPop{to{transform:scale(1) rotate(8deg);}}
+.opt.correct{background:#d8f8e3;border-color:var(--okD);box-shadow:0 6px 0 var(--okD);}
+.opt.wrong{background:#ffe3e3;border-color:var(--badD);box-shadow:0 6px 0 var(--badD);animation:shakeX .45s;}
+.opt.dim{opacity:.5;}
+@keyframes shakeX{25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+
+.qTools{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center;}
+.btn3d{font-family:'Lilita One';letter-spacing:.6px;border-radius:16px;cursor:pointer;color:#5b3a00;
+  background:linear-gradient(180deg,#ffe27a,#ffb703);border:3px solid var(--goldD);
+  box-shadow:0 6px 0 var(--goldD),0 10px 14px rgba(29,53,87,.25);padding:11px 20px;
+  font-size:clamp(13px,2.2vw,16px);transition:transform .15s,box-shadow .15s;}
+.btn3d:hover{transform:translateY(-3px) rotate(-.5deg);box-shadow:0 9px 0 var(--goldD),0 14px 16px rgba(29,53,87,.25);}
+.btn3d:active{transform:translateY(3px);box-shadow:0 2px 0 var(--goldD);}
+.btn3d.blue{background:linear-gradient(180deg,#8fd8ff,#2d9cdb);color:#0b3c5e;border-color:#14567f;box-shadow:0 6px 0 #14567f,0 10px 14px rgba(29,53,87,.25);}
+.btn3d.blue:hover{box-shadow:0 9px 0 #14567f;} .btn3d.blue:active{box-shadow:0 2px 0 #14567f;}
+.btn3d.green{background:linear-gradient(180deg,#8fe8ae,#2ecc71);color:#0d4a25;border-color:var(--okD);box-shadow:0 6px 0 var(--okD);}
+.btn3d.green:hover{box-shadow:0 9px 0 var(--okD);} .btn3d.green:active{box-shadow:0 2px 0 var(--okD);}
+.btn3d:disabled{filter:grayscale(.7);cursor:not-allowed;transform:none!important;}
+
+.hintBox,.exBox,.fbHead{display:none;margin-top:14px;border-radius:14px;padding:10px 14px;font-weight:600;
+  font-size:15px;line-height:1.5;animation:popIn .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.hintBox{display:none;background:#fff7d6;border:3px dashed #e0a800;}
+.hintBox.show{display:block;}
+.exBox{background:#eaf3ff;border:3px dashed #2d9cdb;}
+.exBox.show{display:block;}
+.fbHead{display:none;font-family:'Lilita One';font-size:18px;letter-spacing:.4px;}
+.fbHead.show{display:block;}
+.fbHead.badF{color:var(--badD);} .fbHead.goodF{color:var(--okD);}
+.shakeIt{animation:shk .45s;}
+@keyframes shk{20%{transform:translate(-8px,4px)}40%{transform:translate(7px,-5px)}60%{transform:translate(-6px,-4px)}80%{transform:translate(5px,5px)}}
+
+/* ===== OVERLAY ===== */
+.ov{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(13,35,60,.55);
+  backdrop-filter:blur(3px);padding:16px;}
+.ov.hidden{display:none;}
+.panel{background:var(--paper);border:5px solid var(--ink);border-radius:26px;max-width:560px;width:100%;
+  box-shadow:0 14px 0 rgba(29,53,87,.5);padding:26px 22px;text-align:center;max-height:92vh;overflow:auto;
+  animation:panelIn .55s cubic-bezier(.34,1.56,.64,1);}
+@keyframes panelIn{from{opacity:0;transform:translateY(50px) scale(.85)}to{opacity:1;transform:none}}
+.panel .bigEmo{font-size:58px;display:inline-block;animation:bob 1.3s ease-in-out infinite alternate;}
+.panel h2{font-family:'Lilita One';font-size:clamp(22px,4.4vw,32px);color:var(--ink);margin:8px 0 10px;letter-spacing:.5px;}
+.rulesGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 18px;text-align:left;}
+.rule{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 11px;font-weight:600;
+  font-size:13.5px;display:flex;gap:8px;align-items:center;box-shadow:0 4px 0 rgba(29,53,87,.35);}
+.rule span{font-size:20px;}
+.topicRow{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.tp{font-weight:700;font-size:12px;background:#eaf3ff;border:2px solid var(--ink);border-radius:999px;padding:3px 11px;}
+
+/* modal petunjuk pulau */
+.clueScroll{background:linear-gradient(180deg,#fff3cf,#f3dfa4);border:4px solid #8a5a00;border-radius:16px;
+  padding:14px 16px;font-weight:600;font-size:15.5px;line-height:1.55;margin:12px 0;position:relative;
+  box-shadow:inset 0 0 24px rgba(138,90,0,.15);}
+.nextPrev{display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Lilita One';
+  font-size:19px;margin-bottom:16px;}
+.nextPrev .ni{font-size:38px;animation:bob 1.1s ease-in-out infinite alternate;display:inline-block;}
+
+/* layar menang — peti harta */
+.chestScene{position:relative;height:200px;display:grid;place-items:center;margin:6px 0;}
+.rays{position:absolute;width:290px;height:290px;border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,215,77,.4) 0 13deg,transparent 13deg 26deg);
+  animation:spin 9s linear infinite;filter:blur(1px);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chest{position:relative;width:150px;height:104px;}
+.cLid{position:absolute;top:4px;left:-5px;width:160px;height:46px;z-index:3;border:4px solid #5d3410;
+  background:linear-gradient(#c98336,#9c5d1d);border-radius:18px 18px 8px 8px;
+  transform-origin:left bottom;transition:transform .9s cubic-bezier(.34,1.56,.64,1);}
+.chest.open .cLid{transform:rotate(-40deg) translate(-8px,-14px);}
+.cBody{position:absolute;bottom:0;width:100%;height:62px;background:linear-gradient(#b9742f,#8a4f16);
+  border:4px solid #5d3410;border-radius:10px;box-shadow:inset 0 7px 0 rgba(255,255,255,.15);}
+.cBand{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:26px;height:62px;
+  background:linear-gradient(#ffd93f,#e0a800);border:3px solid #5d3410;border-radius:6px;}
+.cLock{position:absolute;top:36px;left:50%;transform:translateX(-50%);width:24px;height:22px;z-index:4;
+  background:#ffd93f;border:3px solid #5d3410;border-radius:6px;}
+.tGlow{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);width:90px;height:30px;border-radius:50%;
+  background:radial-gradient(ellipse,#fff3ae,rgba(255,210,63,.85) 55%,transparent 75%);opacity:0;transition:opacity .6s;}
+.chest.open .tGlow{opacity:1;animation:glowP 1.2s ease-in-out infinite alternate;}
+@keyframes glowP{to{transform:translateX(-50%) scale(1.25);}}
+.cCoin{position:absolute;font-size:20px;z-index:5;pointer-events:none;animation:coinUp 1.5s ease-out forwards;}
+@keyframes coinUp{0%{transform:translate(0,0) scale(.6);opacity:1}
+  100%{transform:translate(var(--cx),var(--cy)) scale(1.15) rotate(var(--cr));opacity:0;}}
+.starsBig{font-size:38px;letter-spacing:8px;margin:4px 0;}
+.statRow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0 18px;}
+.stat{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 16px;font-weight:700;font-size:14px;
+  box-shadow:0 4px 0 rgba(29,53,87,.35);}
+.stat b{display:block;font-family:'Lilita One';font-size:21px;color:#b45309;}
+.confettiP{position:fixed;top:-24px;z-index:99;pointer-events:none;animation:fall linear forwards;}
+@keyframes fall{to{transform:translateY(112vh) rotate(720deg);}}
+.flyCoin{position:fixed;z-index:99;font-size:22px;pointer-events:none;}
+footer{position:relative;z-index:1;text-align:center;margin-top:26px;font-weight:600;font-size:13px;color:#eafaff;
+  text-shadow:0 2px 0 rgba(29,53,87,.5);}
+
+@media (max-width:600px){
+  .options{grid-template-columns:1fr;}
+  .rulesGrid{grid-template-columns:1fr;}
+  .sLbl{font-size:8px;}
+  .hud{gap:7px;}
+  .hudBox{padding:5px 10px;}
+  .timer{margin-left:0;}
+  .chestScene{height:170px;transform:scale(.9);}
+}
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<div class="cloud cl1">☁️</div><div class="cloud cl2">⛅</div><div class="cloud cl3">☁️</div>
+
+<div class="wrap">
+  <header>
+    <div class="logo">🗺️ MATH TREASURE HUNT<small>Petualangan Matriks • Matematika Kelas XI</small></div>
+    <button class="sndBtn" id="sndBtn" title="Suara">🔊</button>
+  </header>
+
+  <!-- PETA LAUT -->
+  <section class="seaMap">
+    <div class="wave w1"></div><div class="wave w2"></div>
+    <div class="track" id="track"></div>
+    <div class="boat" id="boat">⛵</div>
+  </section>
+
+  <!-- HUD -->
+  <section class="hud">
+    <div class="hudBox" id="islandChip">🏝️ Pulau Ordo</div>
+    <div class="hudBox"><span id="hearts"></span></div>
+    <div class="hudBox" id="coinBox">🪙 <span class="cNum" id="coinNum">0</span></div>
+    <div class="timer" id="timerBox">
+      <svg width="50" height="50" viewBox="0 0 54 54">
+        <circle class="tBg" cx="27" cy="27" r="23"></circle>
+        <circle class="tFg" id="tRing" cx="27" cy="27" r="23" stroke-dashoffset="0"></circle>
+      </svg>
+      <span id="tNum">45</span>
+    </div>
+  </section>
+
+  <!-- KARTU SOAL -->
+  <section class="qCard" id="qCard">
+    <div class="qTop">
+      <span class="topicChip" id="topicChip">ORDO MATRIKS</span>
+      <span class="qCount" id="qCount">Pulau 1 dari 5</span>
+    </div>
+    <div class="qText" id="qText"></div>
+    <div class="options" id="options"></div>
+    <div class="qTools">
+      <button class="btn3d blue" id="hintBtn">💡 Petunjuk</button>
+      <span style="font-weight:600;opacity:.7;font-size:13px;">Jawaban benar = koin + bonus waktu. Petunjuk memotong separuh koin.</span>
+    </div>
+    <div class="fbHead" id="fbHead"></div>
+    <div class="hintBox" id="hintBox"></div>
+    <div class="exBox" id="exBox"></div>
+    <div class="qTools" id="retryRow" style="display:none;">
+      <button class="btn3d green" id="retryBtn">🔄 Coba Soal Baru!</button>
+    </div>
+  </section>
+
+  <footer>🧭 Media pembelajaran interaktif — Matriks • Matematika SMK/SMA Kelas XI</footer>
+</div>
+
+<!-- OVERLAY MULAI -->
+<div class="ov" id="startOv">
+  <div class="panel">
+    <span class="bigEmo">🧭</span>
+    <h2>MATH TREASURE HUNT</h2>
+    <p style="font-weight:600;">Bantu Kapten Aljabar melewati <b>5 pulau misterius</b> dan temukan harta karun dengan menyelesaikan tantangan <b>MATRIKS</b>!</p>
+    <div class="topicRow">
+      <span class="tp">Ordo</span><span class="tp">Kesamaan</span><span class="tp">Penjumlahan</span>
+      <span class="tp">Pengurangan</span><span class="tp">Perkalian</span>
+    </div>
+    <div class="rulesGrid">
+      <div class="rule"><span>🏝️</span> 5 pulau = 5 topik matriks</div>
+      <div class="rule"><span>⏱️</span> 45 detik tiap soal</div>
+      <div class="rule"><span>❤️</span> 3 nyawa — hati-hati!</div>
+      <div class="rule"><span>🪙</span> Koin + bonus sisa waktu</div>
+      <div class="rule"><span>💡</span> Petunjuk tersedia (koin ÷ 2)</div>
+      <div class="rule"><span>🗝️</span> Jawab benar → petunjuk pulau berikutnya</div>
+    </div>
+    <button class="btn3d" id="startBtn" style="font-size:19px;padding:14px 30px;">⚓ MULAI PETUALANGAN!</button>
+  </div>
+</div>
+
+<!-- OVERLAY PETUNJUK -->
+<div class="ov hidden" id="clueOv">
+  <div class="panel">
+    <span class="bigEmo">🗝️</span>
+    <h2>PETUNJUK DITEMUKAN!</h2>
+    <div style="font-family:'Lilita One';font-size:18px;" id="clueCoins"></div>
+    <div class="clueScroll" id="clueText"></div>
+    <div class="nextPrev"><span class="ni" id="nextIcon">🗿</span><span id="nextName"></span></div>
+    <button class="btn3d" id="sailBtn" style="font-size:17px;">⛵ BERANGKAT!</button>
+  </div>
+</div>
+
+<!-- OVERLAY MENANG -->
+<div class="ov hidden" id="winOv">
+  <div class="panel">
+    <h2 style="margin-top:0;">🏆 HARTA KARUN DITEMUKAN!</h2>
+    <div class="chestScene">
+      <div class="rays"></div>
+      <div class="chest" id="chest">
+        <div class="tGlow"></div>
+        <div class="cLid"></div>
+        <div class="cBody"></div>
+        <div class="cBand"></div>
+        <div class="cLock"></div>
+      </div>
+    </div>
+    <div class="starsBig" id="starsBig">⭐⭐⭐</div>
+    <p style="font-weight:700;" id="winMsg"></p>
+    <div class="statRow" id="winStats"></div>
+    <button class="btn3d" id="againBtn" style="font-size:17px;">🔁 BERPETUALANG LAGI</button>
+  </div>
+</div>
+
+<!-- OVERLAY KALAH -->
+<div class="ov hidden" id="overOv">
+  <div class="panel">
+    <span class="bigEmo">⚓</span>
+    <h2>KAPALMU KARAM…</h2>
+    <p style="font-weight:600;margin-bottom:16px;">Nyawa habis! Pelaut hebat tidak takut mencoba lagi. Baca pembahasannya, lalu berlayar ulang! 💪</p>
+    <button class="btn3d" id="restartBtn" style="font-size:17px;">⚓ MULAI LAGI PETUALANGAN</button>
+  </div>
+</div>
+
+<script>
+/* ============ HELPER MATRIKS ============ */
+const M=r=>`<span class="mtx">${r.map(row=>`<span class="mr">${row.map(c=>`<b>${c}</b>`).join('')}</span>`).join('')}</span>`;
+const OP=s=>`<span class="bigOp">${s}</span>`;
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const $=id=>document.getElementById(id);
+
+/* ============ DATA PULAU ============ */
+const ISLANDS=[
+ {name:'Pulau Ordo',icon:'🏝️',topic:'ORDO MATRIKS',color:'#ff8f2d',
+  clue:'Peta kuno menunjuk ke timur… Pulau berikutnya dijaga <b>dua patung kembar</b>! Ingat: dua matriks dikatakan SAMA jika semua elemen yang <b>seletak</b> bernilai sama.'},
+ {name:'Pulau Kesamaan',icon:'🗿',topic:'KESAMAAN MATRIKS',color:'#9c6ade',
+  clue:'Di cakrawala muncul gunung api yang <b>menjumlahkan</b> bebatuan! Di sana elemen-elemen matriks yang <b>seletak dijumlahkan</b>.'},
+ {name:'Pulau Penjumlahan',icon:'🌋',topic:'PENJUMLAHAN MATRIKS',color:'#ef5350',
+  clue:'Angin membawa aroma kelapa… Saatnya <b>mengurangi</b> bekal! Kurangkan elemen-elemen matriks yang <b>seletak</b> satu per satu.'},
+ {name:'Pulau Pengurangan',icon:'🌴',topic:'PENGURANGAN MATRIKS',color:'#43a047',
+  clue:'Petunjuk terakhir: <b>istana emas</b> di depan mata! Di dalamnya berlaku aturan sakral: <b>baris × kolom</b> — itulah perkalian matriks!'},
+ {name:'Pulau Perkalian',icon:'🏰',topic:'PERKALIAN MATRIKS',color:'#2d9cdb',
+  clue:'Harta karun ada di depan mata!'}
+];
+const STOPS=[6,24,42,60,78,94];
+
+/* ============ BANK SOAL (3 varian per pulau) ============ */
+const BANK=[
+[/* 1. ORDO */
+ {text:'Ordo dari matriks A berikut adalah …',
+  math:M([[2,5],[7,3],[1,4]]),
+  opts:[{t:'3 × 2',ok:1},{t:'2 × 3'},{t:'3 × 3'},{t:'6 × 1'}],
+  hint:'Ordo = jumlah <b>BARIS × KOLOM</b>. Baris itu mendatar ↘, kolom itu tegak ↓.',
+  ex:'Matriks A mempunyai <b>3 baris</b> dan <b>2 kolom</b>, sehingga ordo A = <b>3 × 2</b> (ditulis A<sub>3×2</sub>).'},
+ {text:'Ordo dari matriks B berikut adalah …',
+  math:M([[4,0,8],[2,6,1]]),
+  opts:[{t:'2 × 3',ok:1},{t:'3 × 2'},{t:'2 × 2'},{t:'8 × 1'}],
+  hint:'Hitung dulu barisnya (mendatar), baru kolomnya (tegak).',
+  ex:'B memiliki <b>2 baris</b> dan <b>3 kolom</b> → ordo B = <b>2 × 3</b>.'},
+ {text:'Elemen pada <b>baris ke-2 kolom ke-1</b> dari matriks C berikut adalah …',
+  math:M([[3,9],[5,2],[8,7]]),
+  opts:[{t:'9'},{t:'5',ok:1},{t:'8'},{t:'2'}],
+  hint:'Pilih baris ke-2 (dihitung dari atas), lalu lihat elemen di kolom pertama.',
+  ex:'Baris ke-2 adalah [5, 2]. Elemen kolom pertama pada baris itu adalah <b>5</b>.'}
+],
+[/* 2. KESAMAAN */
+ {text:'Jika dua matriks berikut sama, maka nilai <b>x</b> adalah …',
+  math:M([['2x',5],[3,7]])+OP('=')+M([[8,5],[3,7]]),
+  opts:[{t:'2'},{t:'3'},{t:'4',ok:1},{t:'8'}],
+  hint:'Matriks sama → elemen yang <b>seletak</b> sama. Bandingkan elemen pojok kiri atas!',
+  ex:'Elemen seletak pojok kiri atas: 2x = 8 → <b>x = 4</b>. Elemen lain sudah sama.'},
+ {text:'Jika dua matriks berikut sama, maka nilai <b>y</b> adalah …',
+  math:M([[6,1],['y',4]])+OP('=')+M([[6,1],[9,4]]),
+  opts:[{t:'1'},{t:'4'},{t:'6'},{t:'9',ok:1}],
+  hint:'Cari elemen seletak yang berisi y, lalu samakan dengan pasangannya.',
+  ex:'Elemen seletak baris 2 kolom 1: y = <b>9</b>.'},
+ {text:'Jika dua matriks berikut sama, maka nilai <b>a + b</b> adalah …',
+  math:M([['a+1',2],[4,'b−2']])+OP('=')+M([[5,2],[4,3]]),
+  opts:[{t:'7'},{t:'8'},{t:'9',ok:1},{t:'10'}],
+  hint:'Samakan dulu elemen yang memuat a dan yang memuat b, baru jumlahkan hasilnya.',
+  ex:'a + 1 = 5 → a = 4, dan b − 2 = 3 → b = 5. Jadi a + b = 4 + 5 = <b>9</b>.'}
+],
+[/* 3. PENJUMLAHAN */
+ {text:'Hasil dari A + B adalah …',
+  math:M([[1,3],[2,4]])+OP('+')+M([[5,2],[1,3]]),
+  opts:[{t:M([[6,5],[3,7]]),ok:1},{t:M([[6,6],[3,7]])},{t:M([[4,5],[2,7]])},{t:M([[6,5],[2,6]])}],
+  hint:'Jumlahkan elemen-elemen yang <b>posisinya sama (seletak)</b>.',
+  ex:'Jumlahkan elemen seletak: 1+5=<b>6</b>, 3+2=<b>5</b>, 2+1=<b>3</b>, 4+3=<b>7</b>. Jadi A+B = '+M([[6,5],[3,7]])+'.'},
+ {text:'Hasil dari P + Q adalah …',
+  math:M([[4,0],[2,6]])+OP('+')+M([[1,5],[3,2]]),
+  opts:[{t:M([[5,3],[5,8]])},{t:M([[5,5],[5,8]]),ok:1},{t:M([[5,5],[6,8]])},{t:M([[4,5],[5,8]])}],
+  hint:'Kerjakan satu per satu: pojok kiri atas dulu, lalu searah jarum jam.',
+  ex:'4+1=<b>5</b>, 0+5=<b>5</b>, 2+3=<b>5</b>, 6+2=<b>8</b> → P+Q = '+M([[5,5],[5,8]])+'.'},
+ {text:'Diketahui A = '+M([[2,7],[1,3]])+' dan B = '+M([[4,1],[2,5]])+'. Elemen <b>baris 1 kolom 2</b> dari matriks A + B adalah …',
+  opts:[{t:'6'},{t:'8',ok:1},{t:'3'},{t:'5'}],
+  hint:'Cukup jumlahkan dua elemen seletak di baris 1 kolom 2.',
+  ex:'Elemen baris 1 kolom 2: milik A = 7, milik B = 1 → 7 + 1 = <b>8</b>.'}
+],
+[/* 4. PENGURANGAN */
+ {text:'Hasil dari A − B adalah …',
+  math:M([[8,6],[5,9]])+OP('−')+M([[3,2],[1,4]]),
+  opts:[{t:M([[5,4],[4,5]]),ok:1},{t:M([[5,4],[5,4]])},{t:M([[4,4],[4,5]])},{t:M([[5,3],[4,5]])}],
+  hint:'Kurangkan elemen-elemen yang <b>seletak</b>: kiri atas dengan kiri atas, dst.',
+  ex:'8−3=<b>5</b>, 6−2=<b>4</b>, 5−1=<b>4</b>, 9−4=<b>5</b> → A−B = '+M([[5,4],[4,5]])+'.'},
+ {text:'Hasil dari pengurangan dua matriks berikut adalah …',
+  math:M([[10,7],[4,6]])+OP('−')+M([[2,5],[3,1]]),
+  opts:[{t:M([[8,12],[1,5]])},{t:M([[8,2],[7,5]])},{t:M([[8,2],[1,5]]),ok:1},{t:M([[12,2],[1,7]])}],
+  hint:'Hati-hati tanda kurang: setiap elemen atas dikurangi elemen bawah yang seletak.',
+  ex:'10−2=<b>8</b>, 7−5=<b>2</b>, 4−3=<b>1</b>, 6−1=<b>5</b>.'},
+ {text:'Diketahui K = '+M([[9,2],[3,7]])+' dan L = '+M([[4,1],[2,5]])+'. Elemen <b>baris 1 kolom 1</b> dari K − L adalah …',
+  opts:[{t:'13'},{t:'5',ok:1},{t:'4'},{t:'3'}],
+  hint:'Kurangkan dua elemen pojok kiri atas saja.',
+  ex:'Elemen pojok kiri atas: 9 − 4 = <b>5</b>.'}
+],
+[/* 5. PERKALIAN */
+ {text:'Hasil dari A × B adalah …',
+  math:M([[1,2],[3,4]])+OP('×')+M([[2,0],[1,3]]),
+  opts:[{t:M([[4,6],[10,12]]),ok:1},{t:M([[2,0],[3,12]])},{t:M([[6,4],[12,10]])},{t:M([[4,10],[6,12]])}],
+  hint:'Bukan dikalikan langsung! Kalikan <b>BARIS kiri × KOLOM kanan</b>, lalu jumlahkan.',
+  ex:'Baris 1 × kolom: (1·2 + 2·1)=<b>4</b>, (1·0 + 2·3)=<b>6</b>; baris 2: (3·2 + 4·1)=<b>10</b>, (3·0 + 4·3)=<b>12</b>. Jadi A×B = '+M([[4,6],[10,12]])+'.'},
+ {text:'Hasil dari perkalian skalar berikut adalah …',
+  math:OP('3 ·')+M([[2,1],[4,0]]),
+  opts:[{t:M([[6,1],[4,3]])},{t:M([[6,3],[12,0]]),ok:1},{t:M([[5,4],[7,3]])},{t:M([[6,3],[4,0]])}],
+  hint:'Kalikan <b>setiap elemen</b> matriks dengan bilangan 3.',
+  ex:'Setiap elemen dikalikan 3: 3·2=<b>6</b>, 3·1=<b>3</b>, 3·4=<b>12</b>, 3·0=<b>0</b>.'},
+ {text:'Hasil dari P × Q adalah …',
+  math:M([[2,1],[0,3]])+OP('×')+M([[1,2],[2,1]]),
+  opts:[{t:M([[2,2],[0,3]])},{t:M([[5,4],[3,6]])},{t:M([[4,5],[6,3]]),ok:1},{t:M([[4,2],[6,3]])}],
+  hint:'Ingat polanya: baris ke-i matriks kiri dikalikan kolom ke-j matriks kanan.',
+  ex:'(2·1+1·2)=<b>4</b>, (2·2+1·1)=<b>5</b>, (0·1+3·2)=<b>6</b>, (0·2+3·1)=<b>3</b> → P×Q = '+M([[4,5],[6,3]])+'.'}
+]];
+
+/* ============ AUDIO ============ */
+let actx=null,muted=false;
+function ac(){if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}
+function tone(f,d,type='sine',t0=0,g=.15,slide=null){
+  if(muted)return;try{
+    const a=ac(),o=a.createOscillator(),gn=a.createGain(),t=a.currentTime+t0;
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);
+    gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+.02);
+    gn.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(gn).connect(a.destination);o.start(t);o.stop(t+d+.05);
+  }catch(e){}
+}
+const sClick=()=>tone(700,.06,'square',0,.06);
+const sCorrect=()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.15,'triangle',i*.09,.14));tone(2093,.35,'sine',.36,.05);};
+const sWrong=()=>{tone(220,.3,'sawtooth',0,.12,130);tone(160,.3,'square',.05,.08);};
+const sCoin=()=>{tone(1319,.07,'square',0,.1);tone(1760,.14,'square',.07,.1);};
+const sHint=()=>{tone(880,.1,'sine',0,.1);tone(1320,.18,'sine',.1,.1);};
+const sTick=()=>tone(1000,.05,'square',0,.06);
+const sSail=()=>tone(300,.5,'sine',0,.08,600);
+const sWin=()=>{[523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,.22,'triangle',i*.12,.15));};
+
+/* ============ STATE ============ */
+const TIME=45;
+let island=0,lives=3,coins=0,wrongCount=0,hintUsed=false,timeLeft=TIME,timerId=null;
+let cur=null,answered=false,lastVariant=[-1,-1,-1,-1,-1];
+
+/* ============ PETA ============ */
+function buildMap(){
+  const t=$('track');t.innerHTML='';
+  ISLANDS.forEach((isl,i)=>{
+    const d=document.createElement('div');d.className='stop locked';d.dataset.i=i;
+    d.innerHTML=`<div class="isle">${isl.icon}<span class="lockB">🔒</span></div><div class="sLbl">${isl.name}</div>`;
+    t.appendChild(d);
+  });
+  const tr=document.createElement('div');tr.className='stop treasure';
+  tr.innerHTML=`<div class="isle">💰</div><div class="sLbl">Harta</div>`;
+  t.appendChild(tr);
+}
+function updateMap(){
+  document.querySelectorAll('.stop[data-i]').forEach(s=>{
+    const i=+s.dataset.i;
+    s.className='stop '+(i<island?'done':i===island?'now':'locked');
+  });
+}
+function moveBoat(k){$('boat').style.left=STOPS[k]+'%';}
+
+/* ============ HUD ============ */
+function renderHearts(lostIdx=-1){
+  const h=$('hearts');h.innerHTML='';
+  for(let i=0;i<3;i++){
+    const s=document.createElement('span');
+    s.textContent=i<lives?'❤️':'🖤';
+    if(i===lostIdx){s.textContent='💔';s.className='lose';setTimeout(()=>{s.textContent='🖤';s.className='';},650);}
+    h.appendChild(s);
+  }
+}
+function addCoins(n){
+  const old=coins;coins+=n;$('coinBox').classList.remove('pop');void $('coinBox').offsetWidth;$('coinBox').classList.add('pop');
+  let v=old;const iv=setInterval(()=>{v+=Math.max(1,Math.ceil(n/12));if(v>=coins){v=coins;clearInterval(iv);}$('coinNum').textContent=v;},40);
+}
+function flyCoins(fromEl){
+  const fr=fromEl.getBoundingClientRect(),to=$('coinBox').getBoundingClientRect();
+  for(let i=0;i<6;i++){
+    const c=document.createElement('div');c.className='flyCoin';c.textContent='🪙';
+    c.style.left=(fr.left+fr.width/2)+'px';c.style.top=(fr.top+fr.height/2)+'px';
+    document.body.appendChild(c);
+    c.animate([
+      {transform:'translate(0,0) scale(.7)',opacity:1},
+      {transform:`translate(${(Math.random()*80-40)}px,-40px) scale(1.1)`,opacity:1,offset:.4},
+      {transform:`translate(${to.left-fr.left}px,${to.top-fr.top}px) scale(.6)`,opacity:.2}
+    ],{duration:750+i*70,easing:'ease-in'}).onfinish=()=>{c.remove();sCoin();};
+  }
+}
+
+/* ============ TIMER ============ */
+function startTimer(){
+  clearInterval(timerId);timeLeft=TIME;updateTimer();
+  timerId=setInterval(()=>{
+    timeLeft--;updateTimer();
+    if(timeLeft<=5&&timeLeft>0)sTick();
+    if(timeLeft<=0){clearInterval(timerId);onTimeout();}
+  },1000);
+}
+function updateTimer(){
+  $('tNum').textContent=timeLeft;
+  $('tRing').style.strokeDashoffset=144.5*(1-timeLeft/TIME);
+  const tb=$('timerBox');
+  tb.classList.toggle('low',timeLeft<=10);tb.classList.toggle('mid',timeLeft>10&&timeLeft<=25);
+}
+
+/* ============ SOAL ============ */
+function pickVariant(){
+  const pool=BANK[island];let vi;
+  do{vi=Math.floor(Math.random()*pool.length);}while(pool.length>1&&vi===lastVariant[island]);
+  lastVariant[island]=vi;return pool[vi];
+}
+function renderQuestion(){
+  const src=pickVariant();
+  cur={...src,opts:shuffle(src.opts)};
+  answered=false;hintUsed=false;
+  $('qText').innerHTML=src.text+(src.math?`<div class="mathRow">${src.math}</div>`:'');
+  const box=$('options');box.innerHTML='';
+  const letters=['A','B','C','D'];
+  cur.opts.forEach((o,i)=>{
+    const b=document.createElement('button');b.className='opt';
+    b.innerHTML=`<span class="ol">${letters[i]}</span><span>${o.t}</span>`;
+    b.onclick=()=>onAnswer(i,b);box.appendChild(b);
+  });
+  $('hintBox').classList.remove('show');$('exBox').classList.remove('show');
+  $('fbHead').classList.remove('show');$('retryRow').style.display='none';
+  const hb=$('hintBtn');hb.disabled=false;hb.textContent='💡 Petunjuk';
+  $('topicChip').textContent=ISLANDS[island].topic;
+  $('qCount').textContent=`Pulau ${island+1} dari 5`;
+  document.documentElement.style.setProperty('--isl',ISLANDS[island].color);
+  startTimer();
+}
+function lockOptions(){[...$('options').children].forEach(b=>b.disabled=true);}
+function revealCorrect(){
+  const k=cur.opts.findIndex(o=>o.ok);
+  const b=$('options').children[k];
+  b.classList.add('correct');b.insertAdjacentHTML('beforeend','<span class="mark">✅</span>');
+  return b;
+}
+function onAnswer(i,btn){
+  if(answered)return;answered=true;clearInterval(timerId);lockOptions();
+  if(cur.opts[i].ok){
+    btn.classList.add('correct');btn.insertAdjacentHTML('beforeend','<span class="mark">🌟</span>');
+    [...$('options').children].forEach((b,k)=>{if(k!==i)b.classList.add('dim');});
+    sCorrect();
+    const gain=Math.round((15+Math.floor(timeLeft/3))*(hintUsed?0.5:1));
+    addCoins(gain);flyCoins(btn);
+    const fh=$('fbHead');fh.className='fbHead show goodF';fh.textContent=`🎉 BENAR! +${gain} koin`;
+    updateMap();
+    setTimeout(()=>{island<4?showClue(gain):victory();},1200);
+  }else{
+    btn.classList.add('wrong');btn.insertAdjacentHTML('beforeend','<span class="mark">❌</span>');
+    revealCorrect();fail('❌ KURANG TEPAT!');
+  }
+}
+function onTimeout(){
+  if(answered)return;answered=true;lockOptions();revealCorrect();fail('⏰ WAKTU HABIS!');
+}
+function fail(head){
+  sWrong();wrongCount++;lives--;renderHearts(lives);
+  $('qCard').classList.remove('shakeIt');void $('qCard').offsetWidth;$('qCard').classList.add('shakeIt');
+  const fh=$('fbHead');fh.className='fbHead show badF';fh.textContent=head;
+  const ex=$('exBox');ex.className='exBox show';ex.innerHTML='📖 <b>Pembahasan:</b> '+cur.ex;
+  if(lives<=0){setTimeout(()=>{sSail();$('overOv').classList.remove('hidden');},1700);}
+  else{$('retryRow').style.display='flex';}
+}
+$('retryBtn').onclick=()=>{sClick();renderQuestion();};
+$('hintBtn').onclick=()=>{
+  if(answered||hintUsed)return;hintUsed=true;sHint();
+  $('hintBox').className='hintBox show';$('hintBox').innerHTML='💡 <b>Petunjuk:</b> '+cur.hint;
+  $('hintBtn').disabled=true;$('hintBtn').textContent='💡 Petunjuk dipakai';
+};
+
+/* ============ ALUR PULAU ============ */
+function showClue(gain){
+  sSail();
+  $('clueCoins').innerHTML=`🪙 +${gain} koin terkumpul!`;
+  $('clueText').innerHTML='📜 <i>'+ISLANDS[island].clue+'</i>';
+  $('nextIcon').textContent=ISLANDS[island+1].icon;
+  $('nextName').textContent='Tujuan: '+ISLANDS[island+1].name+' — '+ISLANDS[island+1].topic;
+  $('clueOv').classList.remove('hidden');
+}
+$('sailBtn').onclick=()=>{
+  sClick();$('clueOv').classList.add('hidden');
+  island++;moveBoat(island);updateMap();enterIsland();
+};
+function enterIsland(){
+  $('islandChip').textContent=ISLANDS[island].icon+' '+ISLANDS[island].name;
+  renderQuestion();
+}
+function startGame(){
+  island=0;lives=3;coins=0;wrongCount=0;lastVariant=[-1,-1,-1,-1,-1];
+  $('coinNum').textContent='0';renderHearts();buildMap();updateMap();moveBoat(0);
+  $('startOv').classList.add('hidden');$('overOv').classList.add('hidden');
+  $('winOv').classList.add('hidden');$('clueOv').classList.add('hidden');
+  $('islandChip').textContent=ISLANDS[0].icon+' '+ISLANDS[0].name;
+  renderQuestion();
+}
+
+/* ============ KEMENANGAN ============ */
+function confetti(n){
+  const cols=['#ffcf3f','#ff5d5d','#2ecc71','#2d9cdb','#fff','#ff8f2d'];
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');p.className='confettiP';
+    const s=7+Math.random()*9;
+    p.style.cssText=`left:${Math.random()*100}vw;width:${s}px;height:${s*1.3}px;background:${cols[i%cols.length]};
+      border-radius:${Math.random()>.5?'50%':'3px'};animation-duration:${2.4+Math.random()*2}s;animation-delay:${Math.random()*.9}s;`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),5500);
+  }
+}
+function chestBurst(){
+  const ch=$('chest');
+  for(let i=0;i<16;i++){
+    const c=document.createElement('span');c.className='cCoin';c.textContent=i%3?'🪙':'💎';
+    c.style.left='55%';c.style.bottom='55%';
+    c.style.setProperty('--cx',(Math.random()*160-80)+'px');
+    c.style.setProperty('--cy',(-60-Math.random()*90)+'px');
+    c.style.setProperty('--cr',(Math.random()*360)+'deg');
+    c.style.animationDelay=(i*.07)+'s';
+    ch.appendChild(c);setTimeout(()=>c.remove(),2000);
+  }
+}
+function victory(){
+  moveBoat(5);sSail();
+  setTimeout(()=>{
+    $('winOv').classList.remove('hidden');sWin();
+    const stars=lives===3?'⭐⭐⭐':lives===2?'⭐⭐':'⭐';
+    $('starsBig').textContent=stars;
+    $('winMsg').innerHTML=lives===3
+      ?'SEMPURNA! Kapten Aljabar salut — kamu menaklukkan semua pulau tanpa kehilangan nyawa! 🎉'
+      :'Harta berhasil ditemukan! Latihan membuatmu semakin tajam, coba lagi untuk 3 bintang! ⚔️';
+    $('winStats').innerHTML=`
+      <div class="stat">Koin<b>🪙 ${coins}</b></div>
+      <div class="stat">Nyawa Tersisa<b>${'❤️'.repeat(lives)||'—'}</b></div>
+      <div class="stat">Jawaban Salah<b>${wrongCount}</b></div>`;
+    setTimeout(()=>{$('chest').classList.add('open');chestBurst();confetti(120);},600);
+    let k=0;const iv=setInterval(()=>{confetti(28);if(++k>3)clearInterval(iv);},800);
+  },1100);
+}
+
+/* ============ INPUT ============ */
+$('startBtn').onclick=()=>{ac();sSail();startGame();};
+$('againBtn').onclick=()=>{sClick();$('chest').classList.remove('open');startGame();};
+$('restartBtn').onclick=()=>{sClick();startGame();};
+$('sndBtn').onclick=function(){muted=!muted;this.textContent=muted?'🔇':'🔊';};
+document.addEventListener('keydown',e=>{
+  if(!$('startOv').classList.contains('hidden'))return;
+  const map={'1':0,'2':1,'3':2,'4':3,'a':0,'b':1,'c':2,'d':3};
+  const k=e.key.toLowerCase();
+  if(k in map&&!answered){const b=$('options').children[map[k]];if(b)b.click();}
+});
+
+buildMap();renderHearts();
+</script>
+</body>
+</html>
