@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏴‍☠️ Math Treasure Hunt</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
+  body {
+    min-height:100vh;
+    background: linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #90e0ef 100%);
+    overflow-x:hidden;
+    padding:10px;
+  }
+  .container { max-width:900px; margin:0 auto; }
+
+  /* HEADER */
+  .header {
+    text-align:center;
+    color:#fff;
+    text-shadow:2px 2px 8px rgba(0,0,0,.4);
+    padding:15px;
+  }
+  .header h1 { font-size:clamp(1.5rem, 5vw, 2.5rem); }
+  .header p { font-size:clamp(.9rem, 2.5vw, 1.1rem); opacity:.9; }
+
+  /* STATS BAR */
+  .stats {
+    display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+    background:rgba(255,255,255,.2); backdrop-filter:blur(10px);
+    border-radius:20px; padding:12px; margin:10px 0;
+    border:2px solid rgba(255,255,255,.3);
+  }
+  .stat {
+    background:rgba(255,255,255,.9);
+    padding:8px 14px; border-radius:15px;
+    font-weight:bold; color:#023e8a;
+    box-shadow:0 4px 10px rgba(0,0,0,.2);
+    display:flex; align-items:center; gap:6px;
+    font-size:clamp(.85rem, 2.5vw, 1rem);
+  }
+
+  /* CARD 3D */
+  .card-3d {
+    perspective:1000px;
+    margin:20px auto;
+  }
+  .card {
+    background:linear-gradient(145deg, #fff 0%, #f0f8ff 100%);
+    border-radius:25px;
+    padding:25px;
+    box-shadow:
+      0 20px 50px rgba(0,0,0,.3),
+      0 0 0 5px rgba(255,255,255,.3) inset,
+      0 5px 15px rgba(0,0,0,.1);
+    transform-style:preserve-3d;
+    transition:transform .4s;
+    border:3px solid #ffd60a;
+  }
+  .card:hover { transform:rotateX(2deg) rotateY(-2deg) translateY(-5px); }
+
+  /* MAP */
+  .map {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+    gap:15px;
+    margin:20px 0;
+  }
+  .island {
+    background:linear-gradient(145deg, #2d6a4f, #52b788);
+    color:#fff;
+    padding:20px 10px;
+    border-radius:20px;
+    text-align:center;
+    cursor:pointer;
+    transition:all .3s;
+    box-shadow:0 10px 25px rgba(0,0,0,.3);
+    border:3px solid #ffd60a;
+    position:relative;
+    overflow:hidden;
+  }
+  .island.locked {
+    background:linear-gradient(145deg, #6c757d, #adb5bd);
+    cursor:not-allowed;
+    opacity:.7;
+  }
+  .island.completed {
+    background:linear-gradient(145deg, #ffd60a, #ffba08);
+    color:#023e8a;
+  }
+  .island.current {
+    animation:pulse 1.5s infinite;
+    transform:scale(1.05);
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow:0 10px 25px rgba(0,0,0,.3), 0 0 0 0 rgba(255,214,10,.7); }
+    50% { box-shadow:0 10px 25px rgba(0,0,0,.3), 0 0 0 15px rgba(255,214,10,0); }
+  }
+  .island-icon { font-size:2.5rem; display:block; margin-bottom:8px; }
+  .island-name { font-weight:bold; font-size:1rem; }
+  .island-status { font-size:.8rem; margin-top:5px; opacity:.9; }
+
+  /* QUESTION */
+  .question-box {
+    background:linear-gradient(135deg, #ff9e00, #ff6d00);
+    color:#fff;
+    padding:20px;
+    border-radius:20px;
+    margin:15px 0;
+    box-shadow:0 10px 25px rgba(255,109,0,.4);
+    text-align:center;
+  }
+  .question-box .seq {
+    font-size:clamp(1.3rem, 4vw, 1.8rem);
+    font-weight:bold;
+    margin:10px 0;
+    letter-spacing:2px;
+  }
+  .question-box .q-text {
+    font-size:clamp(1rem, 3vw, 1.2rem);
+    margin-top:10px;
+  }
+
+  /* OPTIONS */
+  .options {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+    gap:12px;
+    margin:15px 0;
+  }
+  .option-btn {
+    background:linear-gradient(145deg, #0077b6, #00b4d8);
+    color:#fff;
+    border:none;
+    padding:15px;
+    border-radius:15px;
+    font-size:1.1rem;
+    font-weight:bold;
+    cursor:pointer;
+    transition:all .2s;
+    box-shadow:0 5px 15px rgba(0,119,182,.4);
+  }
+  .option-btn:hover:not(:disabled) {
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(0,119,182,.6);
+  }
+  .option-btn:disabled { cursor:not-allowed; opacity:.7; }
+  .option-btn.correct { background:linear-gradient(145deg, #2d6a4f, #52b788); animation:shake .5s; }
+  .option-btn.wrong { background:linear-gradient(145deg, #c1121f, #e5383b); animation:shake .5s; }
+  @keyframes shake {
+    0%,100% { transform:translateX(0); }
+    25% { transform:translateX(-8px); }
+    75% { transform:translateX(8px); }
+  }
+
+  /* BUTTONS */
+  .btn {
+    background:linear-gradient(145deg, #ffd60a, #ffba08);
+    color:#023e8a;
+    border:none;
+    padding:12px 25px;
+    border-radius:15px;
+    font-size:1rem;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 5px 15px rgba(0,0,0,.2);
+    transition:all .2s;
+    margin:5px;
+  }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.3); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-danger { background:linear-gradient(145deg, #e5383b, #c1121f); color:#fff; }
+  .btn-success { background:linear-gradient(145deg, #52b788, #2d6a4f); color:#fff; }
+
+  /* TIMER */
+  .timer-bar {
+    height:10px;
+    background:rgba(255,255,255,.3);
+    border-radius:10px;
+    overflow:hidden;
+    margin:10px 0;
+  }
+  .timer-fill {
+    height:100%;
+    background:linear-gradient(90deg, #52b788, #ffd60a, #e5383b);
+    transition:width 1s linear;
+    border-radius:10px;
+  }
+
+  /* EXPLANATION */
+  .explanation {
+    background:linear-gradient(135deg, #caf0f8, #ade8f4);
+    border-left:5px solid #0077b6;
+    padding:15px;
+    border-radius:10px;
+    margin:15px 0;
+    color:#023e8a;
+    display:none;
+  }
+  .explanation.show { display:block; animation:fadeIn .5s; }
+  @keyframes fadeIn { from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
+
+  /* MODAL */
+  .modal {
+    display:none;
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,.8);
+    z-index:100;
+    justify-content:center; align-items:center;
+    padding:20px;
+  }
+  .modal.show { display:flex; animation:fadeIn .4s; }
+  .modal-content {
+    background:linear-gradient(145deg, #fff, #f0f8ff);
+    padding:30px;
+    border-radius:25px;
+    max-width:500px;
+    width:100%;
+    text-align:center;
+    border:4px solid #ffd60a;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal-content h2 { color:#023e8a; margin-bottom:15px; font-size:clamp(1.5rem, 5vw, 2rem); }
+  .modal-content p { color:#333; margin:10px 0; font-size:1.1rem; }
+
+  /* CONFETTI */
+  .confetti {
+    position:fixed;
+    width:10px; height:10px;
+    top:-10px;
+    z-index:99;
+    animation:fall 3s linear forwards;
+  }
+  @keyframes fall {
+    to { transform:translateY(100vh) rotate(720deg); }
+  }
+
+  /* HINT */
+  .hint-box {
+    background:linear-gradient(135deg, #ffba08, #faa307);
+    color:#023e8a;
+    padding:12px;
+    border-radius:15px;
+    margin:10px 0;
+    display:none;
+    font-weight:bold;
+    box-shadow:0 5px 15px rgba(250,163,7,.4);
+  }
+  .hint-box.show { display:block; animation:fadeIn .4s; }
+
+  /* START SCREEN */
+  .start-screen {
+    text-align:center;
+    color:#fff;
+    padding:30px 20px;
+  }
+  .start-screen h1 {
+    font-size:clamp(2rem, 7vw, 3.5rem);
+    text-shadow:3px 3px 10px rgba(0,0,0,.5);
+    margin-bottom:15px;
+  }
+  .start-screen .treasure-icon {
+    font-size:clamp(4rem, 15vw, 7rem);
+    display:block;
+    margin:20px 0;
+    animation:bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform:translateY(0); }
+    50% { transform:translateY(-20px); }
+  }
+
+  @media (max-width: 600px) {
+    .stats { gap:6px; padding:8px; }
+    .stat { padding:6px 10px; font-size:.85rem; }
+    .card { padding:15px; }
+    .island { padding:15px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- START SCREEN -->
+  <div id="startScreen" class="start-screen">
+    <span class="treasure-icon">🏴‍☠️💎</span>
+    <h1>Math Treasure Hunt</h1>
+    <p style="font-size:1.2rem; margin:15px 0;">Petualangan mencari harta karun di 5 pulau misterius!</p>
+    <div class="card" style="max-width:500px; margin:20px auto; text-align:left; color:#023e8a;">
+      <h3 style="margin-bottom:10px;">📜 Aturan Main:</h3>
+      <p>🏝️ Jelajahi 5 pulau untuk menemukan harta karun</p>
+      <p>🧮 Selesaikan tantangan barisan aritmatika</p>
+      <p>⏱️ Setiap soal punya batas waktu 30 detik</p>
+      <p>❤️ Kamu punya 3 nyawa</p>
+      <p>💰 Jawaban benar = koin + petunjuk pulau berikutnya</p>
+      <p>💡 Gunakan petunjuk bantuan jika butuh</p>
+    </div>
+    <button class="btn btn-success" style="font-size:1.3rem; padding:15px 40px;" onclick="startGame()">
+      🚀 Mulai Petualangan!
+    </button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" style="display:none;">
+    <div class="header">
+      <h1>🏴‍☠️ Math Treasure Hunt</h1>
+      <p id="subtitle">Peta Pulau Harta Karun</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat">❤️ Nyawa: <span id="lives">3</span></div>
+      <div class="stat">💰 Koin: <span id="coins">0</span></div>
+      <div class="stat">⭐ Skor: <span id="score">0</span></div>
+      <div class="stat">💡 Hint: <span id="hints">3</span></div>
+      <div class="stat">⏱️ <span id="timer">30</span>s</div>
+    </div>
+
+    <!-- MAP -->
+    <div class="card-3d">
+      <div class="card" id="mapCard">
+        <h2 style="text-align:center; color:#023e8a; margin-bottom:15px;">🗺️ Peta Petualangan</h2>
+        <div class="map" id="map"></div>
+        <p id="mapMessage" style="text-align:center; margin-top:15px; color:#023e8a; font-weight:bold;"></p>
+      </div>
+    </div>
+
+    <!-- QUESTION CARD -->
+    <div class="card-3d" id="questionCard" style="display:none;">
+      <div class="card">
+        <h2 style="text-align:center; color:#023e8a;" id="islandTitle">🏝️ Pulau 1</h2>
+        <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+        <div class="question-box">
+          <div class="seq" id="sequence"></div>
+          <div class="q-text" id="questionText"></div>
+        </div>
+        <div class="hint-box" id="hintBox"></div>
+        <div class="options" id="options"></div>
+        <div class="explanation" id="explanation"></div>
+        <div style="text-align:center;">
+          <button class="btn" id="hintBtn" onclick="useHint()">💡 Gunakan Hint</button>
+          <button class="btn btn-danger" onclick="showMap()">🗺️ Kembali ke Peta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div id="modalIcon" style="font-size:4rem;">🎉</div>
+    <h2 id="modalTitle">Selamat!</h2>
+    <p id="modalText">Kamu berhasil!</p>
+    <div id="modalStats" style="margin:15px 0; color:#023e8a; font-weight:bold;"></div>
+    <button class="btn btn-success" onclick="closeModal()">Lanjutkan</button>
+  </div>
+</div>
+
+<script>
+// ============ DATA GAME ============
+const islands = [
+  { name:"Pulau Permata", icon:"🏝️", color:"#52b788" },
+  { name:"Pulau Rubi", icon:"🌴", color:"#e5383b" },
+  { name:"Pulau Safir", icon:"🏖️", color:"#0077b6" },
+  { name:"Pulau Zamrud", icon:"🌺", color:"#2d6a4f" },
+  { name:"Pulau Emas", icon:"👑", color:"#ffd60a" }
+];
+
+// Generate soal acak
+function generateQuestions() {
+  const questions = [];
+  for (let i=0; i<5; i++) {
+    const a = Math.floor(Math.random()*10)+1; // suku pertama 1-10
+    const b = Math.floor(Math.random()*8)+2;  // beda 2-9
+    const type = i % 3; // 0:cari a, 1:cari b, 2:cari suku ke-n
+    const seq = [a, a+b, a+2*b, a+3*b, a+4*b];
+    const seqStr = seq.join(", ") + ", ...";
+
+    let q, answer, options, hint, explanation;
+    if (type === 0) {
+      q = "Tentukan suku pertama (a)!";
+      answer = a;
+      hint = `Suku pertama adalah angka paling depan dari barisan.`;
+      explanation = `Suku pertama (a) = ${a}. Barisan dimulai dari ${a}, dengan beda ${b}.`;
+    } else if (type === 1) {
+      q = "Tentukan beda (b) antar suku!";
+      answer = b;
+      hint = `Beda = suku ke-2 dikurangi suku ke-1.`;
+      explanation = `Beda (b) = ${seq[1]} - ${seq[0]} = ${b}. Setiap suku bertambah ${b}.`;
+    } else {
+      const n = Math.floor(Math.random()*5)+6; // suku ke 6-10
+      const un = a + (n-1)*b;
+      q = `Tentukan suku ke-${n} (U${n})!`;
+      answer = un;
+      hint = `Rumus: Un = a + (n-1)×b, dengan a=${a}, b=${b}, n=${n}`;
+      explanation = `U${n} = a + (n-1)×b = ${a} + (${n}-1)×${b} = ${a} + ${(n-1)*b} = ${un}`;
+    }
+
+    // Generate opsi (1 benar, 3 salah)
+    const opts = new Set([answer]);
+    while (opts.size < 4) {
+      const wrong = answer + (Math.floor(Math.random()*11)-5);
+      if (wrong !== answer && wrong > 0) opts.add(wrong);
+    }
+    options = [...opts].sort(() => Math.random()-0.5);
+
+    questions.push({ seqStr, q, answer, options, hint, explanation, a, b });
+  }
+  return questions;
+}
+
+// ============ STATE ============
+let state = {
+  lives: 3,
+  coins: 0,
+  score: 0,
+  hints: 3,
+  currentIsland: 0,
+  unlockedIslands: 1,
+  completedIslands: [],
+  questions: [],
+  currentQ: null,
+  timer: 30,
+  timerInterval: null,
+  answered: false
+};
+
+// ============ GAME FUNCTIONS ============
+function startGame() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  state.questions = generateQuestions();
+  updateStats();
+  renderMap();
+}
+
+function updateStats() {
+  document.getElementById('lives').textContent = state.lives;
+  document.getElementById('coins').textContent = state.coins;
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('hints').textContent = state.hints;
+  document.getElementById('timer').textContent = state.timer;
+}
+
+function renderMap() {
+  const map = document.getElementById('map');
+  map.innerHTML = '';
+  islands.forEach((island, idx) => {
+    const div = document.createElement('div');
+    div.className = 'island';
+    let status = '';
+    if (state.completedIslands.includes(idx)) {
+      div.classList.add('completed');
+      status = '✅ Selesai';
+    } else if (idx < state.unlockedIslands) {
+      div.classList.add('current');
+      status = '🎯 Tantang!';
+    } else {
+      div.classList.add('locked');
+      status = '🔒 Terkunci';
+    }
+    div.innerHTML = `
+      <span class="island-icon">${island.icon}</span>
+      <div class="island-name">${island.name}</div>
+      <div class="island-status">${status}</div>
+    `;
+    if (idx < state.unlockedIslands && !state.completedIslands.includes(idx)) {
+      div.onclick = () => enterIsland(idx);
+    }
+    map.appendChild(div);
+  });
+
+  const msg = document.getElementById('mapMessage');
+  if (state.completedIslands.length === 5) {
+    msg.textContent = '🎉 Semua pulau telah ditaklukkan!';
+  } else if (state.unlockedIslands < 5) {
+    msg.textContent = `🏝️ Pulau berikutnya: ${islands[state.unlockedIslands-1].name}`;
+  } else {
+    msg.textContent = '🏝️ Selesaikan tantangan pulau saat ini!';
+  }
+}
+
+function enterIsland(idx) {
+  state.currentIsland = idx;
+  state.currentQ = state.questions[idx];
+  state.answered = false;
+  document.getElementById('mapCard').style.display = 'none';
+  document.getElementById('questionCard').style.display = 'block';
+  document.getElementById('subtitle').textContent = `Menjelajahi ${islands[idx].name}`;
+  document.getElementById('islandTitle').textContent = `${islands[idx].icon} ${islands[idx].name}`;
+  document.getElementById('sequence').textContent = state.currentQ.seqStr;
+  document.getElementById('questionText').textContent = state.currentQ.q;
+  document.getElementById('hintBox').classList.remove('show');
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('hintBtn').disabled = state.hints === 0;
+  renderOptions();
+  startTimer();
+}
+
+function renderOptions() {
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+  state.currentQ.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(opt, btn);
+    optsDiv.appendChild(btn);
+  });
+}
+
+function startTimer() {
+  state.timer = 30;
+  updateStats();
+  document.getElementById('timerFill').style.width = '100%';
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.timer--;
+    document.getElementById('timer').textContent = state.timer;
+    document.getElementById('timerFill').style.width = (state.timer/30*100) + '%';
+    if (state.timer <= 0) {
+      clearInterval(state.timerInterval);
+      if (!state.answered) timeOut();
+    }
+  }, 1000);
+}
+
+function checkAnswer(selected, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+
+  if (selected === state.currentQ.answer) {
+    btn.classList.add('correct');
+    state.coins += 10;
+    state.score += 100 + state.timer*5; // bonus waktu
+    showExplanation(true);
+    setTimeout(() => {
+      state.completedIslands.push(state.currentIsland);
+      state.unlockedIslands = Math.max(state.unlockedIslands, state.currentIsland + 2);
+      if (state.completedIslands.length === 5) {
+        showVictory();
+      } else {
+        showModal('🎉', 'Pulau Ditaklukkan!', 
+          `Kamu berhasil menaklukkan ${islands[state.currentIsland].name}!`,
+          `+10 💰 | +${100+state.timer*5} ⭐`);
+      }
+    }, 1500);
+  } else {
+    btn.classList.add('wrong');
+    // Tampilkan jawaban benar
+    buttons.forEach(b => {
+      if (parseInt(b.textContent) === state.currentQ.answer) b.classList.add('correct');
+    });
+    state.lives--;
+    showExplanation(false);
+    setTimeout(() => {
+      if (state.lives <= 0) {
+        showGameOver();
+      } else {
+        showModal('💔', 'Jawaban Salah!', 
+          `Nyawa berkurang. Jawaban benar: ${state.currentQ.answer}`,
+          `❤️ Nyawa tersisa: ${state.lives}`);
+      }
+    }, 2000);
+  }
+  updateStats();
+}
+
+function timeOut() {
+  state.answered = true;
+  state.lives--;
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => {
+    b.disabled = true;
+    if (parseInt(b.textContent) === state.currentQ.answer) b.classList.add('correct');
+  });
+  showExplanation(false);
+  updateStats();
+  setTimeout(() => {
+    if (state.lives <= 0) showGameOver();
+    else showModal('⏱️', 'Waktu Habis!', 
+      `Waktu 30 detik telah berakhir. Jawaban: ${state.currentQ.answer}`,
+      `❤️ Nyawa tersisa: ${state.lives}`);
+  }, 1500);
+}
+
+function showExplanation(correct) {
+  const exp = document.getElementById('explanation');
+  exp.innerHTML = `<strong>${correct ? '✅ Pembahasan Benar:' : '📖 Pembahasan:'}</strong><br>${state.currentQ.explanation}`;
+  exp.classList.add('show');
+}
+
+function useHint() {
+  if (state.hints <= 0 || state.answered) return;
+  state.hints--;
+  updateStats();
+  const hintBox = document.getElementById('hintBox');
+  hintBox.textContent = '💡 ' + state.currentQ.hint;
+  hintBox.classList.add('show');
+  document.getElementById('hintBtn').disabled = state.hints === 0;
+}
+
+function showMap() {
+  clearInterval(state.timerInterval);
+  document.getElementById('questionCard').style.display = 'none';
+  document.getElementById('mapCard').style.display = 'block';
+  document.getElementById('subtitle').textContent = 'Peta Pulau Harta Karun';
+  renderMap();
+}
+
+function showModal(icon, title, text, stats) {
+  document.getElementById('modalIcon').textContent = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modalStats').textContent = stats || '';
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  showMap();
+}
+
+function showVictory() {
+  launchConfetti();
+  showModal('👑💎', 'HARTA KARUN DITEMUKAN!', 
+    'Selamat! Kamu berhasil menaklukkan semua 5 pulau dan menemukan harta karun!',
+    `Skor Akhir: ${state.score} ⭐ | Koin: ${state.coins} 💰`);
+}
+
+function showGameOver() {
+  showModal('💀', 'Game Over!', 
+    'Nyawamu habis. Petualangan berakhir...',
+    `Skor Akhir: ${state.score} ⭐ | Koin: ${state.coins} 💰`);
+  setTimeout(() => {
+    if (confirm('Main lagi?')) {
+      resetGame();
+    }
+  }, 1000);
+}
+
+function resetGame() {
+  state = {
+    lives:3, coins:0, score:0, hints:3,
+    currentIsland:0, unlockedIslands:1,
+    completedIslands:[], questions:generateQuestions(),
+    currentQ:null, timer:30, timerInterval:null, answered:false
+  };
+  updateStats();
+  renderMap();
+}
+
+function launchConfetti() {
+  const colors = ['#ffd60a','#e5383b','#52b788','#0077b6','#ff6d00'];
+  for (let i=0; i<80; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDelay = Math.random()*2 + 's';
+    c.style.animationDuration = (Math.random()*2+2) + 's';
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+</script>
+</body>
+</html>
