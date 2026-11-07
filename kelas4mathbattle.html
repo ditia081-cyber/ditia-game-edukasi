@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Math Quiz Battle - Kelas IV</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif; }
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow-x: hidden;
+}
+.container {
+  background: rgba(255,255,255,0.97);
+  border-radius: 25px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  padding: 30px;
+  max-width: 900px;
+  width: 100%;
+  position: relative;
+  animation: slideIn 0.6s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-30px);} to {opacity:1; transform:translateY(0);} }
+@keyframes pulse { 0%,100% {transform:scale(1);} 50% {transform:scale(1.05);} }
+@keyframes shake { 0%,100% {transform:translateX(0);} 25% {transform:translateX(-10px);} 75% {transform:translateX(10px);} }
+@keyframes pop { 0% {transform:scale(0);} 60% {transform:scale(1.2);} 100% {transform:scale(1);} }
+@keyframes confetti { 0% {transform: translateY(-100vh) rotate(0);} 100% {transform: translateY(100vh) rotate(720deg);} }
+h1 {
+  text-align: center;
+  color: #4a148c;
+  font-size: 2.5em;
+  text-shadow: 3px 3px 0 #ffd54f;
+  margin-bottom: 10px;
+  animation: pulse 2s infinite;
+}
+.subtitle { text-align:center; color:#6a1b9a; margin-bottom:20px; font-size:1.1em; }
+.screen { display: none; }
+.screen.active { display: block; animation: slideIn 0.5s; }
+.btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s;
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+.btn:active { transform: translateY(0); }
+.btn-green { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.btn-blue { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+.btn-purple { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+.btn-orange { background: linear-gradient(135deg, #f7971e, #ffd200); color:#333; }
+.setup-box {
+  background: linear-gradient(135deg, #f6d365, #fda085);
+  padding: 25px;
+  border-radius: 20px;
+  margin: 20px 0;
+}
+.setup-box label { display:block; margin: 10px 0 5px; font-weight:bold; color:#4a148c; }
+.setup-box input, .setup-box select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #8e2de2;
+  border-radius: 10px;
+  font-size: 1em;
+  margin-bottom: 10px;
+}
+.team-input {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 20px 0;
+}
+.team-card {
+  padding: 15px;
+  border-radius: 15px;
+  text-align: center;
+}
+.team-a { background: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+.team-b { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+.team-card input {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  margin-top: 5px;
+  text-align: center;
+}
+.round-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 15px;
+  border-radius: 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+.score-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 15px 0;
+}
+.score-card {
+  padding: 15px;
+  border-radius: 15px;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+}
+.score-a { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.score-b { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.score-card .team-name { font-size: 1.1em; }
+.score-card .score { font-size: 2em; margin-top: 5px; }
+.timer-bar {
+  height: 15px;
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #11998e, #38ef7d);
+  transition: width 0.1s linear;
+  width: 100%;
+}
+.timer-fill.warning { background: linear-gradient(90deg, #f7971e, #ffd200); }
+.timer-fill.danger { background: linear-gradient(90deg, #ff416c, #ff4b2b); }
+.timer-text { text-align:center; font-size:1.5em; font-weight:bold; color:#4a148c; }
+.question-box {
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  padding: 25px;
+  border-radius: 20px;
+  margin: 15px 0;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+.option-btn {
+  background: white;
+  border: 3px solid #8e2de2;
+  padding: 15px;
+  border-radius: 15px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  color: #4a148c;
+}
+.option-btn:hover { background: #f3e5f5; transform: scale(1.03); }
+.option-btn.correct { background: #c8e6c9; border-color: #2e7d32; color:#1b5e20; animation: pop 0.5s; }
+.option-btn.wrong { background: #ffcdd2; border-color: #c62828; color:#b71c1c; animation: shake 0.5s; }
+.option-btn:disabled { cursor: not-allowed; }
+.tf-options { grid-template-columns: 1fr 1fr; }
+.tf-options .option-btn { padding: 20px; font-size: 1.3em; }
+.explanation {
+  background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+  padding: 20px;
+  border-radius: 15px;
+  margin: 15px 0;
+  border-left: 5px solid #00838f;
+  display: none;
+}
+.explanation.show { display: block; animation: slideIn 0.4s; }
+.explanation h3 { color: #006064; margin-bottom: 10px; }
+.leaderboard {
+  background: linear-gradient(135deg, #fff9c4, #fff59d);
+  padding: 20px;
+  border-radius: 20px;
+  margin: 15px 0;
+}
+.leaderboard h2 { text-align:center; color:#f57f17; margin-bottom:15px; }
+.lb-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 15px;
+  margin: 8px 0;
+  background: white;
+  border-radius: 10px;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.lb-row.gold { background: linear-gradient(135deg, #ffd700, #ffed4e); font-weight:bold; }
+.lb-row.silver { background: linear-gradient(135deg, #c0c0c0, #e0e0e0); }
+.lb-row.bronze { background: linear-gradient(135deg, #cd7f32, #e6a35e); color:white; }
+.rank { font-size: 1.5em; margin-right: 10px; }
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confetti 3s linear forwards;
+  z-index: 1000;
+}
+.badge {
+  display: inline-block;
+  padding: 5px 12px;
+  background: #ffd54f;
+  color: #333;
+  border-radius: 20px;
+  font-size: 0.85em;
+  margin: 3px;
+  font-weight: bold;
+}
+.progress-bar {
+  background: #ddd;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+  transition: width 0.5s;
+}
+.center { text-align: center; }
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.hidden { display: none; }
+@media (max-width: 600px) {
+  h1 { font-size: 1.8em; }
+  .options, .team-input { grid-template-columns: 1fr; }
+  .container { padding: 15px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- LAYAR PEMBUKA -->
+<div id="screen-home" class="screen active">
+  <h1>🎮 Math Quiz Battle 🏆</h1>
+  <p class="subtitle">Game Kuis Matematika Interaktif Kelas IV</p>
+  <div class="center" style="margin:30px 0;">
+    <div style="font-size:5em;">🧮 ✖️ ➗ 🥧</div>
+    <p style="margin:20px 0; color:#555; font-size:1.1em;">
+      Bermain berkelompok (2 orang) melalui <b>3 babak seru</b>:<br>
+      🔥 Pemanasan &nbsp; ⚡ Duel Cepat &nbsp; 🏁 Tantangan Final
+    </p>
+    <div>
+      <span class="badge">Penjumlahan Ratusan</span>
+      <span class="badge">Pengurangan Ratusan</span>
+      <span class="badge">Perkalian</span>
+      <span class="badge">Pembagian</span>
+      <span class="badge">Faktor Prima</span>
+      <span class="badge">Pecahan</span>
+      <span class="badge">Analisis Data</span>
+    </div>
+  </div>
+  <div class="center">
+    <button class="btn btn-purple" onclick="showScreen('setup')">👨‍🏫 Pengaturan Guru</button>
+    <button class="btn btn-green" onclick="startGame()">▶️ MULAI PERMAINAN</button>
+  </div>
+</div>
+
+<!-- LAYAR PENGATURAN GURU -->
+<div id="screen-setup" class="screen">
+  <h1>⚙️ Pengaturan Guru</h1>
+  <div class="setup-box">
+    <label>📝 Jumlah Soal per Babak:</label>
+    <select id="set-questions">
+      <option value="3">3 soal (Cepat)</option>
+      <option value="5" selected>5 soal (Normal)</option>
+      <option value="7">7 soal (Panjang)</option>
+      <option value="10">10 soal (Maraton)</option>
+    </select>
+
+    <label>🎯 Tingkat Kesulitan:</label>
+    <select id="set-difficulty">
+      <option value="easy">🟢 Mudah (angka kecil, sederhana)</option>
+      <option value="medium" selected>🟡 Sedang (campuran)</option>
+      <option value="hard">🔴 Sulit (angka besar, kompleks)</option>
+      <option value="mixed">🌈 Campuran (semua tingkat)</option>
+    </select>
+
+    <label>⏱️ Waktu per Soal (detik):</label>
+    <select id="set-time">
+      <option value="15">15 detik (Super Cepat)</option>
+      <option value="20" selected>20 detik (Normal)</option>
+      <option value="30">30 detik (Santai)</option>
+      <option value="45">45 detik (Analisis)</option>
+    </select>
+
+    <label>👥 Jumlah Tim:</label>
+    <select id="set-teams">
+      <option value="2" selected>2 Tim</option>
+      <option value="3">3 Tim</option>
+      <option value="4">4 Tim</option>
+    </select>
+  </div>
+  <div class="center">
+    <button class="btn btn-blue" onclick="showScreen('home')">← Kembali</button>
+    <button class="btn btn-green" onclick="saveSettings()">💾 Simpan & Lanjut</button>
+  </div>
+</div>
+
+<!-- LAYAR INPUT TIM -->
+<div id="screen-teams" class="screen">
+  <h1>👥 Daftarkan Tim</h1>
+  <p class="subtitle">Setiap tim terdiri dari 2 orang siswa</p>
+  <div id="teams-container"></div>
+  <div class="center mt-20">
+    <button class="btn btn-green" onclick="startBattle()">🚀 Mulai Battle!</button>
+  </div>
+</div>
+
+<!-- LAYAR PERMAINAN -->
+<div id="screen-game" class="screen">
+  <div class="round-header" id="round-title">Babak 1: Pemanasan 🔥</div>
+  <div class="score-board" id="score-board"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="timer-text" id="timer-text">⏱️ 20</div>
+  <div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div>
+  <div class="question-box" id="question-box">Soal akan muncul di sini...</div>
+  <div class="options" id="options-box"></div>
+  <div class="explanation" id="explanation-box"></div>
+  <div class="center mt-10">
+    <button class="btn btn-blue hidden" id="next-btn" onclick="nextQuestion()">Soal Berikutnya ➡️</button>
+  </div>
+</div>
+
+<!-- LAYAR HASIL -->
+<div id="screen-result" class="screen">
+  <h1>🏆 Hasil Akhir</h1>
+  <div id="winner-announce" class="center" style="font-size:1.5em; margin:20px 0;"></div>
+  <div class="leaderboard" id="leaderboard"></div>
+  <div class="center mt-20">
+    <button class="btn btn-green" onclick="resetGame()">🔄 Main Lagi</button>
+    <button class="btn btn-purple" onclick="showScreen('home')">🏠 Menu Utama</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ==================== KONFIGURASI ====================
+let CONFIG = {
+  questionsPerRound: 5,
+  difficulty: 'medium',
+  timePerQuestion: 20,
+  numTeams: 2
+};
+
+let teams = [];
+let currentRound = 0;
+let currentQuestionIndex = 0;
+let currentTeamIndex = 0;
+let currentQuestion = null;
+let timerInterval = null;
+let timeLeft = 0;
+let questionStartTime = 0;
+let roundQuestions = [];
+const ROUNDS = [
+  { name: "Pemanasan 🔥", type: "mc" },
+  { name: "Duel Cepat ⚡", type: "tf" },
+  { name: "Tantangan Final 🏁", type: "analysis" }
+];
+
+// ==================== BANK SOAL ====================
+const SOAL = {
+  penjumlahan_ratusan: {
+    easy: [
+      { q: "245 + 132 = ...", a: 377, opts: [377, 367, 387, 357], exp: "245 + 132 = 377. Satuan: 5+2=7, Puluhan: 4+3=7, Ratusan: 2+1=3." },
+      { q: "318 + 241 = ...", a: 559, opts: [559, 549, 569, 539], exp: "318 + 241 = 559." },
+      { q: "426 + 153 = ...", a: 579, opts: [579, 569, 589, 599], exp: "426 + 153 = 579." }
+    ],
+    medium: [
+      { q: "378 + 245 = ...", a: 623, opts: [623, 613, 633, 603], exp: "378 + 245: 8+5=13 (simpan 1), 7+4+1=12 (simpan 1), 3+2+1=6. Hasil = 623." },
+      { q: "567 + 289 = ...", a: 856, opts: [856, 846, 866, 876], exp: "567 + 289 = 856 (dengan menyimpan)." },
+      { q: "456 + 378 = ...", a: 834, opts: [834, 824, 844, 814], exp: "456 + 378 = 834." },
+      { q: "689 + 247 = ...", a: 936, opts: [936, 926, 946, 916], exp: "689 + 247 = 936." }
+    ],
+    hard: [
+      { q: "789 + 456 = ...", a: 1245, opts: [1245, 1235, 1255, 1215], exp: "789 + 456 = 1245." },
+      { q: "876 + 567 = ...", a: 1443, opts: [1443, 1433, 1453, 1413], exp: "876 + 567 = 1443." },
+      { q: "998 + 675 = ...", a: 1673, opts: [1673, 1663, 1683, 1653], exp: "998 + 675 = 1673." }
+    ]
+  },
+  pengurangan_ratusan: {
+    easy: [
+      { q: "458 - 231 = ...", a: 227, opts: [227, 217, 237, 247], exp: "458 - 231 = 227." },
+      { q: "675 - 342 = ...", a: 333, opts: [333, 323, 343, 313], exp: "675 - 342 = 333." }
+    ],
+    medium: [
+      { q: "856 - 297 = ...", a: 559, opts: [559, 549, 569, 539], exp: "856 - 297: pinjam, 16-7=9, 14-9=5, 7-2=5. Hasil = 559." },
+      { q: "723 - 458 = ...", a: 265, opts: [265, 255, 275, 245], exp: "723 - 458 = 265." },
+      { q: "945 - 378 = ...", a: 567, opts: [567, 557, 577, 547], exp: "945 - 378 = 567." },
+      { q: "612 - 287 = ...", a: 325, opts: [325, 315, 335, 345], exp: "612 - 287 = 325." }
+    ],
+    hard: [
+      { q: "1000 - 456 = ...", a: 544, opts: [544, 554, 534, 564], exp: "1000 - 456 = 544." },
+      { q: "1234 - 789 = ...", a: 445, opts: [445, 435, 455, 425], exp: "1234 - 789 = 445." },
+      { q: "2000 - 876 = ...", a: 1124, opts: [1124, 1134, 1114, 1144], exp: "2000 - 876 = 1124." }
+    ]
+  },
+  perkalian: {
+    easy: [
+      { q: "7 × 8 = ...", a: 56, opts: [56, 54, 58, 48], exp: "7 × 8 = 56." },
+      { q: "6 × 9 = ...", a: 54, opts: [54, 56, 52, 48], exp: "6 × 9 = 54." },
+      { q: "12 × 3 = ...", a: 36, opts: [36, 33, 39, 42], exp: "12 × 3 = 36." }
+    ],
+    medium: [
+      { q: "12 × 5 = ...", a: 60, opts: [60, 55, 65, 50], exp: "12 × 5 = 60." },
+      { q: "15 × 4 = ...", a: 60, opts: [60, 55, 65, 70], exp: "15 × 4 = 60." },
+      { q: "23 × 3 = ...", a: 69, opts: [69, 66, 72, 63], exp: "23 × 3 = 69." },
+      { q: "14 × 6 = ...", a: 84, opts: [84, 80, 88, 78], exp: "14 × 6 = 84." },
+      { q: "17 × 5 = ...", a: 85, opts: [85, 80, 90, 75], exp: "17 × 5 = 85." }
+    ],
+    hard: [
+      { q: "25 × 8 = ...", a: 200, opts: [200, 180, 220, 175], exp: "25 × 8 = 200." },
+      { q: "34 × 7 = ...", a: 238, opts: [238, 228, 248, 218], exp: "34 × 7 = 238." },
+      { q: "45 × 6 = ...", a: 270, opts: [270, 260, 280, 250], exp: "45 × 6 = 270." }
+    ]
+  },
+  pembagian: {
+    easy: [
+      { q: "48 ÷ 6 = ...", a: 8, opts: [8, 7, 9, 6], exp: "48 ÷ 6 = 8." },
+      { q: "72 ÷ 8 = ...", a: 9, opts: [9, 8, 10, 7], exp: "72 ÷ 8 = 9." },
+      { q: "56 ÷ 7 = ...", a: 8, opts: [8, 7, 9, 6], exp: "56 ÷ 7 = 8." }
+    ],
+    medium: [
+      { q: "84 ÷ 7 = ...", a: 12, opts: [12, 11, 13, 14], exp: "84 ÷ 7 = 12." },
+      { q: "96 ÷ 8 = ...", a: 12, opts: [12, 11, 13, 14], exp: "96 ÷ 8 = 12." },
+      { q: "75 ÷ 5 = ...", a: 15, opts: [15, 14, 16, 13], exp: "75 ÷ 5 = 15." },
+      { q: "68 ÷ 4 = ...", a: 17, opts: [17, 16, 18, 15], exp: "68 ÷ 4 = 17." },
+      { q: "90 ÷ 6 = ...", a: 15, opts: [15, 14, 16, 13], exp: "90 ÷ 6 = 15." }
+    ],
+    hard: [
+      { q: "144 ÷ 12 = ...", a: 12, opts: [12, 11, 13, 14], exp: "144 ÷ 12 = 12." },
+      { q: "225 ÷ 15 = ...", a: 15, opts: [15, 14, 16, 13], exp: "225 ÷ 15 = 15." },
+      { q: "168 ÷ 8 = ...", a: 21, opts: [21, 20, 22, 19], exp: "168 ÷ 8 = 21." }
+    ]
+  },
+  faktor_prima: {
+    easy: [
+      { q: "Faktor prima dari 12 adalah ...", a: "2 dan 3", opts: ["2 dan 3", "2 dan 5", "3 dan 4", "2, 3, dan 4"], exp: "12 = 2 × 2 × 3, jadi faktor primanya: 2 dan 3." },
+      { q: "Faktor prima dari 10 adalah ...", a: "2 dan 5", opts: ["2 dan 5", "2 dan 3", "5 dan 10", "1 dan 10"], exp: "10 = 2 × 5, faktor primanya: 2 dan 5." }
+    ],
+    medium: [
+      { q: "Faktor prima dari 30 adalah ...", a: "2, 3, dan 5", opts: ["2, 3, dan 5", "2 dan 15", "3 dan 10", "5 dan 6"], exp: "30 = 2 × 3 × 5, faktor primanya: 2, 3, dan 5." },
+      { q: "Faktor prima dari 20 adalah ...", a: "2 dan 5", opts: ["2 dan 5", "2 dan 10", "4 dan 5", "2, 4, dan 5"], exp: "20 = 2 × 2 × 5, faktor primanya: 2 dan 5." },
+      { q: "Faktor prima dari 42 adalah ...", a: "2, 3, dan 7", opts: ["2, 3, dan 7", "2 dan 21", "3 dan 14", "6 dan 7"], exp: "42 = 2 × 3 × 7, faktor primanya: 2, 3, dan 7." },
+      { q: "Faktor prima dari 18 adalah ...", a: "2 dan 3", opts: ["2 dan 3", "2 dan 9", "3 dan 6", "2, 3, dan 9"], exp: "18 = 2 × 3 × 3, faktor primanya: 2 dan 3." }
+    ],
+    hard: [
+      { q: "Faktor prima dari 60 adalah ...", a: "2, 3, dan 5", opts: ["2, 3, dan 5", "2, 3, dan 10", "4, 3, dan 5", "2, 5, dan 6"], exp: "60 = 2 × 2 × 3 × 5, faktor primanya: 2, 3, dan 5." },
+      { q: "Faktor prima dari 100 adalah ...", a: "2 dan 5", opts: ["2 dan 5", "2, 4, dan 5", "4 dan 25", "10 dan 10"], exp: "100 = 2 × 2 × 5 × 5, faktor primanya: 2 dan 5." },
+      { q: "Faktor prima dari 84 adalah ...", a: "2, 3, dan 7", opts: ["2, 3, dan 7", "2, 4, dan 21", "4, 3, dan 7", "2, 6, dan 7"], exp: "84 = 2 × 2 × 3 × 7, faktor primanya: 2, 3, dan 7." }
+    ]
+  },
+  perkalian_pecahan: {
+    easy: [
+      { q: "1/2 × 1/2 = ...", a: "1/4", opts: ["1/4", "1/2", "2/4", "1/3"], exp: "1/2 × 1/2 = (1×1)/(2×2) = 1/4." },
+      { q: "1/3 × 1/2 = ...", a: "1/6", opts: ["1/6", "1/5", "2/5", "1/3"], exp: "1/3 × 1/2 = 1/6." }
+    ],
+    medium: [
+      { q: "2/3 × 3/4 = ...", a: "1/2", opts: ["1/2", "2/4", "5/7", "6/12"], exp: "2/3 × 3/4 = 6/12 = 1/2 (disederhanakan)." },
+      { q: "3/5 × 2/3 = ...", a: "2/5", opts: ["2/5", "5/8", "6/15", "1/3"], exp: "3/5 × 2/3 = 6/15 = 2/5." },
+      { q: "4/5 × 1/2 = ...", a: "2/5", opts: ["2/5", "4/10", "5/7", "1/5"], exp: "4/5 × 1/2 = 4/10 = 2/5." },
+      { q: "2/5 × 5/6 = ...", a: "1/3", opts: ["1/3", "2/6", "7/11", "10/30"], exp: "2/5 × 5/6 = 10/30 = 1/3." }
+    ],
+    hard: [
+      { q: "3/4 × 2/9 = ...", a: "1/6", opts: ["1/6", "5/13", "6/36", "2/12"], exp: "3/4 × 2/9 = 6/36 = 1/6." },
+      { q: "5/6 × 3/10 = ...", a: "1/4", opts: ["1/4", "8/16", "15/60", "3/20"], exp: "5/6 × 3/10 = 15/60 = 1/4." }
+    ]
+  },
+  penjumlahan_pecahan: {
+    easy: [
+      { q: "1/4 + 2/4 = ...", a: "3/4", opts: ["3/4", "3/8", "2/4", "1/2"], exp: "1/4 + 2/4 = 3/4 (penyebut sama, pembilang dijumlahkan)." },
+      { q: "1/5 + 3/5 = ...", a: "4/5", opts: ["4/5", "4/10", "2/5", "3/5"], exp: "1/5 + 3/5 = 4/5." }
+    ],
+    medium: [
+      { q: "1/2 + 1/4 = ...", a: "3/4", opts: ["3/4", "2/6", "1/6", "2/4"], exp: "1/2 = 2/4, maka 2/4 + 1/4 = 3/4." },
+      { q: "1/3 + 1/6 = ...", a: "1/2", opts: ["1/2", "2/9", "2/6", "1/3"], exp: "1/3 = 2/6, maka 2/6 + 1/6 = 3/6 = 1/2." },
+      { q: "2/5 + 1/10 = ...", a: "1/2", opts: ["1/2", "3/15", "3/10", "2/10"], exp: "2/5 = 4/10, maka 4/10 + 1/10 = 5/10 = 1/2." },
+      { q: "3/4 + 1/8 = ...", a: "7/8", opts: ["7/8", "4/12", "4/8", "3/8"], exp: "3/4 = 6/8, maka 6/8 + 1/8 = 7/8." }
+    ],
+    hard: [
+      { q: "2/3 + 1/4 = ...", a: "11/12", opts: ["11/12", "3/7", "3/12", "2/7"], exp: "2/3 = 8/12, 1/4 = 3/12, maka 8/12 + 3/12 = 11/12." },
+      { q: "3/5 + 1/3 = ...", a: "14/15", opts: ["14/15", "4/8", "4/15", "3/8"], exp: "3/5 = 9/15, 1/3 = 5/15, maka 9/15 + 5/15 = 14/15." }
+    ]
+  },
+  analisis_data: {
+    easy: [
+      { q: "📊 Data nilai ulangan 5 siswa: 80, 75, 90, 85, 70. Berapa jumlah total nilai mereka?", a: 400, opts: [400, 390, 410, 380], exp: "80+75+90+85+70 = 400." },
+      { q: "🍎 Ani membeli apel: Senin 5, Selasa 8, Rabu 6, Kamis 10. Berapa total apel yang dibeli Ani?", a: 29, opts: [29, 28, 30, 27], exp: "5+8+6+10 = 29 apel." }
+    ],
+    medium: [
+      { q: "📚 Perpustakaan mencatat peminjaman buku: Senin 45, Selasa 60, Rabu 38, Kamis 72, Jumat 55. Berapa selisih peminjaman terbanyak dan tersedikit?", a: 34, opts: [34, 27, 32, 40], exp: "Terbanyak = 72 (Kamis), Tersedikit = 38 (Rabu). Selisih = 72 - 38 = 34." },
+      { q: "🏃 Data jarak lari (meter) 4 siswa: Andi 120, Budi 150, Cici 135, Dedi 195. Berapa rata-rata jarak lari mereka?", a: 150, opts: [150, 145, 155, 140], exp: "(120+150+135+195)/4 = 600/4 = 150 meter." },
+      { q: "🍊 Penjualan jeruk (kg) di toko buah: Pagi 25, Siang 40, Sore 35. Jika harga Rp8.000/kg, berapa pendapatan total?", a: 800.000, opts: ["Rp800.000", "Rp750.000", "Rp850.000", "Rp900.000"], exp: "Total = 25+40+35 = 100 kg. Pendapatan = 100 × 8000 = Rp800.000." },
+      { q: "📈 Nilai ulangan matematika 6 siswa: 70, 80, 75, 90, 85, 60. Berapa banyak siswa yang nilainya di atas rata-rata?", a: 3, opts: [3, 2, 4, 5], exp: "Rata-rata = (70+80+75+90+85+60)/6 = 460/6 ≈ 76,7. Siswa di atas rata-rata: 80, 90, 85 = 3 siswa." }
+    ],
+    hard: [
+      { q: "🌾 Pak Tani memanen padi: Bulan 1 = 250 kg, Bulan 2 = 320 kg, Bulan 3 = 280 kg. Jika ia menjual 1/4 dari total panen, berapa kg yang tersisa?", a: 637, opts: [637, 638, 636, 640], exp: "Total = 250+320+280 = 850 kg. Dijual = 850/4 = 212,5 kg. Tersisa = 850 - 212,5 = 637,5 ≈ 637 kg." },
+      { q: "📊 Data pengunjung perpustakaan: Sen 45, Sel 60, Rab 38, Kam 72, Jum 55, Sab 90. Berapa selisih pengunjung hari tersibuk dan hari paling sepi?", a: 52, opts: [52, 45, 55, 48], exp: "Tersibuk = 90 (Sab), Paling sepi = 38 (Rab). Selisih = 90 - 38 = 52." }
+    ]
+  }
+};
+
+// ==================== UTILITAS ====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function pickQuestions(category, count, difficulty) {
+  let pool = [];
+  if (difficulty === 'mixed') {
+    pool = [...(SOAL[category].easy||[]), ...(SOAL[category].medium||[]), ...(SOAL[category].hard||[])];
+  } else {
+    pool = [...(SOAL[category][difficulty] || SOAL[category].medium)];
+  }
+  return shuffle(pool).slice(0, count);
+}
+
+function saveSettings() {
+  CONFIG.questionsPerRound = parseInt(document.getElementById('set-questions').value);
+  CONFIG.difficulty = document.getElementById('set-difficulty').value;
+  CONFIG.timePerQuestion = parseInt(document.getElementById('set-time').value);
+  CONFIG.numTeams = parseInt(document.getElementById('set-teams').value);
+  setupTeams();
+  showScreen('teams');
+}
+
+function setupTeams() {
+  const container = document.getElementById('teams-container');
+  container.innerHTML = '';
+  const colors = ['team-a', 'team-b'];
+  const emojis = ['🦁', '🐯', '🦊', '🐼'];
+  for (let i = 0; i < CONFIG.numTeams; i++) {
+    const div = document.createElement('div');
+    div.className = 'team-input';
+    div.innerHTML = `
+      <div class="team-card ${colors[i%2]}">
+        <h3>${emojis[i]} Tim ${String.fromCharCode(65+i)}</h3>
+        <input type="text" id="team${i}-p1" placeholder="Anggota 1" value="Siswa ${i*2+1}">
+        <input type="text" id="team${i}-p2" placeholder="Anggota 2" value="Siswa ${i*2+2}">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+}
+
+function startGame() {
+  setupTeams();
+  showScreen('teams');
+}
+
+function startBattle() {
+  teams = [];
+  const emojis = ['🦁', '🐯', '🦊', '🐼'];
+  for (let i = 0; i < CONFIG.numTeams; i++) {
+    const p1 = document.getElementById(`team${i}-p1`).value || `Siswa ${i*2+1}`;
+    const p2 = document.getElementById(`team${i}-p2`).value || `Siswa ${i*2+2}`;
+    teams.push({
+      name: `Tim ${String.fromCharCode(65+i)} ${emojis[i]}`,
+      members: [p1, p2],
+      score: 0,
+      correct: 0,
+      wrong: 0
+    });
+  }
+  currentRound = 0;
+  startRound();
+}
+
+function startRound() {
+  if (currentRound >= ROUNDS.length) {
+    showResults();
+    return;
+  }
+  const round = ROUNDS[currentRound];
+  document.getElementById('round-title').textContent = `Babak ${currentRound+1}: ${round.name}`;
+  generateRoundQuestions();
+  currentQuestionIndex = 0;
+  currentTeamIndex = 0;
+  showQuestion();
+  showScreen('game');
+}
+
+function generateRoundQuestions() {
+  roundQuestions = [];
+  const categories = ['penjumlahan_ratusan', 'pengurangan_ratusan', 'perkalian', 'pembagian', 'faktor_prima', 'perkalian_pecahan', 'penjumlahan_pecahan', 'analisis_data'];
+  const totalQ = CONFIG.questionsPerRound * CONFIG.numTeams;
+  
+  if (currentRound === 2) {
+    // Babak final: fokus analisis data
+    for (let i = 0; i < totalQ; i++) {
+      const q = pickQuestions('analisis_data', 1, CONFIG.difficulty)[0];
+      if (q) roundQuestions.push({...q, teamIndex: i % CONFIG.numTeams});
+    }
+  } else {
+    const shuffledCats = shuffle([...categories]);
+    for (let i = 0; i < totalQ; i++) {
+      const cat = shuffledCats[i % shuffledCats.length];
+      const q = pickQuestions(cat, 1, CONFIG.difficulty)[0];
+      if (q) roundQuestions.push({...q, teamIndex: i % CONFIG.numTeams, category: cat});
+    }
+  }
+  roundQuestions = shuffle(roundQuestions);
+}
+
+function showQuestion() {
+  if (currentQuestionIndex >= roundQuestions.length) {
+    startRound(); // lanjut babak berikutnya
+    return;
+  }
+  currentQuestion = roundQuestions[currentQuestionIndex];
+  currentTeamIndex = currentQuestion.teamIndex;
+  
+  updateScoreBoard();
+  updateProgress();
+  
+  const qBox = document.getElementById('question-box');
+  qBox.textContent = currentQuestion.q;
+  qBox.style.animation = 'none';
+  setTimeout(() => qBox.style.animation = 'pop 0.5s', 10);
+  
+  const optsBox = document.getElementById('options-box');
+  optsBox.innerHTML = '';
+  optsBox.className = 'options';
+  
+  if (ROUNDS[currentRound].type === 'tf') {
+    optsBox.classList.add('tf-options');
+    const btn1 = createOption('✅ BENAR', true);
+    const btn2 = createOption('❌ SALAH', false);
+    optsBox.appendChild(btn1);
+    optsBox.appendChild(btn2);
+  } else {
+    const shuffledOpts = shuffle([...currentQuestion.opts]);
+    shuffledOpts.forEach(opt => {
+      optsBox.appendChild(createOption(opt, opt));
+    });
+  }
+  
+  document.getElementById('explanation-box').classList.remove('show');
+  document.getElementById('next-btn').classList.add('hidden');
+  
+  startTimer();
+  questionStartTime = Date.now();
+}
+
+function createOption(label, value) {
+  const btn = document.createElement('button');
+  btn.className = 'option-btn';
+  btn.textContent = label;
+  btn.onclick = () => selectAnswer(value, btn);
+  return btn;
+}
+
+function startTimer() {
+  timeLeft = CONFIG.timePerQuestion;
+  updateTimerDisplay();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft -= 0.1;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timeUp();
+    }
+  }, 100);
+}
+
+function updateTimerDisplay() {
+  const pct = (timeLeft / CONFIG.timePerQuestion) * 100;
+  const fill = document.getElementById('timer-fill');
+  fill.style.width = pct + '%';
+  fill.classList.remove('warning', 'danger');
+  if (pct < 30) fill.classList.add('danger');
+  else if (pct < 60) fill.classList.add('warning');
+  document.getElementById('timer-text').textContent = '⏱️ ' + Math.ceil(timeLeft);
+}
+
+function timeUp() {
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  showExplanation(false, "⏰ Waktu habis!");
+}
+
+function selectAnswer(value, btn) {
+  clearInterval(timerInterval);
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  
+  const timeTaken = (Date.now() - questionStartTime) / 1000;
+  const isCorrect = checkAnswer(value);
+  const team = teams[currentTeamIndex];
+  
+  if (isCorrect) {
+    btn.classList.add('correct');
+    let points = 100;
+    // Bonus kecepatan
+    const speedBonus = Math.max(0, Math.floor((timeLeft / CONFIG.timePerQuestion) * 50));
+    points += speedBonus;
+    team.score += points;
+    team.correct++;
+    showExplanation(true, `+${points} poin! (100 dasar + ${speedBonus} bonus kecepatan ⚡)`);
+    launchConfetti();
+  } else {
+    btn.classList.add('wrong');
+    team.wrong++;
+    // Tampilkan jawaban benar
+    highlightCorrectAnswer();
+    showExplanation(false, "Jawaban kurang tepat. Perhatikan pembahasannya ya!");
+  }
+  
+  updateScoreBoard();
+  document.getElementById('next-btn').classList.remove('hidden');
+}
+
+function checkAnswer(value) {
+  const correct = currentQuestion.a;
+  if (typeof correct === 'number') {
+    return parseFloat(value) === correct || String(value).replace(/[^0-9.-]/g,'') == correct;
+  }
+  return String(value).trim().toLowerCase() === String(correct).trim().toLowerCase();
+}
+
+function highlightCorrectAnswer() {
+  const correct = currentQuestion.a;
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    const val = btn.textContent.trim();
+    if (val == correct || val === String(correct)) {
+      btn.classList.add('correct');
+    }
+  });
+}
+
+function showExplanation(correct, message) {
+  const box = document.getElementById('explanation-box');
+  box.innerHTML = `
+    <h3>${correct ? '✅ Benar! ' : '❌ '} ${message}</h3>
+    <p><b>📖 Pembahasan:</b> ${currentQuestion.exp}</p>
+  `;
+  box.classList.add('show');
+}
+
+function updateScoreBoard() {
+  const sb = document.getElementById('score-board');
+  sb.innerHTML = teams.map((t, i) => `
+    <div class="score-card ${i%2===0?'score-a':'score-b'}" style="${i===currentTeamIndex?'box-shadow:0 0 20px gold;transform:scale(1.05);':''}">
+      <div class="team-name">${t.name}</div>
+      <div style="font-size:0.85em; opacity:0.9;">${t.members.join(' & ')}</div>
+      <div class="score">${t.score}</div>
+      <div style="font-size:0.8em;">✅${t.correct} ❌${t.wrong}</div>
+    </div>
+  `).join('');
+}
+
+function updateProgress() {
+  const pct = ((currentQuestionIndex + 1) / roundQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function nextQuestion() {
+  currentQuestionIndex++;
+  showQuestion();
+}
+
+function launchConfetti() {
+  const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf', '#ff8b94', '#b5eAD7'];
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = (2 + Math.random()*2) + 's';
+    piece.style.animationDelay = Math.random() + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4000);
+  }
+}
+
+function showResults() {
+  const sorted = [...teams].sort((a,b) => b.score - a.score);
+  const medals = ['🥇', '🥈', '🥉', '🏅'];
+  const classes = ['gold', 'silver', 'bronze', ''];
+  
+  document.getElementById('winner-announce').innerHTML = `
+    <div style="font-size:3em;">${medals[0]}</div>
+    <div style="color:#4a148c; font-weight:bold; margin:10px 0;">
+      Juara: ${sorted[0].name}
+    </div>
+    <div style="font-size:1.2em; color:#666;">
+      dengan skor <b style="color:#f57f17;">${sorted[0].score}</b> poin!
+    </div>
+  `;
+  
+  const lb = document.getElementById('leaderboard');
+  lb.innerHTML = `
+    <h2>🏆 Papan Peringkat</h2>
+    ${sorted.map((t, i) => `
+      <div class="lb-row ${classes[i]}">
+        <div>
+          <span class="rank">${medals[i]}</span>
+          <b>${t.name}</b><br>
+          <small>${t.members.join(' & ')}</small>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.5em; font-weight:bold;">${t.score}</div>
+          <small>✅${t.correct} benar | ❌${t.wrong} salah</small>
+        </div>
+      </div>
+    `).join('')}
+  `;
+  
+  showScreen('result');
+  launchConfetti();
+  setTimeout(launchConfetti, 500);
+  setTimeout(launchConfetti, 1000);
+}
+
+function resetGame() {
+  teams.forEach(t => { t.score = 0; t.correct = 0; t.wrong = 0; });
+  currentRound = 0;
+  startRound();
+}
+</script>
+</body>
+</html>
