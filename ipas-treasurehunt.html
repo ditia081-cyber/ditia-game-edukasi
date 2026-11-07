@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Treasure Hunt - IPAS Kelas X</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0077b6, #00b4d8, #90e0ef);
+    color: #fff;
+    overflow-x: hidden;
+    padding: 10px;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px;
+  }
+  h1 {
+    text-align: center;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    text-shadow: 3px 3px 0 #023e8a, 6px 6px 15px rgba(0,0,0,0.3);
+    margin: 15px 0;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 1rem;
+    opacity: 0.95;
+    margin-bottom: 20px;
+  }
+
+  /* HUD */
+  .hud {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  .hud-item {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 10px 6px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+  .hud-item .label { font-size: 0.7rem; opacity: 0.9; display:block; }
+  .hud-item .value { font-size: clamp(1rem, 3vw, 1.4rem); }
+
+  /* Card 3D */
+  .card {
+    background: linear-gradient(145deg, #ffffff, #f0f4ff);
+    color: #03045e;
+    border-radius: 20px;
+    padding: 25px 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+    transform: perspective(1000px) rotateX(2deg);
+    transition: transform 0.4s;
+    margin-bottom: 15px;
+  }
+  .card:hover { transform: perspective(1000px) rotateX(0deg) translateY(-3px); }
+
+  .island-title {
+    font-size: 1.3rem;
+    color: #023e8a;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .island-icon {
+    width: 45px; height: 45px;
+    background: linear-gradient(135deg, #ffbe0b, #fb5607);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .question {
+    font-size: clamp(1rem, 2.5vw, 1.15rem);
+    margin: 15px 0 20px;
+    line-height: 1.5;
+    color: #03045e;
+  }
+
+  .options { display: grid; gap: 10px; }
+  .option {
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    color: white;
+    border: none;
+    padding: 14px 18px;
+    border-radius: 12px;
+    text-align: left;
+    font-size: clamp(0.9rem, 2.2vw, 1rem);
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 5px 15px rgba(67,97,238,0.4);
+    font-weight: 500;
+  }
+  .option:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(67,97,238,0.6);
+  }
+  .option.correct { background: linear-gradient(135deg, #06d6a0, #118ab2); animation: pulse 0.5s; }
+  .option.wrong { background: linear-gradient(135deg, #ef476f, #d62828); animation: shake 0.4s; }
+  .option:disabled { cursor: not-allowed; opacity: 0.85; }
+  .option.hidden { display: none; }
+
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  .btn {
+    background: linear-gradient(135deg, #ffbe0b, #fb5607);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(251,86,7,0.4);
+    transition: all 0.2s;
+    margin: 5px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251,86,7,0.6); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: linear-gradient(135deg, #8338ec, #3a86ff); box-shadow: 0 6px 15px rgba(58,134,255,0.4); }
+  .btn-danger { background: linear-gradient(135deg, #ef476f, #d62828); }
+
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 15px; }
+
+  .explanation {
+    background: linear-gradient(135deg, #e0fbfc, #caf0f8);
+    color: #03045e;
+    border-left: 5px solid #06d6a0;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    animation: slideIn 0.4s;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Map */
+  .map {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .map-island {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #90e0ef, #48cae4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    position: relative;
+    transition: all 0.3s;
+  }
+  .map-island.completed { background: linear-gradient(135deg, #06d6a0, #118ab2); }
+  .map-island.current { background: linear-gradient(135deg, #ffbe0b, #fb5607); animation: bounce 1s infinite; }
+  .map-island.locked { background: linear-gradient(135deg, #adb5bd, #6c757d); opacity: 0.6; }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* Timer bar */
+  .timer-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #06d6a0, #ffbe0b, #ef476f);
+    width: 100%;
+    transition: width 1s linear;
+  }
+
+  /* Start/End screen */
+  .screen {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .screen h2 { font-size: clamp(1.5rem, 4vw, 2.2rem); margin-bottom: 15px; }
+  .screen p { font-size: 1rem; margin: 10px 0; line-height: 1.5; }
+  .treasure { font-size: 5rem; animation: spin 3s linear infinite; display: inline-block; }
+  @keyframes spin {
+    0% { transform: rotate(0) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  /* Confetti */
+  .confetti {
+    position: fixed;
+    width: 10px; height: 10px;
+    top: -10px;
+    animation: fall linear forwards;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); }
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 500px) {
+    .hud { grid-template-columns: repeat(2, 1fr); }
+    .map { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .map-island { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏝️ Treasure Hunt 🗺️</h1>
+  <p class="subtitle">Petualangan Energi - IPAS Kelas X</p>
+
+  <!-- START SCREEN -->
+  <div id="startScreen" class="card screen">
+    <div class="treasure">💎</div>
+    <h2>Selamat Datang, Penjelajah!</h2>
+    <p>Jelajahi <b>10 Pulau Misterius</b> untuk menemukan harta karun legendaris!</p>
+    <p>🎯 Jawab tantangan seputar <b>Energi</b> di setiap pulau</p>
+    <p>❤️ 3 Nyawa &nbsp;|&nbsp; ⏱️ 30 detik/soal &nbsp;|&nbsp; 💡 Petunjuk tersedia</p>
+    <p>💰 Setiap jawaban benar = 10 koin</p>
+    <div class="actions">
+      <button class="btn" onclick="startGame()">🚀 Mulai Petualangan</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" class="hidden">
+    <div class="hud">
+      <div class="hud-item"><span class="label">❤️ Nyawa</span><span class="value" id="lives">3</span></div>
+      <div class="hud-item"><span class="label">💰 Koin</span><span class="value" id="coins">0</span></div>
+      <div class="hud-item"><span class="label">⏱️ Waktu</span><span class="value" id="timer">30</span></div>
+      <div class="hud-item"><span class="label">🏝️ Pulau</span><span class="value" id="island">1/10</span></div>
+    </div>
+
+    <div class="map" id="map"></div>
+
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+
+    <div class="card">
+      <div class="island-title">
+        <div class="island-icon" id="islandIcon">🏝️</div>
+        <div id="islandName">Pulau 1</div>
+      </div>
+      <div class="question" id="question">Pertanyaan...</div>
+      <div class="options" id="options"></div>
+      <div id="explanation"></div>
+      <div class="actions">
+        <button class="btn btn-secondary" id="hintBtn" onclick="useHint()">💡 Petunjuk (<span id="hintCount">2</span>)</button>
+        <button class="btn hidden" id="nextBtn" onclick="nextIsland()">➡️ Pulau Berikutnya</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div id="winScreen" class="card screen hidden">
+    <div class="treasure">🏆</div>
+    <h2>🎉 Harta Karun Ditemukan! 🎉</h2>
+    <p>Kamu berhasil melewati semua pulau!</p>
+    <p style="font-size:1.3rem;">💰 Total Koin: <b id="finalCoins">0</b></p>
+    <p>❤️ Sisa Nyawa: <b id="finalLives">0</b></p>
+    <div class="actions">
+      <button class="btn" onclick="location.reload()">🔄 Main Lagi</button>
+    </div>
+  </div>
+
+  <!-- LOSE SCREEN -->
+  <div id="loseScreen" class="card screen hidden">
+    <div class="treasure">💀</div>
+    <h2>Petualangan Berakhir!</h2>
+    <p id="loseMessage">Nyawamu habis...</p>
+    <p>💰 Koin terkumpul: <b id="loseCoins">0</b></p>
+    <div class="actions">
+      <button class="btn" onclick="location.reload()">🔄 Coba Lagi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    island: "Pulau Energi",
+    icon: "⚡",
+    q: "Apa pengertian energi dalam ilmu fisika?",
+    options: [
+      "Kemampuan untuk melakukan usaha",
+      "Gaya yang bekerja pada benda",
+      "Perpindahan kalor dari benda panas",
+      "Massa benda yang bergerak"
+    ],
+    answer: 0,
+    explain: "Energi adalah kemampuan untuk melakukan usaha atau kerja. Satuan energi dalam SI adalah Joule (J)."
+  },
+  {
+    island: "Pulau Jenis Energi",
+    icon: "🔋",
+    q: "Manakah yang termasuk bentuk-bentuk energi?",
+    options: [
+      "Kinetik, potensial, kimia, panas, listrik",
+      "Massa, volume, gaya, tekanan",
+      "Jarak, waktu, kecepatan, percepatan",
+      "Suhu, panjang, lebar, tinggi"
+    ],
+    answer: 0,
+    explain: "Bentuk energi meliputi: kinetik, potensial, kimia, panas (kalor), listrik, cahaya, bunyi, dan nuklir."
+  },
+  {
+    island: "Pulau Terbarukan",
+    icon: "☀️",
+    q: "Manakah yang termasuk sumber energi terbarukan?",
+    options: [
+      "Batu bara dan minyak bumi",
+      "Matahari, angin, dan air",
+      "Gas alam dan nuklir",
+      "Batu bara dan gas alam"
+    ],
+    answer: 1,
+    explain: "Energi terbarukan berasal dari sumber alam yang tidak akan habis, seperti matahari, angin, air (hidro), panas bumi, dan biomassa."
+  },
+  {
+    island: "Pulau Tak Terbarukan",
+    icon: "🛢️",
+    q: "Mengapa minyak bumi termasuk energi tidak terbarukan?",
+    options: [
+      "Karena harganya mahal",
+      "Karena proses pembentukannya jutaan tahun dan tidak dapat diperbarui",
+      "Karena hanya ada di Indonesia",
+      "Karena tidak bisa dibakar"
+    ],
+    answer: 1,
+    explain: "Minyak bumi, batu bara, dan gas alam terbentuk dari fosil selama jutaan tahun sehingga tidak dapat diperbarui dalam waktu singkat."
+  },
+  {
+    island: "Pulau Usaha",
+    icon: "🏋️",
+    q: "Apa pengertian usaha dalam fisika?",
+    options: [
+      "Gaya yang bekerja pada benda",
+      "Perpindahan dikali massa",
+      "Hasil kali gaya dengan perpindahan benda searah gaya",
+      "Kecepatan benda dikali waktu"
+    ],
+    answer: 2,
+    explain: "Usaha (W) adalah hasil kali gaya (F) dengan perpindahan (s) searah gaya: W = F × s. Satuan usaha adalah Joule (J)."
+  },
+  {
+    island: "Pulau Rumus Usaha",
+    icon: "📐",
+    q: "Rumus usaha yang benar adalah...",
+    options: [
+      "W = m × a",
+      "W = F × s",
+      "W = P × t",
+      "W = F / s"
+    ],
+    answer: 1,
+    explain: "Usaha = Gaya × Perpindahan (W = F × s). Jika gaya membentuk sudut θ terhadap perpindahan, maka W = F × s × cos θ."
+  },
+  {
+    island: "Pulau Hitung Usaha",
+    icon: "🧮",
+    q: "Sebuah benda didorong dengan gaya 50 N sejauh 4 m searah gaya. Berapa usaha yang dilakukan?",
+    options: [
+      "12,5 J",
+      "54 J",
+      "200 J",
+      "46 J"
+    ],
+    answer: 2,
+    explain: "W = F × s = 50 N × 4 m = 200 Joule."
+  },
+  {
+    island: "Pulau Energi Kinetik",
+    icon: "🏃",
+    q: "Energi kinetik adalah energi yang dimiliki benda karena...",
+    options: [
+      "Kedudukannya",
+      "Gerakannya",
+      "Suhunya",
+      "Massanya saja"
+    ],
+    answer: 1,
+    explain: "Energi kinetik adalah energi yang dimiliki benda karena gerakannya. Rumusnya: Ek = ½ × m × v²."
+  },
+  {
+    island: "Pulau Hitung Ek",
+    icon: "🚗",
+    q: "Sebuah mobil bermassa 1000 kg bergerak dengan kecepatan 20 m/s. Berapa energi kinetiknya?",
+    options: [
+      "10.000 J",
+      "20.000 J",
+      "200.000 J",
+      "400.000 J"
+    ],
+    answer: 2,
+    explain: "Ek = ½ × m × v² = ½ × 1000 × 20² = ½ × 1000 × 400 = 200.000 Joule."
+  },
+  {
+    island: "Pulau Harta Karun",
+    icon: "💎",
+    q: "Seorang anak mengangkat buku 2 kg setinggi 1,5 m (g = 10 m/s²). Usaha yang dilakukan adalah...",
+    options: [
+      "3 J",
+      "13,3 J",
+      "30 J",
+      "20 J"
+    ],
+    answer: 2,
+    explain: "Gaya angkat = berat = m × g = 2 × 10 = 20 N. W = F × s = 20 × 1,5 = 30 Joule."
+  }
+];
+
+let current = 0;
+let lives = 3;
+let coins = 0;
+let timeLeft = 30;
+let timerInterval;
+let hints = 2;
+let answered = false;
+
+function startGame() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  renderMap();
+  loadQuestion();
+}
+
+function renderMap() {
+  const map = document.getElementById('map');
+  map.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'map-island';
+    if (i < current) div.classList.add('completed');
+    else if (i === current) div.classList.add('current');
+    else div.classList.add('locked');
+    div.innerHTML = i < current ? '✓' : (i+1);
+    div.title = q.island;
+    map.appendChild(div);
+  });
+}
+
+function loadQuestion() {
+  answered = false;
+  const q = questions[current];
+  document.getElementById('islandName').textContent = q.island;
+  document.getElementById('islandIcon').textContent = q.icon;
+  document.getElementById('question').textContent = q.q;
+  document.getElementById('island').textContent = `${current+1}/10`;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('coins').textContent = coins;
+  document.getElementById('hintCount').textContent = hints;
+  document.getElementById('hintBtn').disabled = hints <= 0;
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('explanation').innerHTML = '';
+
+  const optDiv = document.getElementById('options');
+  optDiv.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = String.fromCharCode(65+i) + '. ' + opt;
+    btn.dataset.index = i;
+    btn.onclick = () => selectAnswer(i, btn);
+    optDiv.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function startTimer() {
+  timeLeft = 30;
+  document.getElementById('timer').textContent = timeLeft;
+  document.getElementById('timerFill').style.width = '100%';
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer').textContent = timeLeft;
+    document.getElementById('timerFill').style.width = (timeLeft/30*100) + '%';
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeUp();
+    }
+  }, 1000);
+}
+
+function timeUp() {
+  answered = true;
+  lives--;
+  document.getElementById('lives').textContent = lives;
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add('correct');
+  });
+  showExplanation("⏰ Waktu habis! " + q.explain);
+  checkGameOver();
+}
+
+function selectAnswer(i, btn) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option');
+  buttons.forEach(b => b.disabled = true);
+
+  if (i === q.answer) {
+    btn.classList.add('correct');
+    coins += 10;
+    document.getElementById('coins').textContent = coins;
+    showExplanation("✅ Benar! +10 koin. " + q.explain);
+  } else {
+    btn.classList.add('wrong');
+    buttons[q.answer].classList.add('correct');
+    lives--;
+    document.getElementById('lives').textContent = lives;
+    showExplanation("❌ Salah. " + q.explain);
+    checkGameOver();
+  }
+}
+
+function showExplanation(text) {
+  document.getElementById('explanation').innerHTML = `<div class="explanation">${text}</div>`;
+  document.getElementById('nextBtn').classList.remove('hidden');
+  if (current === questions.length - 1 && lives > 0) {
+    document.getElementById('nextBtn').textContent = '🏆 Ambil Harta Karun!';
+  }
+}
+
+function checkGameOver() {
+  if (lives <= 0) {
+    setTimeout(() => {
+      clearInterval(timerInterval);
+      document.getElementById('gameScreen').classList.add('hidden');
+      document.getElementById('loseScreen').classList.remove('hidden');
+      document.getElementById('loseCoins').textContent = coins;
+      document.getElementById('loseMessage').textContent = 
+        `Kamu terjebak di ${questions[current].island}. Nyawamu habis!`;
+    }, 1800);
+  }
+}
+
+function nextIsland() {
+  current++;
+  if (current >= questions.length) {
+    winGame();
+  } else {
+    renderMap();
+    loadQuestion();
+  }
+}
+
+function useHint() {
+  if (hints <= 0 || answered) return;
+  hints--;
+  document.getElementById('hintCount').textContent = hints;
+  if (hints <= 0) document.getElementById('hintBtn').disabled = true;
+  
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option');
+  const wrongIndices = [];
+  buttons.forEach((b, i) => {
+    if (i !== q.answer && !b.classList.contains('hidden')) wrongIndices.push(i);
+  });
+  // Hide 2 wrong options
+  let hidden = 0;
+  wrongIndices.sort(() => Math.random()-0.5);
+  for (let i of wrongIndices) {
+    if (hidden >= 2) break;
+    buttons[i].classList.add('hidden');
+    hidden++;
+  }
+}
+
+function winGame() {
+  clearInterval(timerInterval);
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('winScreen').classList.remove('hidden');
+  document.getElementById('finalCoins').textContent = coins;
+  document.getElementById('finalLives').textContent = lives;
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#ffbe0b','#fb5607','#ff006e','#8338ec','#3a86ff','#06d6a0'];
+  for (let i = 0; i < 120; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration = (2 + Math.random()*3) + 's';
+    c.style.animationDelay = Math.random()*2 + 's';
+    c.style.width = (6 + Math.random()*8) + 'px';
+    c.style.height = c.style.width;
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 6000);
+  }
+}
+</script>
+</body>
+</html>
