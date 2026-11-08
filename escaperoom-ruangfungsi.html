@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Escape Room: Ruang Fungsi Misterius</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+  body {
+    background: radial-gradient(circle at center, #1a0b2e 0%, #0a0418 100%);
+    color: #e0e0ff; min-height:100vh; overflow-x:hidden;
+  }
+  .container { max-width:900px; margin:auto; padding:20px; }
+  header {
+    text-align:center; padding:20px;
+    border-bottom:2px solid #8a2be2;
+    box-shadow:0 0 20px #8a2be2;
+  }
+  h1 { color:#b88aff; text-shadow:0 0 10px #8a2be2; letter-spacing:3px; }
+  .hud {
+    display:flex; justify-content:space-around;
+    background:rgba(20,10,40,0.8); padding:15px;
+    border-radius:10px; margin:20px 0;
+    border:1px solid #8a2be2;
+  }
+  .hud div { font-size:1.1em; }
+  .hud span { color:#00ffae; font-weight:bold; }
+  .progress {
+    display:flex; gap:10px; justify-content:center; margin:15px 0;
+  }
+  .door-icon {
+    width:40px; height:50px; background:#2a1a4a;
+    border:2px solid #555; border-radius:5px 5px 0 0;
+    position:relative; transition:all .4s;
+  }
+  .door-icon.open { background:#00ffae; box-shadow:0 0 15px #00ffae; border-color:#00ffae; }
+  .door-icon.current { border-color:#ffae00; animation:pulse 1s infinite; }
+  @keyframes pulse { 50%{box-shadow:0 0 20px #ffae00;} }
+  .puzzle {
+    background:rgba(30,15,60,0.9); padding:30px;
+    border-radius:15px; border:1px solid #8a2be2;
+    box-shadow:0 0 30px rgba(138,43,226,0.4);
+  }
+  .puzzle h2 { color:#ffae00; margin-bottom:15px; }
+  .story { font-style:italic; color:#b88aff; margin-bottom:20px; }
+  .question { font-size:1.2em; margin:15px 0; line-height:1.6; }
+  .math { font-family:'Cambria Math',serif; color:#00ffae; font-size:1.1em; }
+  input[type=text] {
+    width:100%; padding:12px; font-size:1.1em;
+    background:#0a0418; color:#00ffae;
+    border:2px solid #8a2be2; border-radius:8px;
+    margin:10px 0;
+  }
+  button {
+    padding:12px 25px; margin:5px;
+    background:linear-gradient(135deg,#8a2be2,#5a1b92);
+    color:white; border:none; border-radius:8px;
+    cursor:pointer; font-size:1em; font-weight:bold;
+    transition:all .3s;
+  }
+  button:hover { transform:translateY(-2px); box-shadow:0 5px 15px #8a2be2; }
+  .hint-btn { background:linear-gradient(135deg,#ffae00,#cc7700); }
+  .feedback {
+    margin-top:15px; padding:15px; border-radius:8px;
+    display:none;
+  }
+  .feedback.correct { background:rgba(0,255,174,0.2); border-left:4px solid #00ffae; display:block; }
+  .feedback.wrong { background:rgba(255,50,50,0.2); border-left:4px solid #ff3232; display:block; }
+  .hint-box {
+    background:rgba(255,174,0,0.15); border-left:4px solid #ffae00;
+    padding:10px; margin:10px 0; border-radius:5px;
+  }
+  .explanation {
+    background:rgba(0,255,174,0.1); padding:15px;
+    border-radius:8px; margin-top:15px; line-height:1.7;
+  }
+  .final {
+    text-align:center; padding:40px;
+    background:linear-gradient(135deg,#00ffae33,#8a2be233);
+    border-radius:15px; border:2px solid #00ffae;
+  }
+  .final h1 { color:#00ffae; font-size:2.5em; }
+  .sound-toggle {
+    position:fixed; top:15px; right:15px;
+    background:#2a1a4a; padding:8px 12px; border-radius:50%;
+    cursor:pointer; z-index:100;
+  }
+</style>
+</head>
+<body>
+<div class="sound-toggle" onclick="toggleSound()">🔊</div>
+<div class="container">
+  <header>
+    <h1>🔮 RUANG FUNGSI MISTERIUS 🔮</h1>
+    <p>Selesaikan 5 teka-teki untuk membuka pintu keluar...</p>
+  </header>
+
+  <div class="hud">
+    <div>⏱ Waktu: <span id="timer">10:00</span></div>
+    <div>⭐ Skor: <span id="score">0</span></div>
+    <div>🚪 Pintu: <span id="doorNum">1</span>/5</div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="gameArea"></div>
+</div>
+
+<script>
+const puzzles = [
+  {
+    title:"Pintu 1: Gerbang Domain",
+    story:"Pintu besi berukir simbol √ muncul di hadapanmu. Sebuah tulisan berbunyi: 'Hanya nilai yang membuat akar nyata yang boleh lewat.'",
+    question:"Tentukan <b>domain</b> dari fungsi <span class='math'>f(x) = √(x − 3)</span>. Masukkan batas bawah domain (bilangan bulat).",
+    answer:"3",
+    hints:[
+      "💡 Ingat: ekspresi di dalam akar harus ≥ 0.",
+      "💡 Tulis pertidaksamaan: x − 3 ≥ 0.",
+      "💡 Maka x ≥ 3. Batas bawahnya adalah 3."
+    ],
+    explanation:"Agar √(x−3) terdefinisi di bilangan real, haruslah x − 3 ≥ 0, sehingga x ≥ 3. Domain = [3, ∞). Kode pintu: <b>3</b>."
+  },
+  {
+    title:"Pintu 2: Cermin Range",
+    story:"Ruangan dipenuhi cermin yang memantulkan nilai-nilai. Setiap bayangan adalah hasil kuadrat.",
+    question:"Diketahui <span class='math'>f(x) = x²</span> dengan domain <span class='math'>D = {−2, −1, 0, 1, 2}</span>. Tuliskan range dengan urutan naik tanpa spasi (contoh: 014).",
+    answer:"014",
+    hints:[
+      "💡 Substitusi setiap anggota domain ke f(x).",
+      "💡 (−2)²=4, (−1)²=1, 0²=0, 1²=1, 2²=4.",
+      "💡 Himpunan hasil (unik, urut): {0, 1, 4} → 014."
+    ],
+    explanation:"f(−2)=4, f(−1)=1, f(0)=0, f(1)=1, f(2)=4. Range = {0,1,4}. Kode: <b>014</b>."
+  },
+  {
+    title:"Pintu 3: Penjumlahan Ajaib",
+    story:"Dua roh fungsi muncul dan berkata: 'Bergabunglah kami, dan nilai kami di titik 3 akan membukakan jalan.'",
+    question:"<span class='math'>f(x) = 2x + 1</span> dan <span class='math'>g(x) = x²</span>. Hitung <span class='math'>(f + g)(3)</span>.",
+    answer:"16",
+    hints:[
+      "💡 (f+g)(x) = f(x) + g(x).",
+      "💡 f(3) = 2·3 + 1 = 7.",
+      "💡 g(3) = 3² = 9. Jumlahkan: 7 + 9 = 16."
+    ],
+    explanation:"(f+g)(3) = f(3) + g(3) = 7 + 9 = <b>16</b>."
+  },
+  {
+    title:"Pintu 4: Selisih Pecahan",
+    story:"Dua retakan di dinding membentuk pecahan. Kurangkan satu dari yang lain, lalu evaluasi.",
+    question:"<span class='math'>f(x) = 6/(x−2)</span> dan <span class='math'>g(x) = 4/(x−2)</span>. Hitung <span class='math'>(f − g)(5)</span>. Tuliskan dalam bentuk desimal dua angka (misal 0.67).",
+    answer:"0.67",
+    hints:[
+      "💡 (f−g)(x) = (6−4)/(x−2) = 2/(x−2).",
+      "💡 Substitusi x = 5: 2/(5−2) = 2/3.",
+      "💡 2/3 ≈ 0.67."
+    ],
+    explanation:"(f−g)(5) = 2/(5−2) = 2/3 ≈ <b>0.67</b>. Domain hasil: x ≠ 2."
+  },
+  {
+    title:"Pintu 5: Pintu Terakhir",
+    story:"Pintu emas terakhir. Sebuah persamaan gabungan terukir di dinding...",
+    question:"Diketahui <span class='math'>(f + g)(x) = x² + 3x</span> dan <span class='math'>g(x) = x²</span>. Tentukan nilai <span class='math'>f(4)</span>.",
+    answer:"12",
+    hints:[
+      "💡 (f+g)(x) = f(x) + g(x), maka f(x) = (f+g)(x) − g(x).",
+      "💡 f(x) = (x² + 3x) − x² = 3x.",
+      "💡 f(4) = 3·4 = 12."
+    ],
+    explanation:"f(x) = (x²+3x) − x² = 3x → f(4) = 12. Kode final: <b>12</b>. Kamu bebas!"
+  }
+];
+
+let current=0, score=0, timeLeft=600, hintIdx=0, soundOn=true, timerInt;
+
+function buildProgress(){
+  const p=document.getElementById('progress'); p.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');
+    d.className='door-icon'+(i<current?' open':'')+(i===current?' current':'');
+    p.appendChild(d);
+  }
+}
+
+function renderPuzzle(){
+  if(current>=5){ return showFinal(); }
+  const p=puzzles[current]; hintIdx=0;
+  document.getElementById('doorNum').textContent=current+1;
+  buildProgress();
+  document.getElementById('gameArea').innerHTML=`
+    <div class="puzzle">
+      <h2>${p.title}</h2>
+      <p class="story">${p.story}</p>
+      <p class="question">${p.question}</p>
+      <input type="text" id="ans" placeholder="Ketik kode angka..." autocomplete="off">
+      <button onclick="checkAnswer()">🔓 Buka Pintu</button>
+      <button class="hint-btn" onclick="showHint()">💡 Petunjuk (<span id="hintCount">3</span> tersisa)</button>
+      <div id="hintArea"></div>
+      <div id="feedback" class="feedback"></div>
+    </div>`;
+  document.getElementById('ans').focus();
+  document.getElementById('ans').addEventListener('keypress',e=>{
+    if(e.key==='Enter') checkAnswer();
+  });
+}
+
+function showHint(){
+  const p=puzzles[current];
+  if(hintIdx>=p.hints.length){
+    document.getElementById('feedback').className='feedback wrong';
+    document.getElementById('feedback').innerHTML='⚠️ Tidak ada petunjuk lagi!';
+    return;
+  }
+  const area=document.getElementById('hintArea');
+  const h=document.createElement('div');
+  h.className='hint-box'; h.innerHTML=p.hints[hintIdx];
+  area.appendChild(h);
+  hintIdx++;
+  score=Math.max(0,score-5);
+  document.getElementById('score').textContent=score;
+  document.getElementById('hintCount').textContent=3-hintIdx;
+  playBeep(400,0.1);
+}
+
+function checkAnswer(){
+  const ans=document.getElementById('ans').value.trim();
+  const p=puzzles[current];
+  const fb=document.getElementById('feedback');
+  if(ans===p.answer){
+    fb.className='feedback correct';
+    fb.innerHTML=`✅ <b>BENAR!</b> Pintu terbuka!<div class="explanation"><b>Pembahasan:</b> ${p.explanation}</div>
+      <button onclick="nextDoor()" style="margin-top:10px">Lanjut ➡️</button>`;
+    score+=20+(3-hintIdx)*5;
+    document.getElementById('score').textContent=score;
+    playBeep(800,0.2); setTimeout(()=>playBeep(1000,0.2),200);
+  } else {
+    fb.className='feedback wrong';
+    fb.innerHTML='❌ Kode salah! Coba lagi atau gunakan petunjuk.';
+    score=Math.max(0,score-2);
+    document.getElementById('score').textContent=score;
+    playBeep(200,0.3);
+  }
+}
+
+function nextDoor(){ current++; renderPuzzle(); }
+
+function showFinal(){
+  clearInterval(timerInt);
+  document.getElementById('gameArea').innerHTML=`
+    <div class="final">
+      <h1>🎉 KAMU BEBAS! 🎉</h1>
+      <p style="font-size:1.3em;margin:20px">Semua pintu berhasil dibuka!</p>
+      <p>⭐ Skor Akhir: <b style="color:#00ffae">${score}</b></p>
+      <p>⏱ Sisa Waktu: <b>${formatTime(timeLeft)}</b></p>
+      <button onclick="location.reload()">🔄 Main Lagi</button>
+    </div>`;
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playBeep(f,0.2),i*200));
+}
+
+function formatTime(s){ return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
+
+function startTimer(){
+  timerInt=setInterval(()=>{
+    timeLeft--;
+    document.getElementById('timer').textContent=formatTime(timeLeft);
+    if(timeLeft<=0){
+      clearInterval(timerInt);
+      document.getElementById('gameArea').innerHTML=`
+        <div class="final" style="border-color:#ff3232">
+          <h1 style="color:#ff3232">⏰ WAKTU HABIS!</h1>
+          <p>Kamu terjebak selamanya di ruang fungsi...</p>
+          <button onclick="location.reload()">🔄 Coba Lagi</button>
+        </div>`;
+    }
+  },1000);
+}
+
+let audioCtx;
+function playBeep(freq,dur){
+  if(!soundOn) return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.frequency.value=freq; o.type='sine';
+    o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.2,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+dur);
+    o.start(); o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+function toggleSound(){ soundOn=!soundOn; document.querySelector('.sound-toggle').textContent=soundOn?'🔊':'🔇'; }
+
+renderPuzzle(); startTimer();
+</script>
+</body>
+</html>
