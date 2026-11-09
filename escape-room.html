@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUANG TERKUNCI — Escape Room Fungsi · Kelas XI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#070b12; --bg1:#0d1621; --panel:#0f1823; --line:#243646;
+  --ink:#e8edf2; --dim:#93a6b4; --gold:#e8b95a; --gold2:#f6d489;
+  --teal:#5fd6c2; --red:#e2604f; --green:#7fd78a; --paper:#f2e8d5; --paper-ink:#2b2417;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif; color:var(--ink); background:var(--bg0);
+  min-height:100vh; overflow-x:hidden;
+  background-image:
+    radial-gradient(60% 45% at 12% 8%, rgba(95,214,194,.07), transparent 65%),
+    radial-gradient(55% 50% at 88% 92%, rgba(232,185,90,.08), transparent 65%),
+    linear-gradient(160deg,var(--bg1),var(--bg0) 60%);
+}
+body::after{ /* butiran noise */
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.05; z-index:5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:4;
+  background:radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%);}
+.fog{position:fixed;inset:-15%;pointer-events:none;z-index:1;
+  background:radial-gradient(38% 30% at 28% 62%, rgba(95,214,194,.06), transparent 70%),
+             radial-gradient(34% 26% at 74% 28%, rgba(232,185,90,.06), transparent 70%);
+  animation:fogA 30s ease-in-out infinite alternate;}
+.fog.b{animation:fogB 38s ease-in-out infinite alternate-reverse;
+  background:radial-gradient(30% 34% at 70% 70%, rgba(232,185,90,.05), transparent 70%),
+             radial-gradient(36% 26% at 22% 20%, rgba(95,214,194,.05), transparent 70%);}
+@keyframes fogA{from{transform:translate(-2%,0)}to{transform:translate(2%,-2%)}}
+@keyframes fogB{from{transform:translate(2%,1%)}to{transform:translate(-2%,-1%)}}
+#dust{position:fixed;inset:0;z-index:2;pointer-events:none}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+button{font-family:inherit;cursor:pointer}
+
+/* ============ LAYAR ============ */
+.screen{display:none;position:relative;z-index:10}
+.screen.active{display:block;animation:fadein .55s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ============ INTRO ============ */
+#scr-intro{min-height:100vh;display:none;align-items:center}
+#scr-intro.active{display:flex}
+.intro-grid{max-width:1180px;margin:0 auto;padding:48px 28px;display:grid;
+  grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;width:100%}
+.overline{font-size:.72rem;letter-spacing:.32em;color:var(--teal);font-weight:600;margin-bottom:18px}
+.overline::before{content:"— ";color:var(--gold)}
+h1.title{font-family:Cinzel,serif;font-weight:900;font-size:clamp(2.9rem,7vw,5.4rem);
+  line-height:.98;letter-spacing:.04em;color:var(--ink)}
+h1.title span{color:var(--gold);text-shadow:0 0 26px rgba(232,185,90,.35);animation:flick 5s infinite}
+@keyframes flick{0%,93%,97%,100%{opacity:1}94%,96%{opacity:.45}}
+.tape-note{position:relative;margin:30px 0 24px;max-width:520px;background:var(--paper);color:var(--paper-ink);
+  padding:22px 24px 20px;border-radius:2px;transform:rotate(-1.2deg);
+  box-shadow:0 14px 34px rgba(0,0,0,.5);font-size:.95rem;line-height:1.65}
+.tape-note::before{content:"";position:absolute;top:-13px;left:34px;width:96px;height:26px;
+  background:rgba(232,185,90,.4);transform:rotate(-4deg);border:1px solid rgba(0,0,0,.08)}
+.tape-note b{font-family:Cinzel,serif}
+.rules{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px}
+.chip{font-size:.78rem;letter-spacing:.06em;padding:7px 14px;border:1px solid var(--line);
+  border-radius:999px;color:var(--dim);background:rgba(15,24,35,.7);transition:.25s}
+.chip:hover{border-color:var(--teal);color:var(--ink);transform:translateY(-2px)}
+.chip b{color:var(--gold2)}
+.start-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.name-in{background:#0b131c;border:1px solid var(--line);color:var(--ink);padding:14px 16px;
+  border-radius:8px;font-size:.95rem;width:220px;transition:.25s}
+.name-in:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(95,214,194,.15)}
+.btn-gold{position:relative;overflow:hidden;border:none;background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:#231a06;font-weight:700;letter-spacing:.1em;font-size:.9rem;padding:15px 28px;border-radius:8px;
+  box-shadow:0 6px 20px rgba(232,185,90,.3),inset 0 1px 0 rgba(255,255,255,.5);transition:.25s}
+.btn-gold::after{content:"";position:absolute;top:0;left:-70%;width:45%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);transition:.5s}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(232,185,90,.45)}
+.btn-gold:hover::after{left:130%}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--dim);padding:14px 22px;
+  border-radius:8px;letter-spacing:.08em;font-size:.85rem;transition:.25s}
+.btn-ghost:hover{border-color:var(--teal);color:var(--ink)}
+.intro-right{display:flex;flex-direction:column;align-items:center;gap:22px}
+.dial-wrap{position:relative;width:min(300px,70vw);filter:drop-shadow(0 18px 40px rgba(0,0,0,.6))}
+.dial-ring{animation:spin 40s linear infinite;transform-origin:50% 50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.preview-slots{display:flex;gap:10px}
+.preview-slots span{width:42px;height:52px;border:1px dashed #3b4c58;border-radius:6px;display:grid;
+  place-items:center;font-family:Cinzel;color:#3b4c58;font-size:1.2rem;animation:slotPulse 2.6s infinite}
+.preview-slots span:nth-child(2){animation-delay:.3s}.preview-slots span:nth-child(3){animation-delay:.6s}
+.preview-slots span:nth-child(4){animation-delay:.9s}.preview-slots span:nth-child(5){animation-delay:1.2s}
+@keyframes slotPulse{0%,100%{border-color:#3b4c58}50%{border-color:var(--gold);color:var(--gold)}}
+.whisper{font-family:Cinzel;letter-spacing:.3em;color:var(--dim);font-size:.8rem;text-align:center}
+
+/* ============ HUD ============ */
+.hud{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 24px;
+  border-bottom:1px solid #1b2836;background:rgba(8,13,19,.78);backdrop-filter:blur(5px);
+  position:sticky;top:0;z-index:30}
+.brand{font-family:Cinzel;font-weight:700;letter-spacing:.18em;font-size:.95rem;color:var(--gold)}
+.brand small{display:block;font-family:'Space Grotesk';letter-spacing:.14em;font-size:.58rem;color:var(--dim)}
+#pips{display:flex;gap:9px;margin:0 auto}
+.pip{width:34px;height:12px;transform:skewX(-18deg);background:#15212d;border:1px solid #2c3f50;transition:.4s}
+.pip.active{border-color:var(--teal);box-shadow:0 0 12px rgba(95,214,194,.4);animation:pipPulse 1.6s infinite}
+.pip.done{background:linear-gradient(180deg,var(--gold2),var(--gold));border-color:var(--gold)}
+@keyframes pipPulse{50%{box-shadow:0 0 20px rgba(95,214,194,.7)}}
+.hud-right{display:flex;align-items:center;gap:14px}
+.stat{text-align:right}
+.stat label{display:block;font-size:.58rem;letter-spacing:.22em;color:var(--dim)}
+.stat b{font-size:1.15rem;font-variant-numeric:tabular-nums}
+#hudScore{color:var(--gold2)} #hudScore.pop{animation:pop .35s}
+@keyframes pop{40%{transform:scale(1.3)}}
+#hudTime{color:var(--teal)}
+#hudTime.low{color:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+.icon-btn{background:#101a26;border:1px solid var(--line);color:var(--dim);border-radius:8px;
+  padding:8px 12px;font-size:.8rem;letter-spacing:.05em;transition:.25s}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold2)}
+
+/* ============ PAPAN PERMAINAN ============ */
+.board{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:36px;
+  max-width:1220px;margin:0 auto;padding:30px 26px 70px;align-items:start}
+.scene{position:sticky;top:84px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.lamp{position:relative;width:100%;height:118px;pointer-events:none}
+.lamp .swing{position:absolute;left:50%;top:0;transform-origin:top center;animation:sway 5.5s ease-in-out infinite alternate;display:flex;flex-direction:column;align-items:center}
+@keyframes sway{from{transform:rotate(-3.5deg)}to{transform:rotate(3.5deg)}}
+.cord{width:2px;height:44px;background:#2c3b48}
+.shade{width:52px;height:26px;background:linear-gradient(180deg,#3a4c5c,#1c2833);
+  clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);position:relative}
+.shade::after{content:"";position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
+  width:16px;height:12px;border-radius:50%;background:var(--gold2);
+  box-shadow:0 0 22px 8px rgba(246,212,137,.75);animation:flick 7s infinite}
+.beam{position:absolute;left:50%;top:70px;transform:translateX(-50%);width:230px;height:300px;
+  background:conic-gradient(from 180deg at 50% 0%,transparent 42%,rgba(246,212,137,.10) 47%,rgba(246,212,137,.16) 50%,rgba(246,212,137,.10) 53%,transparent 58%);
+  filter:blur(2px);pointer-events:none}
+.door-unit{position:relative;width:min(300px,74vw)}
+.plaque{margin:0 auto 10px;width:fit-content;font-family:Cinzel;letter-spacing:.42em;font-weight:700;
+  color:#231a06;background:linear-gradient(180deg,var(--gold2),var(--gold));padding:6px 18px 6px 22px;
+  border-radius:4px;font-size:.85rem;box-shadow:0 0 22px rgba(232,185,90,.4);animation:flick 9s infinite}
+.door-frame{padding:13px;border-radius:16px 16px 6px 6px;border:2px solid #2c3b48;background:#0b121a;
+  background-image:radial-gradient(circle at 9px 9px,#33465a 2px,transparent 2.6px);background-size:34px 34px;
+  box-shadow:0 24px 50px rgba(0,0,0,.6),inset 0 0 0 1px #060a10;perspective:900px;position:relative;overflow:hidden}
+.door-light{position:absolute;inset:13px;border-radius:8px;opacity:0;transition:opacity 1.4s;
+  background:radial-gradient(60% 80% at 50% 45%,rgba(246,212,137,.95),rgba(232,185,90,.35) 55%,transparent 80%)}
+.door{position:relative;height:352px;border-radius:8px;transform-origin:left center;
+  transition:transform 1.5s cubic-bezier(.7,0,.3,1);z-index:2;
+  background:linear-gradient(180deg,#26394a,#152230 55%,#0e1721);border:2px solid #3a4f62;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.5),inset 6px 0 14px rgba(0,0,0,.45)}
+.door::before,.door::after{content:"";position:absolute;left:14%;right:14%;height:32%;
+  border:1.5px solid rgba(232,185,90,.16);border-radius:4px;box-shadow:inset 0 0 18px rgba(0,0,0,.4)}
+.door::before{top:9%}.door::after{bottom:9%}
+.handle{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+  border:5px solid #6b7f90;background:radial-gradient(circle at 35% 35%,#43596c,#1b2733);
+  box-shadow:0 3px 8px rgba(0,0,0,.5),0 0 14px rgba(95,214,194,.15)}
+.door-unit.open .door{transform:rotateY(-80deg)}
+.door-unit.open .door-light{opacity:1}
+.slots{display:flex;gap:9px;justify-content:center;margin-top:16px;transition:.5s}
+.slots.finale .slot:not(.typing){opacity:.35}
+.slot{width:47px;height:58px;background:#0a1118;border:1px solid #33465a;border-radius:6px;
+  display:grid;place-items:center;position:relative;transition:.3s}
+.slot::after{content:"";position:absolute;bottom:5px;left:8px;right:8px;height:2px;background:#1d2b38}
+.slot .digit{font-family:Cinzel;font-weight:700;font-size:1.55rem;color:transparent;display:block}
+.slot.filled{border-color:var(--gold);box-shadow:0 0 16px rgba(232,185,90,.3),inset 0 0 10px rgba(232,185,90,.12)}
+.slot.filled .digit{color:var(--gold2);text-shadow:0 0 12px rgba(232,185,90,.7);animation:flipin .55s cubic-bezier(.3,1.4,.5,1)}
+.slot.typing{border-color:var(--teal)}
+.slot.typing .digit{color:var(--teal);text-shadow:0 0 10px rgba(95,214,194,.6)}
+@keyframes flipin{from{transform:rotateX(90deg);opacity:0}to{transform:none;opacity:1}}
+.scene-caption{font-size:.82rem;color:var(--dim);letter-spacing:.06em;text-align:center;min-height:2.2em;transition:.3s}
+.flydigit{position:fixed;z-index:99;font-family:Cinzel;font-weight:700;font-size:1.5rem;color:var(--gold2);
+  text-shadow:0 0 14px rgba(232,185,90,.8);pointer-events:none;
+  transition:transform .72s cubic-bezier(.45,-.15,.4,1),opacity .72s}
+
+/* ============ KARTU TANTANGAN ============ */
+.challenge{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px 30px;
+  box-shadow:0 20px 50px rgba(0,0,0,.4);min-height:420px;transition:filter .3s}
+.challenge.blurred{filter:blur(16px);pointer-events:none}
+.ch-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.lv{font-size:.68rem;font-weight:700;letter-spacing:.16em;padding:6px 12px;border-radius:4px}
+.lv-easy{background:rgba(95,214,194,.12);color:var(--teal);border:1px solid rgba(95,214,194,.4)}
+.lv-mid{background:rgba(232,185,90,.12);color:var(--gold2);border:1px solid rgba(232,185,90,.4)}
+.lv-final{background:rgba(226,96,79,.12);color:#f0937f;border:1px solid rgba(226,96,79,.4)}
+.tag{font-size:.72rem;letter-spacing:.14em;color:var(--dim)}
+.qtext{font-size:1.28rem;font-weight:600;line-height:1.5;margin-bottom:16px}
+.qtext b{color:var(--gold2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.85em;line-height:1.2;margin:0 3px}
+.frac span:first-child{border-bottom:1.5px solid currentColor;padding:0 6px}
+.frac span:last-child{padding:0 6px}
+.dg{width:min(330px,100%);display:block;margin:4px auto 18px}
+.dg .fr2{fill:rgba(20,32,42,.55);stroke:#314454}
+.dg .na{fill:#0d2b26;stroke:#54cbb8;stroke-width:1.5}
+.dg .nb{fill:#2b230d;stroke:#e6b455;stroke-width:1.5}
+.dg text{font:600 13px 'Space Grotesk';fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.dg .set{font:700 15px Cinzel;fill:#8fa3b0;letter-spacing:2px}
+.dg .ln{stroke:#8fa3b0;stroke-width:1.6}
+.opts{display:grid;gap:11px;margin-bottom:18px}
+.opt{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center;text-align:left;
+  background:#0b131c;border:1px solid #2c3f50;border-radius:8px;padding:13px 16px;color:var(--ink);
+  font-size:.98rem;transition:transform .2s,border-color .2s,box-shadow .2s}
+.opt:hover:not(:disabled){border-color:var(--teal);transform:translateX(7px);box-shadow:-4px 0 0 var(--teal)}
+.opt .key{width:34px;height:34px;display:grid;place-items:center;border:1px solid #33465a;border-radius:6px;
+  font-weight:700;color:var(--dim);transition:.2s;font-size:.9rem}
+.opt:hover:not(:disabled) .key{border-color:var(--teal);color:var(--teal)}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--green);background:rgba(127,215,138,.09);box-shadow:-4px 0 0 var(--green)}
+.opt.correct .key{border-color:var(--green);color:var(--green)}
+.opt.wrong{border-color:var(--red);background:rgba(226,96,79,.08);opacity:.55;animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.fb{border-radius:8px;padding:12px 16px;font-size:.92rem;margin-bottom:14px;animation:fadein .4s}
+.fb.good{background:rgba(127,215,138,.1);border:1px solid rgba(127,215,138,.4);color:var(--green)}
+.fb.bad{background:rgba(226,96,79,.1);border:1px solid rgba(226,96,79,.4);color:#f0937f}
+.hints{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.hbtn{background:transparent;border:1px dashed #3c5063;color:var(--dim);border-radius:8px;
+  padding:9px 14px;font-size:.8rem;transition:.25s}
+.hbtn em{font-style:normal;color:var(--gold);font-size:.72rem;margin-left:6px}
+.hbtn:hover:not(:disabled){border-color:var(--gold);color:var(--gold2);border-style:solid}
+.hbtn:disabled{opacity:.35;cursor:default}
+.hintbox{background:rgba(232,185,90,.07);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:12px 16px;font-size:.9rem;line-height:1.6;margin-bottom:10px;animation:fadein .4s;color:#f0dfb8}
+.explain{margin-top:20px;background:var(--paper);color:var(--paper-ink);border-radius:8px;overflow:hidden;
+  animation:fadein .5s;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.ex-head{font-family:Cinzel;font-weight:700;letter-spacing:.18em;font-size:.8rem;
+  background:#e0d0ae;padding:12px 22px}
+.ex-body{padding:18px 24px;font-size:.93rem;line-height:1.7}
+.ex-body ul{margin:8px 0 8px 22px}
+.ex-body li{margin-bottom:4px}
+.ex-body em{color:#7a5b16}
+.ex-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 24px 22px}
+.ex-digit{display:grid;place-items:center;width:44px;height:52px;border:2px solid #b8933f;border-radius:6px;
+  font-family:Cinzel;font-weight:700;font-size:1.5rem;color:#8a6a1f;background:#fff8e6}
+
+/* ============ FINAL / KEYPAD ============ */
+.tokens{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.token{display:flex;flex-direction:column;align-items:center;gap:2px;background:#141f14;border:1px solid var(--gold);
+  color:var(--gold2);border-radius:8px;padding:9px 15px;font-family:Cinzel;font-size:1.4rem;font-weight:700;
+  transition:.25s;box-shadow:0 0 14px rgba(232,185,90,.15)}
+.token small{font-family:'Space Grotesk';font-size:.58rem;letter-spacing:.14em;color:var(--dim)}
+.token:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(232,185,90,.35)}
+.codebox{display:flex;gap:10px;justify-content:center;margin:8px 0 22px}
+.codebox span{width:50px;height:60px;background:#0a1118;border:1px solid #33465a;border-radius:6px;
+  display:grid;place-items:center;font-family:Cinzel;font-size:1.7rem;color:var(--teal)}
+.keypad{display:grid;grid-template-columns:repeat(3,86px);gap:10px;justify-content:center;margin-bottom:16px}
+.kbtn{height:62px;font-family:Cinzel;font-weight:700;font-size:1.4rem;color:var(--ink);border-radius:8px;
+  background:linear-gradient(180deg,#1c2a38,#121d28);border:1px solid #33465a;
+  box-shadow:0 4px 0 #0a1118;transition:.12s}
+.kbtn:hover{border-color:var(--gold);color:var(--gold2)}
+.kbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #0a1118}
+.kbtn.ok{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#231a06;font-family:'Space Grotesk';font-size:.95rem;letter-spacing:.1em}
+.final-note{font-size:.78rem;color:var(--dim);text-align:center;margin-top:10px}
+
+/* ============ AKHIR ============ */
+.endwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:50px 24px;position:relative}
+.endcard{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:44px 46px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.6);position:relative;z-index:2}
+.end-kicker{letter-spacing:.34em;font-size:.7rem;color:var(--teal);margin-bottom:14px}
+.end-title{font-family:Cinzel;font-weight:900;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin-bottom:10px}
+#scr-win .end-title{color:var(--gold);text-shadow:0 0 30px rgba(232,185,90,.4)}
+#scr-fail .end-title{color:var(--red)}
+.end-rank{font-size:1.05rem;color:var(--gold2);margin-bottom:6px}
+.end-agent{color:var(--dim);font-size:.85rem;margin-bottom:26px}
+.end-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.es{background:#0b131c;border:1px solid var(--line);border-radius:8px;padding:14px 8px}
+.es b{display:block;font-size:1.35rem;color:var(--gold2)}
+.es label{font-size:.6rem;letter-spacing:.18em;color:var(--dim)}
+.breakdown{text-align:left;margin:0 0 26px;border-top:1px solid var(--line)}
+.bd-row{display:flex;justify-content:space-between;gap:14px;padding:10px 4px;border-bottom:1px solid #182531;font-size:.85rem}
+.bd-row span:first-child{color:var(--dim)}
+.bd-row b{color:var(--gold2)}
+.spark{position:absolute;color:var(--gold2);animation:sparkUp linear forwards;pointer-events:none;z-index:1}
+@keyframes sparkUp{from{transform:translateY(0) scale(1);opacity:1}to{transform:translateY(-46vh) scale(.3);opacity:0}}
+
+/* ============ PAUSE ============ */
+#pauseOverlay{position:fixed;inset:0;z-index:60;background:rgba(5,8,13,.92);display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center}
+#pauseOverlay.on{display:flex}
+#pauseOverlay h2{font-family:Cinzel;letter-spacing:.3em;color:var(--gold);font-size:2rem}
+#pauseOverlay p{color:var(--dim);font-size:.9rem}
+
+@media (max-width:960px){
+  .intro-grid{grid-template-columns:1fr;gap:36px;padding-top:60px}
+  .board{grid-template-columns:1fr}
+  .scene{position:static}
+  .door{height:280px}
+  .challenge{padding:22px 18px}
+  .end-stats{grid-template-columns:repeat(2,1fr)}
+  #pips{order:3;width:100%;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<canvas id="dust"></canvas>
+<div class="fog"></div><div class="fog b"></div>
+<div class="vignette"></div>
+
+<!-- ================= INTRO ================= -->
+<section id="scr-intro" class="screen active">
+  <div class="intro-grid">
+    <div>
+      <p class="overline">SIMULASI ESCAPE ROOM · MATEMATIKA KELAS XI · MATERI FUNGSI</p>
+      <h1 class="title">RUANG<br><span>TERKUNCI</span></h1>
+      <div class="tape-note">
+        Kamu terbangun di sebuah ruang arsip tua yang pengap. Lampu berkedip, jam berdetak,
+        dan satu-satunya pintu besi di hadapanmu terkunci rapat oleh <b>sandi 5 digit</b>.
+        Di meja tergeletak lima amplop tantangan tentang <b>Fungsi</b>.
+        Setiap amplop yang terpecahkan memberimu <b>satu digit kode</b>.
+        Selesaikan semuanya, susun kodenya, dan keluarlah sebelum waktu habis…
+      </div>
+      <div class="rules">
+        <span class="chip">⏱ Waktu <b>15 menit</b></span>
+        <span class="chip">🧩 <b>5 tantangan</b> · mudah → sedang</span>
+        <span class="chip">💡 Petunjuk bertahap <b>(−15 poin)</b></span>
+        <span class="chip">🗝 Setiap jawaban benar = <b>1 digit kode</b></span>
+      </div>
+      <div class="start-row">
+        <input id="playerName" class="name-in" type="text" maxlength="20" placeholder="Nama agen… (opsional)">
+        <button id="btnStart" class="btn-gold" type="button">MASUK KE RUANGAN ▸</button>
+      </div>
+    </div>
+    <div class="intro-right">
+      <div class="dial-wrap">
+        <svg viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="92" fill="#0d1620" stroke="#33465a" stroke-width="3"/>
+          <g class="dial-ring">
+            <circle cx="100" cy="100" r="74" fill="none" stroke="#e8b95a" stroke-width="2" stroke-dasharray="4 14" opacity=".7"/>
+          </g>
+          <circle cx="100" cy="100" r="56" fill="#101a26" stroke="#2c3f50" stroke-width="2"/>
+          <circle cx="100" cy="86" r="17" fill="#070b12" stroke="#5fd6c2" stroke-width="2.5"/>
+          <path d="M92 96 L108 96 L114 138 L86 138 Z" fill="#070b12" stroke="#5fd6c2" stroke-width="2.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="preview-slots"><span>?</span><span>?</span><span>?</span><span>?</span><span>?</span></div>
+      <p class="whisper">MAMPUKAH KAMU KELUAR?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GAME ================= -->
+<section id="scr-game" class="screen">
+  <header class="hud">
+    <div class="brand">RUANG TERKUNCI<small>MISI: FUNGSI · KELAS XI</small></div>
+    <div id="pips" aria-label="Progres tantangan"></div>
+    <div class="hud-right">
+      <div class="stat"><label>SKOR</label><b id="hudScore">0</b></div>
+      <div class="stat"><label>WAKTU</label><b id="hudTime">15:00</b></div>
+      <button id="btnSound" class="icon-btn" type="button" aria-pressed="true">🔊 Suara</button>
+      <button id="btnPause" class="icon-btn" type="button">⏸ Jeda</button>
+    </div>
+  </header>
+  <main class="board">
+    <div class="scene">
+      <div class="lamp"><div class="beam"></div>
+        <div class="swing"><div class="cord"></div><div class="shade"></div></div>
+      </div>
+      <div class="door-unit" id="doorUnit">
+        <div class="plaque">KELUAR</div>
+        <div class="door-frame">
+          <div class="door-light"></div>
+          <div class="door"><div class="handle"></div></div>
+        </div>
+        <div class="slots" id="slots"></div>
+      </div>
+      <p class="scene-caption" id="sceneMsg"></p>
+    </div>
+    <div class="challenge" id="challenge"></div>
+  </main>
+</section>
+
+<!-- ================= MENANG ================= -->
+<section id="scr-win" class="screen">
+  <div class="endwrap" id="winWrap">
+    <div class="endcard">
+      <p class="end-kicker">MISI SELESAI</p>
+      <h2 class="end-title">PINTU TERBUKA!</h2>
+      <p class="end-rank" id="winRank"></p>
+      <p class="end-agent" id="winAgent"></p>
+      <div class="end-stats" id="winStats"></div>
+      <div class="breakdown" id="winBreak"></div>
+      <button class="btn-gold" id="btnAgain" type="button">⟳ MAIN LAGI</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KALAH ================= -->
+<section id="scr-fail" class="screen">
+  <div class="endwrap">
+    <div class="endcard">
+      <p class="end-kicker" style="color:var(--red)">SINYAL WAKTU PUTUS</p>
+      <h2 class="end-title">WAKTU HABIS</h2>
+      <p style="color:var(--dim);line-height:1.6;margin-bottom:22px">
+        Lampu padam… pintu tetap terkunci. Kamu mengumpulkan digit
+        <b id="failDigits" style="color:var(--gold2)"></b> dan skor
+        <b id="failScore" style="color:var(--gold2)"></b>.
+        Pelajari lagi pola fungsi, lalu coba terobos kembali!
+      </p>
+      <button class="btn-gold" id="btnRetry" type="button">⟳ COBA LAGI</button>
+    </div>
+  </div>
+</section>
+
+<div id="pauseOverlay">
+  <h2>JEDA</h2>
+  <p>Waktu berhenti. Soal disembunyikan supaya tidak curi-curi baca, ya. 😉</p>
+  <button class="btn-gold" id="btnResume" type="button">LANJUTKAN</button>
+</div>
+
+<script>
+/* =====================================================
+   KONFIGURASI — ubah di sini bila perlu
+===================================================== */
+const TOTAL_TIME = 15 * 60;          // detik
+const CODE = "37194";                // 5 digit kode pintu (sesuai urutan soal)
+const BASE_PTS = 100, HINT_COST = 15, WRONG_COST = 10, MIN_PTS = 20;
+
+/* ============ SOAL ============ */
+const QUESTIONS = [
+{ diff:"mudah", topic:"FUNGSI vs BUKAN FUNGSI", digit:3,
+  q:"Perhatikan himpunan pasangan berurut berikut. Yang merupakan <b>fungsi</b> adalah…",
+  options:["{(1,1), (2,4), (3,9)}","{(2,2), (2,4), (3,6)}","{(1,3), (2,3), (1,5)}","{(4,1), (5,1), (4,2)}"],
+  correct:0,
+  hints:["Syarat fungsi: setiap anggota himpunan asal (domain) harus dipasangkan <b>tepat satu</b> ke anggota kodomain.",
+         "Cek angka <b>pertama</b> dari tiap pasangan. Jika satu angka pertama muncul dua kali dengan pasangan berbeda → bukan fungsi."],
+  explain:`<p><b>Jawaban: A.</b> Fungsi menuntut <em>setiap</em> anggota domain memiliki <em>tepat satu</em> pasangan.</p>
+  <ul><li>A → 1→1, 2→4, 3→9 : masing-masing tepat satu pasangan ✔</li>
+  <li>B → angka 2 berpasangan dengan 2 dan 4 ✘</li>
+  <li>C → angka 1 berpasangan dengan 3 dan 5 ✘</li>
+  <li>D → angka 4 berpasangan dengan 1 dan 2 ✘</li></ul>
+  <p>B, C, dan D hanyalah relasi biasa, bukan fungsi.</p>` },
+
+{ diff:"mudah", topic:"DOMAIN DARI DIAGRAM PANAH", digit:7,
+  q:"Perhatikan diagram panah berikut. <b>Domain</b> fungsi tersebut adalah…",
+  diagram:`<svg class="dg" viewBox="0 0 340 230" role="img" aria-label="Diagram panah fungsi dari A ke B">
+    <defs><marker id="arw-a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0L9,4.5L0,9z" fill="#8fa3b0"/></marker></defs>
+    <rect class="fr2" x="34" y="30" width="72" height="182" rx="14"/><rect class="fr2" x="234" y="30" width="72" height="182" rx="14"/>
+    <text class="set" x="70" y="16">A</text><text class="set" x="270" y="16">B</text>
+    <circle class="na" cx="70" cy="66" r="17"/><circle class="na" cx="70" cy="121" r="17"/><circle class="na" cx="70" cy="176" r="17"/>
+    <circle class="nb" cx="270" cy="52" r="17"/><circle class="nb" cx="270" cy="99" r="17"/><circle class="nb" cx="270" cy="146" r="17"/><circle class="nb" cx="270" cy="193" r="17"/>
+    <text x="70" y="66">1</text><text x="70" y="121">2</text><text x="70" y="176">3</text>
+    <text x="270" y="52">2</text><text x="270" y="99">4</text><text x="270" y="146">6</text><text x="270" y="193">8</text>
+    <line class="ln" x1="88" y1="66" x2="251" y2="52" marker-end="url(#arw-a)"/>
+    <line class="ln" x1="88" y1="121" x2="251" y2="99" marker-end="url(#arw-a)"/>
+    <line class="ln" x1="88" y1="176" x2="251" y2="146" marker-end="url(#arw-a)"/></svg>`,
+  options:["{2, 4, 6, 8}","{1, 2, 3}","{2, 4, 6}","{1, 2, 3, 4}"],
+  correct:1,
+  hints:["Domain = himpunan <b>asal</b>, yaitu semua anggota yang “melepas panah”.",
+         "Lihat lingkaran di sisi kiri (himpunan A). Pada fungsi, <b>semua</b> anggotanya wajib berpasangan — itulah domainnya."],
+  explain:`<p><b>Jawaban: B.</b> Domain adalah himpunan asal, yaitu seluruh anggota A yang melepas panah: <b>{1, 2, 3}</b>.</p>
+  <p>Pembanding: {2, 4, 6} adalah <em>range</em> (hasil yang “terkena panah”), sedangkan {2, 4, 6, 8} adalah <em>kodomain</em>
+  (seluruh himpunan B). Angka 8 tetap anggota kodomain walaupun tidak mendapat pasangan.</p>` },
+
+{ diff:"sedang", topic:"KODOMAIN & RANGE", digit:1,
+  q:"Perhatikan diagram panah berikut. Pernyataan yang <b>benar</b> adalah…",
+  diagram:`<svg class="dg" viewBox="0 0 340 230" role="img" aria-label="Diagram panah fungsi dari A ke B">
+    <defs><marker id="arw-b" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0L9,4.5L0,9z" fill="#8fa3b0"/></marker></defs>
+    <rect class="fr2" x="34" y="30" width="72" height="182" rx="14"/><rect class="fr2" x="234" y="30" width="72" height="182" rx="14"/>
+    <text class="set" x="70" y="16">A</text><text class="set" x="270" y="16">B</text>
+    <circle class="na" cx="70" cy="66" r="17"/><circle class="na" cx="70" cy="121" r="17"/><circle class="na" cx="70" cy="176" r="17"/>
+    <circle class="nb" cx="270" cy="52" r="17"/><circle class="nb" cx="270" cy="99" r="17"/><circle class="nb" cx="270" cy="146" r="17"/><circle class="nb" cx="270" cy="193" r="17"/>
+    <text x="70" y="66">a</text><text x="70" y="121">b</text><text x="70" y="176">c</text>
+    <text x="270" y="52">1</text><text x="270" y="99">2</text><text x="270" y="146">3</text><text x="270" y="193">4</text>
+    <line class="ln" x1="88" y1="66" x2="251" y2="143" marker-end="url(#arw-b)"/>
+    <line class="ln" x1="88" y1="121" x2="251" y2="52" marker-end="url(#arw-b)"/>
+    <line class="ln" x1="88" y1="176" x2="251" y2="149" marker-end="url(#arw-b)"/></svg>`,
+  options:["Kodomain = {1, 3} dan range = {1, 2, 3, 4}",
+           "Kodomain = {1, 2, 3, 4} dan range = {1, 3}",
+           "Kodomain = {1, 2, 3, 4} dan range = {1, 2, 3, 4}",
+           "Kodomain = {a, b, c} dan range = {1, 3}"],
+  correct:1,
+  hints:["Kodomain = <b>seluruh</b> himpunan tujuan (B). Range = hanya anggota B yang benar-benar “terkena panah”.",
+         "Anggota B yang tidak dipasahkan dari mana pun tetap dihitung kodomain, tetapi <b>bukan</b> range. Hitung hasil yang berbeda: a→3, b→1, c→3."],
+  explain:`<p><b>Jawaban: B.</b> Kodomain = seluruh himpunan tujuan = <b>{1, 2, 3, 4}</b>.
+  Range = anggota kodomain yang benar-benar menjadi hasil = <b>{1, 3}</b> (angka 3 muncul dua kali, cukup ditulis sekali).</p>
+  <p>Catatan penting: dua anggota domain boleh mengarah ke nilai sama — itu <em>tetap fungsi</em>.
+  Yang dilarang adalah satu anggota domain memiliki dua panah. {a, b, c} adalah domain.</p>` },
+
+{ diff:"sedang", topic:"DOMAIN FUNGSI RUMUS", digit:9,
+  q:"Diketahui fungsi <b>f(x) = <span class='frac'><span>6</span><span>x − 2</span></span></b> dengan x ∈ bilangan real. Domain (daerah asal) fungsi tersebut adalah…",
+  options:["{x | x ≠ 0, x ∈ ℝ}","{x | x ≠ 2, x ∈ ℝ}","{x | x > 2, x ∈ ℝ}","{x | x ≠ 6, x ∈ ℝ}"],
+  correct:1,
+  hints:["Fungsi pecahan terdefinisi selama <b>penyebutnya tidak nol</b>.",
+         "Syaratnya: x − 2 ≠ 0. Selesaikan, lalu tulis dengan notasi himpunan."],
+  explain:`<p><b>Jawaban: B.</b> Fungsi pecahan terdefinisi selama <em>penyebutnya tidak nol</em>.</p>
+  <p>x − 2 ≠ 0 → x ≠ 2, sehingga domain = <b>{x | x ≠ 2, x ∈ ℝ}</b>.</p>
+  <p>Mengecoh pengecoh: x = 0 justru boleh dipakai (f(0) = −3), sedangkan angka 6 hanyalah pembilang — bukan syarat domain.</p>` },
+
+{ diff:"sedang", topic:"RANGE FUNGSI KUADRAT", digit:4,
+  q:"Fungsi <b>f(x) = x<sup>2</sup> − 2x</b> mempunyai domain A = {−1, 0, 1, 2, 3}. <b>Range</b> fungsi tersebut adalah…",
+  options:["{−1, 0, 1, 2, 3}","{0, 3}","{−1, 0, 3}","{3, 0, −1, 0, 3}"],
+  correct:2,
+  hints:["Range = semua <b>hasil</b> f(x) setelah tiap anggota domain disubstitusikan — tulis tanpa pengulangan.",
+         "Hitung satu-satu: f(−1) = 1 + 2 = 3, lalu lanjutkan f(0), f(1), f(2), f(3). Kumpulkan hasil yang berbeda."],
+  explain:`<p><b>Jawaban: C.</b> Substitusikan setiap anggota domain:</p>
+  <ul><li>f(−1) = 1 + 2 = 3</li><li>f(0) = 0</li><li>f(1) = 1 − 2 = −1</li>
+  <li>f(2) = 4 − 4 = 0</li><li>f(3) = 9 − 6 = 3</li></ul>
+  <p>Hasil yang berbeda: <b>{−1, 0, 3}</b>. Opsi A itu domain, opsi D menulis hasil apa adanya (duplikat — bukan notasi himpunan yang benar),
+  dan opsi B lupa nilai −1.</p>` }
+];
+
+/* ============ AUDIO (Web Audio, tanpa file) ============ */
+let AC=null, soundOn=true, amb=null;
+const ac=()=>{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==="suspended") AC.resume(); return AC; };
+function tone(f,d,type="sine",g=.12,delay=0,slide){
+  if(!soundOn) return;
+  try{ const c=ac(),t=c.currentTime+delay,o=c.createOscillator(),v=c.createGain();
+    o.type=type; o.frequency.setValueAtTime(f,t);
+    if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+d);
+    v.gain.setValueAtTime(.0001,t); v.gain.exponentialRampToValueAtTime(g,t+.015);
+    v.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(v).connect(c.destination); o.start(t); o.stop(t+d+.05);
+  }catch(e){}
+}
+const SFX={
+  click:()=>tone(880,.06,"square",.05), key:()=>tone(620,.05,"square",.06),
+  correct:()=>[523,659,784].forEach((f,i)=>tone(f,.15,"triangle",.12,i*.09)),
+  wrong:()=>{tone(150,.25,"sawtooth",.09); tone(105,.3,"sawtooth",.08,.09);},
+  unlock:()=>{tone(1244,.1,"triangle",.1); tone(1865,.24,"triangle",.12,.09);},
+  hint:()=>{tone(988,.08,"sine",.07); tone(1319,.12,"sine",.07,.08);},
+  tick:()=>tone(1000,.04,"square",.05),
+  door:()=>{tone(70,1.2,"sawtooth",.11,0,45); tone(190,.9,"sawtooth",.05,.15,85);},
+  win:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.2,"triangle",.13,i*.13))
+};
+function startAmbient(){
+  if(amb||!soundOn) return;
+  try{ const c=ac(),o=c.createOscillator(),g=c.createGain(),l=c.createOscillator(),lg=c.createGain();
+    o.type="sine"; o.frequency.value=55; g.gain.value=.016;
+    l.frequency.value=.09; lg.gain.value=.007; l.connect(lg).connect(g.gain);
+    o.connect(g).connect(c.destination); o.start(); l.start(); amb={o,l};
+  }catch(e){}
+}
+function stopAmbient(){ if(amb){try{amb.o.stop();amb.l.stop();}catch(e){} amb=null;} }
+
+/* ============ STATE & ELEMEN ============ */
+const $=id=>document.getElementById(id);
+let S={}, timerId=null;
+const els={};
+["scr-intro","scr-game","scr-win","scr-fail","playerName","btnStart","pips","hudScore","hudTime",
+ "btnSound","btnPause","doorUnit","slots","sceneMsg","challenge","pauseOverlay","btnResume",
+ "winRank","winAgent","winStats","winBreak","winWrap","failDigits","failScore","btnAgain","btnRetry"]
+ .forEach(id=>els[id.replace(/-([a-z])/g,(m,c)=>c.toUpperCase())]=$(id));
+
+function freshState(name){
+  return {name:name||"Agen Rahasia", qi:0, score:0, timeLeft:TOTAL_TIME,
+    hintsQ:0, wrongsQ:0, hintsTotal:0, wrongsTotal:0, digits:[], qPts:[], wrongList:[], hintList:[],
+    paused:false, over:false, finale:false, entered:"", timerId:null};
+}
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active"); window.scrollTo(0,0);
+}
+const fmt=t=>`${String(Math.floor(t/60)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`;
+
+function buildSlots(){
+  els.slots.innerHTML=""; els.slots.classList.remove("finale");
+  for(let i=0;i<5;i++) els.slots.insertAdjacentHTML("beforeend",`<div class="slot"><span class="digit">&nbsp;</span></div>`);
+}
+function buildPips(){
+  els.pips.innerHTML="";
+  for(let i=0;i<5;i++) els.pips.insertAdjacentHTML("beforeend",`<div class="pip"></div>`);
+}
+function refreshPips(){
+  [...els.pips.children].forEach((p,i)=>{
+    p.className="pip"+(i<S.digits.length?" done":(i===S.qi&&!S.over?" active":""));
+  });
+}
+function setCaption(t){ els.sceneMsg.textContent=t; }
+function addScore(d){
+  S.score=Math.max(0,S.score+d);
+  els.hudScore.textContent=S.score;
+  els.hudScore.classList.remove("pop"); void els.hudScore.offsetWidth; els.hudScore.classList.add("pop");
+}
+function updateTime(){
+  els.hudTime.textContent=fmt(S.timeLeft);
+  els.hudTime.classList.toggle("low",S.timeLeft<=60);
+}
+
+/* ============ TIMER ============ */
+function startTimer(){
+  clearInterval(timerId);
+  timerId=setInterval(()=>{
+    if(S.paused||S.over) return;
+    S.timeLeft--; updateTime();
+    if(S.timeLeft<=10&&S.timeLeft>0) SFX.tick();
+    if(S.timeLeft<=0){ clearInterval(timerId); failGame(); }
+  },1000);
+}
+
+/* ============ RENDER SOAL ============ */
+function renderQuestion(){
+  const q=QUESTIONS[S.qi]; S.hintsQ=0; S.wrongsQ=0;
+  const lv=q.diff==="mudah"?"lv-easy":"lv-mid";
+  els.challenge.innerHTML=`
+    <div class="ch-top">
+      <span class="lv ${lv}">TANTANGAN ${S.qi+1}/5 · ${q.diff.toUpperCase()}</span>
+      <span class="tag">${q.topic}</span>
+    </div>
+    <h2 class="qtext">${q.q}</h2>
+    ${q.diagram||""}
+    <div class="opts">${q.options.map((o,i)=>
+      `<button type="button" class="opt" data-i="${i}"><span class="key">${"ABCD"[i]}</span><span class="txt">${o}</span></button>`).join("")}
+    </div>
+    <div class="fb" id="fb" hidden></div>
+    <div class="hints">
+      <button type="button" class="hbtn" data-h="1">💡 Petunjuk 1 <em>−${HINT_COST} poin</em></button>
+      <button type="button" class="hbtn" data-h="2">💡 Petunjuk 2 <em>−${HINT_COST} poin</em></button>
+    </div>
+    <div class="hintbox" id="hint1" hidden><b>Petunjuk 1:</b> ${q.hints[0]}</div>
+    <div class="hintbox" id="hint2" hidden><b>Petunjuk 2:</b> ${q.hints[1]}</div>
+    <div class="explain" id="explain" hidden>
+      <div class="ex-head">🗝 KUNCI JAWABAN & PEMBAHASAN</div>
+      <div class="ex-body">${q.explain}</div>
+      <div class="ex-foot">Digit kode diamankan: <span class="ex-digit">${q.digit}</span>
+        <button type="button" class="btn-gold" id="btnNext" style="margin-left:auto">
+          ${S.qi===QUESTIONS.length-1?"MELANGKAH KE PINTU →":"TANTANGAN BERIKUTNYA →"}</button>
+      </div>
+    </div>`;
+  els.challenge.classList.remove("blurred");
+  els.challenge.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>pickAnswer(b)));
+  els.challenge.querySelectorAll(".hbtn").forEach(b=>b.addEventListener("click",()=>useHint(+b.dataset.h)));
+  $("btnNext").addEventListener("click",nextStep);
+  refreshPips();
+  setCaption(`Amplop ${S.qi+1} terbuka… pecahkan untuk mendapat digit ke-${S.qi+1}.`);
+}
+
+function pickAnswer(btn){
+  if(S.over||S.finale) return;
+  const q=QUESTIONS[S.qi], i=+btn.dataset.i, fb=$("fb");
+  if(i===q.correct){
+    btn.classList.add("correct");
+    els.challenge.querySelectorAll(".opt").forEach(o=>o.disabled=true);
+    const pts=Math.max(MIN_PTS, BASE_PTS-HINT_COST*S.hintsQ-WRONG_COST*S.wrongsQ);
+    addScore(pts);
+    S.digits.push(q.digit); S.qPts.push(pts);
+    S.wrongList.push(S.wrongsQ); S.hintList.push(S.hintsQ);
+    fb.hidden=false; fb.className="fb good";
+    fb.textContent=`✔ Tepat! +${pts} poin. Digit ke-${S.qi+1} berhasil diamankan…`;
+    SFX.correct();
+    flyDigit(String(q.digit), btn, els.slots.children[S.qi]);
+    setTimeout(()=>{
+      $("explain").hidden=false;
+      $("explain").scrollIntoView({behavior:"smooth",block:"nearest"});
+    },550);
+    setCaption(`Digit ke-${S.qi+1} terukir di panel pintu. (${S.digits.length}/5)`);
+    refreshPips();
+  }else{
+    btn.classList.add("wrong"); btn.disabled=true;
+    S.wrongsQ++; S.wrongsTotal++; addScore(-WRONG_COST);
+    fb.hidden=false; fb.className="fb bad";
+    fb.textContent=`✘ Belum tepat (−${WRONG_COST} poin). Baca lagi soalnya, coba pilihan lain.`;
+    SFX.wrong();
+  }
+}
+function useHint(n){
+  const box=$("hint"+n); if(!box.hidden) return;
+  S.hintsQ++; S.hintsTotal++; addScore(-HINT_COST);
+  box.hidden=false; SFX.hint();
+  document.querySelector(`.hbtn[data-h="${n}"]`).disabled=true;
+}
+function flyDigit(ch,fromEl,toEl){
+  const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
+  const el=document.createElement("div"); el.className="flydigit"; el.textContent=ch;
+  el.style.left=(a.left+a.width/2-10)+"px"; el.style.top=(a.top+a.height/2-14)+"px";
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{
+    el.style.transform=`translate(${b.left+b.width/2-(a.left+a.width/2)}px,${b.top+b.height/2-(a.top+a.height/2)}px) scale(.65)`;
+    el.style.opacity=".25";
+  });
+  setTimeout(()=>{
+    el.remove();
+    const slot=els.slots.children[S.qi-1>=0?S.qi:0];
+    const target=[...els.slots.children].find(s=>!s.classList.contains("filled"));
+    if(target){ target.classList.add("filled"); target.querySelector(".digit").textContent=ch; SFX.unlock(); }
+  },700);
+}
+function nextStep(){
+  SFX.click(); S.qi++;
+  if(S.qi<QUESTIONS.length) renderQuestion(); else startFinale();
+}
+
+/* ============ FINAL: KEYPAD ============ */
+function startFinale(){
+  S.finale=true; refreshPips();
+  els.slots.classList.add("finale");
+  setCaption("Masukkan 5 digit kode pada panel kunci.");
+  els.challenge.innerHTML=`
+    <div class="ch-top"><span class="lv lv-final">FINAL · GEMBOK PINTU</span><span class="tag">SUSUN SANDI 5 DIGIT</span></div>
+    <h2 class="qtext">Lima digit telah terkumpul. Ketik sandi pada keypad — jika benar, pintu terbuka.</h2>
+    <div class="tokens">${S.digits.map((d,i)=>
+      `<button type="button" class="token" data-d="${d}">${d}<small>SOAL ${i+1}</small></button>`).join("")}</div>
+    <div class="codebox" id="codebox">${'<span>–</span>'.repeat(5)}</div>
+    <div class="keypad" id="keypad"></div>
+    <div class="fb" id="fbF" hidden></div>
+    <p class="final-note">Urutan digit sesuai urutan tantangan (soal 1 → 5). Salah ketik tidak mengurangi skor — cukup tekan ⌫.</p>`;
+  const kp=$("keypad");
+  ["1","2","3","4","5","6","7","8","9","⌫","0","OK"].forEach(k=>{
+    const b=document.createElement("button"); b.type="button"; b.className="kbtn"+(k==="OK"?" ok":""); b.textContent=k;
+    b.addEventListener("click",()=>keyPress(k)); kp.appendChild(b);
+  });
+  els.challenge.querySelectorAll(".token").forEach(t=>t.addEventListener("click",()=>{
+    if(S.entered.length<5) pressDigit(t.dataset.d);
+  }));
+}
+function pressDigit(d){
+  if(S.entered.length>=5||S.over) return;
+  S.entered+=d; SFX.key(); refreshCode();
+}
+function refreshCode(){
+  [...$("codebox").children].forEach((sp,i)=>{ sp.textContent=S.entered[i]||"–"; });
+  [...els.slots.children].forEach((sl,i)=>{
+    sl.classList.toggle("typing", i<S.entered.length);
+    if(i<S.entered.length) sl.querySelector(".digit").textContent=S.entered[i];
+    else if(!sl.classList.contains("filled")) sl.querySelector(".digit").innerHTML="&nbsp;";
+  });
+}
+function keyPress(k){
+  if(S.over) return;
+  const fb=$("fbF");
+  if(k==="⌫"){ S.entered=S.entered.slice(0,-1); SFX.click(); refreshCode(); return; }
+  if(k==="OK"){
+    if(S.entered===CODE){ doorSuccess(); return; }
+    fb.hidden=false; fb.className="fb bad";
+    fb.textContent="✘ Kode salah! Cek kembali urutan digitmu (soal 1 → soal 5).";
+    SFX.wrong();
+    document.querySelector(".codebox").animate(
+      [{transform:"translateX(0)"},{transform:"translateX(-8px)"},{transform:"translateX(8px)"},{transform:"translateX(0)"}],
+      {duration:350});
+    S.entered=""; refreshCode(); return;
+  }
+  pressDigit(k);
+}
+function doorSuccess(){
+  S.over=true; clearInterval(timerId);
+  SFX.unlock();
+  [...els.slots.children].forEach((sl,i)=>{
+    sl.classList.remove("typing"); sl.classList.add("filled");
+    sl.querySelector(".digit").textContent=S.digits[i];
+  });
+  els.doorUnit.classList.add("open");
+  setCaption("KLIK. Engsel berderit… PINTU TERBUKA!");
+  setTimeout(SFX.door,350);
+  setTimeout(()=>{ stopAmbient(); SFX.win(); },1400);
+  setTimeout(showWin,2300);
+}
+
+/* ============ AKHIR PERMAINAN ============ */
+function rankOf(sc){
+  if(sc>=560) return ["🏆 MASTER KUNCI EMAS","Nyaris sempurna — pintu pun tunduk padamu."];
+  if(sc>=430) return ["🗝️ AHLI SANDI FUNGSI","Sedikit goresan, tapi kabur dengan gagah."];
+  if(sc>=300) return ["🔦 PENJELAJAH RUANG","Berhasil keluar… dengan beberapa bekas panik."];
+  return ["🚪 SELAMAT KELUAR","Lolos! Ulangi misi untuk skor yang lebih tinggi."];
+}
+function showWin(){
+  const used=TOTAL_TIME-S.timeLeft, bonus=Math.floor(S.timeLeft/60)*10;
+  S.score+=bonus;
+  const [r1,r2]=rankOf(S.score);
+  els.winRank.innerHTML=`${r1}<br><small style="color:var(--dim);font-size:.8rem">${r2}</small>`;
+  els.winAgent.textContent=`Agen: ${S.name} · Kode pintu ${CODE} · Bonus waktu +${bonus}`;
+  els.winStats.innerHTML=`
+    <div class="es"><b>${S.score}</b><label>SKOR AKHIR</label></div>
+    <div class="es"><b>${fmt(used)}</b><label>WAKTU PAKAI</label></div>
+    <div class="es"><b>${S.wrongsTotal}</b><label>SALAH TEBAK</label></div>
+    <div class="es"><b>${S.hintsTotal}</b><label>PETUNJUK</label></div>`;
+  els.winBreak.innerHTML=QUESTIONS.map((q,i)=>
+    `<div class="bd-row"><span>Soal ${i+1} · ${q.topic}</span>
+     <span>${S.wrongList[i]?"❌×"+S.wrongList[i]+" ":"✔ "}${S.hintList[i]?"💡×"+S.hintList[i]+" ":""}<b>+${S.qPts[i]}</b></span></div>`).join("");
+  show("scr-win"); sparks();
+}
+function failGame(){
+  S.over=true; stopAmbient();
+  els.failDigits.textContent=S.digits.length?S.digits.join(" "):"(belum ada)";
+  els.failScore.textContent=S.score;
+  show("scr-fail");
+}
+function sparks(){
+  for(let i=0;i<26;i++){
+    const s=document.createElement("div"); s.className="spark"; s.textContent="✦";
+    s.style.left=(8+Math.random()*84)+"%"; s.style.top=(70+Math.random()*25)+"%";
+    s.style.fontSize=(10+Math.random()*16)+"px";
+    s.style.animationDuration=(1.6+Math.random()*2.2)+"s";
+    s.style.animationDelay=(Math.random()*1.4)+"s";
+    els.winWrap.appendChild(s); setTimeout(()=>s.remove(),4200);
+  }
+}
+
+/* ============ KONTROL ============ */
+function startGame(name){
+  S=freshState(name); buildSlots(); buildPips(); updateTime();
+  els.hudScore.textContent="0"; els.hudTime.classList.remove("low");
+  els.doorUnit.classList.remove("open");
+  ac(); startAmbient();
+  show("scr-game"); renderQuestion(); startTimer();
+}
+els.btnStart.addEventListener("click",()=>{ SFX.click(); startGame(els.playerName.value.trim()); });
+els.btnAgain.addEventListener("click",()=>{ SFX.click(); startGame(S.name); });
+els.btnRetry.addEventListener("click",()=>{ SFX.click(); startGame(S.name); });
+els.btnPause.addEventListener("click",togglePause);
+els.btnResume.addEventListener("click",togglePause);
+function togglePause(){
+  if(S.over||!$("scr-game").classList.contains("active")) return;
+  S.paused=!S.paused; SFX.click();
+  els.pauseOverlay.classList.toggle("on",S.paused);
+  els.challenge.classList.toggle("blurred",S.paused);
+}
+els.btnSound.addEventListener("click",()=>{
+  soundOn=!soundOn;
+  els.btnSound.textContent=soundOn?"🔊 Suara":"🔇 Sunyi";
+  els.btnSound.setAttribute("aria-pressed",soundOn);
+  if(soundOn){ ac(); if($("scr-game").classList.contains("active")&&!S.over) startAmbient(); SFX.click(); }
+  else stopAmbient();
+});
+
+/* keyboard */
+document.addEventListener("keydown",e=>{
+  if(!$("scr-game").classList.contains("active")) return;
+  if(e.key==="Escape"){ togglePause(); return; }
+  if(S.paused){ if(e.key==="Enter") togglePause(); return; }
+  if(S.over) return;
+  if(S.finale){
+    if(/^[0-9]$/.test(e.key)) keyPress(e.key);
+    else if(e.key==="Backspace") keyPress("⌫");
+    else if(e.key==="Enter") keyPress("OK");
+    return;
+  }
+  const map={"1":0,"2":1,"3":2,"4":3,"a":0,"b":1,"c":2,"d":3};
+  const i=map[e.key.toLowerCase()];
+  if(i!==undefined){
+    const b=els.challenge.querySelectorAll(".opt")[i];
+    if(b&&!b.disabled) b.click();
+  }
+  if(e.key==="Enter"&&!$("btnNext").parentElement?.hidden===false){}
+});
+
+/* ============ DEBU / PARTIKEL ============ */
+const cv=$("dust"),cx=cv.getContext("2d");
+let pts=[],RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function sizeCv(){ cv.width=innerWidth; cv.height=innerHeight; }
+sizeCv(); addEventListener("resize",sizeCv);
+for(let i=0;i<64;i++) pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+  r:.6+Math.random()*1.7,s:.12+Math.random()*.4,ph:Math.random()*6.28,
+  c:Math.random()>.75?"232,185,90":"95,214,194"});
+(function loop(t){
+  requestAnimationFrame(loop);
+  if(RM) return;
+  cx.clearRect(0,0,cv.width,cv.height);
+  for(const p of pts){
+    p.y-=p.s; p.x+=Math.sin(t/1800+p.ph)*.18;
+    if(p.y<-8){ p.y=cv.height+8; p.x=Math.random()*cv.width; }
+    const a=.16+.16*Math.sin(t/600+p.ph);
+    cx.beginPath(); cx.arc(p.x,p.y,p.r,0,6.28);
+    cx.fillStyle=`rgba(${p.c},${a})`; cx.fill();
+  }
+})(0);
+</script>
+</body>
+</html>
