@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detektif Pecahan — Misi Matematika Kelas 4 SD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#0c1630; --bg2:#182a54; --navy:#1b2440; --navy-d:#10182e;
+  --paper:#fdf4dd; --paper2:#f3e3bb; --ink:#26231a; --ink-soft:#5c5440;
+  --amber:#ffc531; --amber-d:#c98a00; --red:#ff5a4e; --red-d:#d53c31;
+  --green:#2ed48a; --blue:#5aa9ff; --cream:#fff8e7;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito',system-ui,sans-serif; color:#eef2ff; min-height:100vh;
+  background:radial-gradient(1200px 700px at 70% -10%, #24407c 0%, var(--bg2) 45%, var(--bg1) 100%);
+  overflow-x:hidden;
+}
+::selection{background:var(--amber);color:var(--navy)}
+
+/* ===== LATAR HIDUP ===== */
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+#stars i{position:absolute;background:#fff;border-radius:50%;animation:twinkle 3s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+.sky{position:fixed;left:0;bottom:0;width:100%;height:190px;z-index:0;pointer-events:none}
+.wblink{animation:wblink 3.4s steps(2) infinite}
+.wblink2{animation:wblink 5.2s steps(2) infinite .8s}
+@keyframes wblink{0%,72%{opacity:.85}73%,100%{opacity:.08}}
+#floaters{position:fixed;inset:0;z-index:0;pointer-events:none}
+#floaters span{position:absolute;font-family:'Bangers';opacity:.09;animation:drift 16s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0) rotate(-6deg)}to{transform:translate(26px,-34px) rotate(9deg)}}
+#torch{position:fixed;inset:0;z-index:3;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle 250px at var(--mx,50%) var(--my,28%),rgba(255,216,110,.16),rgba(255,216,110,.05) 45%,transparent 72%)}
+#vig{position:fixed;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 190px rgba(3,7,20,.8)}
+#fx{position:fixed;inset:0;z-index:70;pointer-events:none;overflow:hidden}
+.conf{position:absolute;top:-20px;font-size:var(--fs,18px);animation:cfall var(--dur,2.4s) linear forwards}
+@keyframes cfall{to{transform:translate(var(--dx,0),108vh) rotate(var(--rot,360deg));opacity:.85}}
+.floatpt{position:fixed;z-index:80;font-family:'Bangers';font-size:1.7rem;color:var(--amber);
+  text-shadow:2px 2px 0 var(--navy-d);pointer-events:none;animation:rise 1s ease-out forwards}
+@keyframes rise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-70px)}}
+
+/* ===== STRUKTUR ===== */
+main{position:relative;z-index:5;max-width:1000px;margin:0 auto;padding:0 18px 60px}
+.screen{display:none}
+.screen.active{display:block;animation:screenIn .45s ease both}
+@keyframes screenIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hidden{display:none!important}
+
+/* ===== HUD ===== */
+#hud{position:sticky;top:0;z-index:20;margin:0 -18px 22px;padding:10px 18px;
+  background:rgba(10,17,38,.92);border-bottom:3px solid var(--navy);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hud-logo{font-size:1.5rem;filter:drop-shadow(0 2px 0 #000)}
+.hud-name{font-family:'Bangers';font-size:1.25rem;letter-spacing:.06em;color:var(--amber)}
+.hud-cases{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.hc{width:38px;height:34px;display:grid;place-items:center;border-radius:8px 8px 3px 3px;
+  background:#141f3f;border:2px solid #2c3c6e;font-size:1.05rem;opacity:.45;transition:.25s}
+.hc.done{opacity:1;border-color:var(--green);background:#10302a}
+.hc.cur{opacity:1;border-color:var(--amber);background:#3a2f10;animation:curpulse 1.6s ease-in-out infinite}
+@keyframes curpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,197,49,.5)}50%{box-shadow:0 0 0 6px rgba(255,197,49,0)}}
+.hud-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hud-stat{background:#141f3f;border:2px solid #2c3c6e;border-radius:999px;padding:5px 12px;font-weight:900;font-size:.95rem}
+.hud-stat.pop{animation:pop .35s ease}
+@keyframes pop{50%{transform:scale(1.25)}}
+.hud-btn{cursor:pointer;font-family:inherit;font-weight:900;background:var(--amber);color:var(--navy);
+  border:3px solid var(--navy-d);border-radius:999px;padding:6px 13px;box-shadow:0 4px 0 var(--navy-d);transition:.15s}
+.hud-btn:hover{transform:translateY(-2px)}
+.hud-btn:active{transform:translateY(2px);box-shadow:0 0 0 var(--navy-d)}
+
+/* ===== TOMBOL ===== */
+.btn{cursor:pointer;font-family:'Nunito';font-weight:900;border-radius:14px;transition:transform .15s,box-shadow .15s;border:3px solid var(--navy-d)}
+.btn:focus-visible{outline:4px dashed var(--amber);outline-offset:3px}
+.btn:hover{transform:translateY(-3px) rotate(-.5deg)}
+.btn:active{transform:translateY(2px)}
+.btn-primary{font-family:'Bangers';letter-spacing:.06em;font-size:1.35rem;background:var(--amber);color:var(--navy);
+  padding:.65em 1.4em;box-shadow:0 6px 0 var(--amber-d)}
+.btn-primary:hover{box-shadow:0 9px 0 var(--amber-d)}
+.btn-primary:active{box-shadow:0 2px 0 var(--amber-d)}
+.btn-ghost{background:transparent;color:#cdd8ff;border-color:#3c4d85;padding:.6em 1.2em;box-shadow:0 5px 0 #0a1128}
+.btn-hint{background:var(--blue);color:#0c1630;box-shadow:0 5px 0 #2c5c9e;padding:.55em 1.1em}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+
+/* ===== INTRO ===== */
+.topbar{font-size:.72rem;letter-spacing:.35em;text-transform:uppercase;color:#8fa3d9;
+  border-bottom:1px dashed #3c4d85;padding:14px 4px 10px;margin-bottom:26px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.intro-grid{display:grid;grid-template-columns:1.15fr .95fr;gap:34px;align-items:start}
+.seal{width:150px;height:150px;margin-bottom:8px;animation:sealwob 4s ease-in-out infinite}
+@keyframes sealwob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+h1.title{font-family:'Bangers';font-size:clamp(3rem,8vw,5.4rem);line-height:.92;color:var(--amber);
+  text-shadow:4px 4px 0 var(--red-d),8px 8px 0 rgba(0,0,0,.35);transform:rotate(-1.5deg)}
+h1.title small{display:block;font-size:.42em;color:var(--cream);text-shadow:3px 3px 0 var(--navy-d)}
+.tagline{margin:16px 0 22px;color:#c7d3f5;font-weight:700;max-width:46ch}
+.files{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.file{background:var(--paper2);color:var(--ink);border:2px solid #c9b483;border-radius:6px 14px 6px 6px;
+  padding:8px 12px;font-weight:900;font-size:.85rem;box-shadow:3px 4px 0 rgba(0,0,0,.35);transition:.2s;cursor:default}
+.file:hover{transform:translateY(-5px) rotate(0deg)!important}
+.file b{display:block;font-family:'Bangers';font-size:1.15rem;letter-spacing:.04em}
+.filecard{background:var(--paper);color:var(--ink);border-radius:16px;border:3px solid #d9c48f;
+  box-shadow:0 14px 0 rgba(0,0,0,.35);padding:26px 26px 30px;transform:rotate(.6deg);position:relative}
+.filecard::before{content:"";position:absolute;top:-14px;left:50%;transform:translateX(-50%) rotate(-2deg);
+  width:130px;height:26px;background:rgba(255,214,102,.65);border:1px solid rgba(0,0,0,.12)}
+.fc-head{font-family:'Bangers';font-size:1.5rem;letter-spacing:.05em;color:var(--red-d);
+  border-bottom:3px dashed #cdb27b;padding-bottom:8px;margin-bottom:14px}
+.fc-label{font-size:.72rem;font-weight:900;letter-spacing:.2em;color:var(--ink-soft);text-transform:uppercase}
+#inpName{width:100%;font-family:inherit;font-weight:900;font-size:1.2rem;padding:10px 14px;margin:6px 0 18px;
+  border:3px solid var(--navy);border-radius:10px;background:var(--cream);color:var(--ink)}
+#inpName:focus{outline:3px solid var(--amber)}
+.missions{list-style:none;margin-bottom:20px}
+.missions li{display:flex;gap:10px;align-items:center;padding:7px 4px;font-weight:800;border-bottom:1px dotted #cdb27b}
+.missions li span{font-size:1.35rem}
+.rules{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.rules span{background:#fff3cf;border:2px solid #d9b64a;border-radius:999px;padding:4px 11px;font-size:.8rem;font-weight:900}
+
+/* ===== KERTAS KASUS ===== */
+.papercard{background:var(--paper);color:var(--ink);border-radius:16px;border:3px solid #d9c48f;
+  box-shadow:0 14px 0 rgba(0,0,0,.4);padding:26px;position:relative;transform:rotate(-.3deg)}
+.tape{position:absolute;top:-13px;width:110px;height:24px;background:rgba(255,214,102,.65);border:1px solid rgba(0,0,0,.12)}
+.tape.l{left:26px;transform:rotate(-4deg)}
+.tape.r{right:26px;transform:rotate(3deg)}
+
+/* ===== BRIEF ===== */
+.brief-wrap{max-width:640px;margin:4vh auto 0}
+.case-no{display:inline-block;font-family:'Bangers';background:var(--red);color:#fff;letter-spacing:.08em;
+  padding:4px 14px;border-radius:8px;transform:rotate(-2deg);box-shadow:3px 3px 0 var(--red-d);font-size:1.2rem;margin-bottom:12px}
+.brief-title{font-family:'Bangers';font-size:clamp(2rem,5vw,3rem);line-height:1;letter-spacing:.03em;margin-bottom:12px}
+.brief-body{font-weight:700;color:#3d3827;font-size:1.05rem;line-height:1.6;margin-bottom:16px}
+.brief-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.chip{background:var(--navy);color:var(--amber);border-radius:999px;padding:5px 14px;font-weight:900;font-size:.85rem}
+.chip.badge{background:#fff3cf;color:var(--ink);border:2px solid #d9b64a}
+
+/* ===== KUIS ===== */
+.qtab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--navy);color:var(--amber);border-radius:12px 12px 0 0;margin:-26px -26px 18px;padding:12px 20px;font-family:'Bangers';letter-spacing:.06em}
+.qtab .qcase{color:#9fb4ea;font-size:.95rem}
+.story{font-style:italic;color:var(--ink-soft);font-weight:700;margin-bottom:12px;padding-left:12px;border-left:4px solid var(--amber)}
+.qtext{font-size:clamp(1.1rem,2.4vw,1.42rem);font-weight:900;line-height:1.45;margin-bottom:18px}
+.artzone{background:#eef3ff;border:3px dashed #b9c6ea;border-radius:14px;padding:14px;margin-bottom:20px;overflow-x:auto}
+.artzone svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.artcap{text-align:center;font-weight:900;color:#41507e;margin-top:6px;font-size:.95rem}
+.duel{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap}
+.duel .vs{font-family:'Bangers';font-size:2.6rem;color:var(--red);text-shadow:2px 2px 0 rgba(0,0,0,.15);animation:vswob 2s ease-in-out infinite}
+@keyframes vswob{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.15)}}
+.duel-cap{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:6px;font-weight:900;color:#41507e}
+.anatomy{display:flex;justify-content:center;padding:10px 0}
+.ana-card{display:flex;align-items:center;gap:34px}
+.ana-frac{display:flex;flex-direction:column;align-items:center;font-family:'Bangers';font-size:4rem;color:var(--navy);line-height:1}
+.ana-frac .ln{width:96px;height:7px;background:var(--red);border-radius:4px;margin:10px 0}
+.ana-lab{font-weight:900;font-size:.8rem;line-height:1.25;text-align:center}
+.ana-lab small{display:block;color:var(--ink-soft);font-weight:700}
+.ana-top{color:var(--blue)} .ana-bot{color:var(--green)}
+
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-bottom:6px}
+.choice{background:var(--cream);border:3px solid var(--navy);border-radius:14px;box-shadow:0 6px 0 var(--navy-d);
+  min-height:74px;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px;
+  font-size:1.15rem;font-weight:900;color:var(--ink);cursor:pointer;font-family:'Nunito';transition:transform .15s,box-shadow .15s;position:relative}
+.choice:hover{transform:translateY(-3px) rotate(-.6deg);box-shadow:0 9px 0 var(--navy-d);background:#fff8dd}
+.choice:active{transform:translateY(2px);box-shadow:0 2px 0 var(--navy-d)}
+.choice .key{position:absolute;top:-11px;left:-9px;width:26px;height:26px;background:var(--amber);border:2px solid var(--navy-d);
+  border-radius:50%;font-size:.8rem;display:grid;place-items:center;font-weight:900}
+.choice.right{background:#c9f7dd;border-color:#0e7c4d;box-shadow:0 6px 0 #0e7c4d;animation:yay .5s ease}
+.choice.right::after{content:"✔";position:absolute;top:-13px;right:-9px;width:30px;height:30px;background:#0e7c4d;color:#fff;
+  border-radius:50%;display:grid;place-items:center;font-size:1rem}
+@keyframes yay{30%{transform:scale(1.07) rotate(1.5deg)}60%{transform:scale(.97)}}
+.choice.wrong{background:#ffd9d5;border-color:var(--red-d);animation:shake .45s ease}
+.choice.reveal{background:#c9f7dd;border-color:#0e7c4d;animation:yay .5s ease}
+.choice:disabled{cursor:default}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.choices.cmp{grid-template-columns:repeat(3,1fr)}
+.choice .sym{font-family:'Bangers';font-size:2.4rem;color:var(--red-d)}
+.choice .symlab{font-size:.75rem;color:var(--ink-soft);display:block;text-align:center}
+
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1;font-weight:900}
+.frac b{padding:0 .4em}
+.frac i{display:block;width:100%;height:3px;background:currentColor;border-radius:2px;margin:4px 0}
+
+.hintbox{background:#fff3cf;border:3px solid #d9b64a;border-radius:12px;padding:12px 16px;margin:16px 0 4px;
+  font-weight:800;color:#6b4d00;animation:hdrop .4s ease}
+@keyframes hdrop{from{opacity:0;transform:translateY(-12px)}}
+.fb{margin-top:16px;border-radius:12px;padding:14px 16px;animation:hdrop .35s ease}
+.fb.ok{background:#d2f8e2;border:3px solid #0e7c4d;color:#0a5234}
+.fb.no{background:#ffe2de;border:3px solid var(--red-d);color:#8c2118}
+.fb-msg{font-weight:900;font-size:1.05rem}
+.fb-exp{font-weight:700;margin-top:6px}
+.fb-actions{display:flex;justify-content:flex-end;margin-top:12px}
+.qctrl{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.qdots{display:flex;gap:8px}
+.qdots i{width:14px;height:14px;border-radius:50%;background:#3c4d85;transition:.3s}
+.qdots i.on{background:var(--amber);transform:scale(1.3)}
+.qdots i.done{background:var(--green)}
+.qdots i.fail{background:var(--red)}
+
+/* ===== STARS / STAMP / BADGE ===== */
+.stamp{display:inline-block;font-family:'Bangers';color:var(--red);border:5px solid var(--red);border-radius:10px;
+  padding:.15em .5em;letter-spacing:.07em;transform:rotate(-7deg);background:rgba(255,255,255,.6);
+  animation:stampIn .55s cubic-bezier(.2,2.4,.45,1) both}
+@keyframes stampIn{0%{transform:scale(3.2) rotate(-35deg);opacity:0}100%{transform:scale(1) rotate(-7deg);opacity:1}}
+.stamp.big{font-size:clamp(2rem,6vw,3.4rem)}
+.center{text-align:center}
+.stars{display:flex;justify-content:center;gap:14px;font-size:3.2rem;margin:18px 0 6px}
+.stars span{opacity:.25;filter:grayscale(1);transform:scale(.7)}
+.stars span.lit{opacity:1;filter:none;animation:starpop .5s cubic-bezier(.2,2.5,.5,1) both}
+@keyframes starpop{from{transform:scale(0) rotate(-90deg)}to{transform:scale(1)}}
+.stars span.lit:nth-child(2){animation-delay:.2s}
+.stars span.lit:nth-child(3){animation-delay:.4s}
+.badgebox{display:flex;align-items:center;gap:16px;justify-content:center;margin:20px 0}
+.badge-circle{width:86px;height:86px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe08a,var(--amber));
+  border:4px solid var(--amber-d);display:grid;place-items:center;font-size:2.6rem;box-shadow:0 6px 0 var(--amber-d);animation:sealwob 3.5s ease-in-out infinite}
+.badge-name{font-family:'Bangers';font-size:1.4rem;letter-spacing:.05em;color:var(--navy);text-align:left}
+.badge-name small{display:block;font-family:'Nunito';font-weight:800;font-size:.8rem;color:var(--ink-soft);letter-spacing:0}
+.statrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0 22px}
+.statrow span{background:#fff3cf;border:2px solid #d9b64a;border-radius:999px;padding:6px 15px;font-weight:900;font-size:.9rem}
+
+/* ===== SERTIFIKAT ===== */
+.cert{background:var(--paper);color:var(--ink);border:6px double var(--amber-d);border-radius:8px;
+  outline:3px solid #d9c48f;outline-offset:8px;padding:38px 30px 34px;text-align:center;position:relative;transform:rotate(-.4deg)}
+.cert-head{font-size:.7rem;letter-spacing:.4em;font-weight:900;color:var(--ink-soft);text-transform:uppercase}
+.cert-title{font-family:'Bangers';font-size:clamp(1.9rem,5vw,3rem);color:var(--navy);letter-spacing:.04em;margin:8px 0 2px}
+.cert-for{font-weight:800;color:var(--ink-soft);margin-top:10px}
+.cert-name{font-family:'Bangers';font-size:clamp(2rem,6vw,3.4rem);color:var(--red-d);letter-spacing:.05em;
+  border-bottom:3px dashed #cdb27b;display:inline-block;padding:0 22px 4px;margin:6px 0 14px}
+.cert-rank{font-family:'Bangers';font-size:clamp(1.5rem,4vw,2.3rem);color:#8a6100;margin-bottom:4px}
+.cert-rank .rk-e{font-size:1.3em}
+.cert-award{display:inline-block;background:var(--red);color:#fff;font-weight:900;border-radius:999px;
+  padding:6px 18px;margin:8px 0;box-shadow:0 4px 0 var(--red-d);animation:curpulse 1.8s infinite}
+.cert-badges{display:flex;justify-content:center;gap:12px;margin:18px 0 10px;flex-wrap:wrap}
+.cb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe08a,var(--amber));
+  border:3px solid var(--amber-d);display:grid;place-items:center;font-size:1.9rem;box-shadow:0 5px 0 var(--amber-d)}
+.cert-stats{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin:14px 0;font-weight:900}
+.cert-stats div b{display:block;font-family:'Bangers';font-size:1.7rem;color:var(--navy)}
+.cert-date{font-size:.8rem;font-weight:800;color:var(--ink-soft);margin-top:14px}
+.final-actions{display:flex;gap:12px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+
+@media (max-width:720px){
+  .intro-grid{grid-template-columns:1fr}
+  .choices{grid-template-columns:1fr}
+  .choices.cmp{grid-template-columns:repeat(3,1fr)}
+  .hud-name{display:none}
+  .ana-card{flex-direction:column;gap:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<svg class="sky" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 130 L60 130 L60 92 L120 92 L120 130 L190 130 L190 70 L235 70 L235 130 L300 130 L300 108 L370 108 L370 130 L430 130 L430 62 L480 62 L480 130 L560 130 L560 98 L635 98 L635 130 L705 130 L705 78 L760 78 L760 130 L830 130 L830 112 L905 112 L905 130 L965 130 L965 82 L1020 82 L1020 130 L1090 130 L1090 102 L1200 102 L1200 200 L0 200 Z" fill="#16244a"/>
+  <path d="M0 156 L45 156 L45 122 L105 122 L105 156 L160 156 L160 104 L215 104 L215 156 L285 156 L285 132 L345 132 L345 156 L410 156 L410 94 L468 94 L468 156 L540 156 L540 126 L612 126 L612 156 L680 156 L680 106 L736 106 L736 156 L805 156 L805 136 L872 136 L872 156 L940 156 L940 114 L1000 114 L1000 156 L1075 156 L1075 132 L1200 132 L1200 200 L0 200 Z" fill="#0a1226"/>
+  <g>
+    <rect x="70" y="130" width="7" height="9" fill="#ffd666"/><rect class="wblink" x="175" y="112" width="7" height="9" fill="#ffd666"/>
+    <rect x="192" y="112" width="7" height="9" fill="#ffd666"/><rect x="296" y="140" width="7" height="9" fill="#ffd666"/>
+    <rect class="wblink2" x="425" y="104" width="7" height="9" fill="#ffd666"/><rect x="440" y="122" width="7" height="9" fill="#ffd666"/>
+    <rect x="555" y="134" width="7" height="9" fill="#ffd666"/><rect class="wblink" x="625" y="134" width="7" height="9" fill="#ffd666"/>
+    <rect x="695" y="114" width="7" height="9" fill="#ffd666"/><rect x="712" y="134" width="7" height="9" fill="#ffd666"/>
+    <rect class="wblink2" x="818" y="142" width="7" height="9" fill="#ffd666"/><rect x="888" y="142" width="7" height="9" fill="#ffd666"/>
+    <rect x="955" y="122" width="7" height="9" fill="#ffd666"/><rect class="wblink" x="1090" y="140" width="7" height="9" fill="#ffd666"/>
+  </g>
+</svg>
+<div id="floaters" aria-hidden="true"></div>
+<div id="torch"></div>
+<div id="vig"></div>
+<div id="fx"></div>
+
+<main>
+  <header id="hud" class="hidden">
+    <span class="hud-logo">🕵️</span><span class="hud-name">DETEKTIF PECAHAN</span>
+    <div class="hud-cases" id="hudCases"></div>
+    <div class="hud-right">
+      <span class="hud-stat" id="hudScore">⭐ 0</span>
+      <span class="hud-stat" id="hudStreak">🔥 0</span>
+      <button class="hud-btn" id="btnHintHud">🔍 <b id="hudHints">3</b></button>
+      <button class="hud-btn" id="btnSnd" aria-label="suara">🔊</button>
+    </div>
+  </header>
+
+  <!-- ================= INTRO ================= -->
+  <section id="scr-intro" class="screen active">
+    <div class="topbar"><span>🗂 MARKAS DETEKTIF MATEMATIKA</span><span>ARSIP RAHASIA • KELAS 4 SD</span></div>
+    <div class="intro-grid">
+      <div>
+        <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+          <polygon points="60,6 71,32 99,26 84,50 108,62 84,74 99,98 71,92 60,118 49,92 21,98 36,74 12,62 36,50 21,26 49,32" fill="#ffc531" stroke="#c98a00" stroke-width="4"/>
+          <circle cx="55" cy="55" r="17" fill="none" stroke="#1b2440" stroke-width="6"/>
+          <line x1="67" y1="68" x2="84" y2="85" stroke="#1b2440" stroke-width="8" stroke-linecap="round"/>
+        </svg>
+        <h1 class="title">DETEKTIF<br>PECAHAN<small>MISI MISTERI MATEMATIKA</small></h1>
+        <p class="tagline">Kota Matematika sedang kacau, Agen! Pizza dicamil diam-diam, dua koki cokelat saling menantang, dan kue kembar menyimpan rahasia. Hanya detektif <b>pakar pecahan</b> yang bisa membongkar semuanya. Itu kamu! 🕵️</p>
+        <div class="files">
+          <div class="file" style="transform:rotate(-4deg)">KASUS #01<b>🍕 Pizza</b></div>
+          <div class="file" style="transform:rotate(3deg)">KASUS #02<b>🍫 Cokelat</b></div>
+          <div class="file" style="transform:rotate(-2deg)">KASUS #03<b>🍰 Kue</b></div>
+          <div class="file" style="transform:rotate(4deg)">KASUS #04<b>🍇 Buah</b></div>
+        </div>
+      </div>
+      <div class="filecard">
+        <div class="fc-head">📋 FORMULIR AGEN BARU</div>
+        <label class="fc-label" for="inpName">Nama Detektif</label>
+        <input id="inpName" maxlength="20" placeholder="tulis namamu di sini..." autocomplete="off">
+        <ul class="missions">
+          <li><span>🍕</span> Mengenal pembilang &amp; penyebut</li>
+          <li><span>⚖️</span> Membandingkan pecahan</li>
+          <li><span>🟰</span> Pecahan senilai</li>
+          <li><span>➕</span> Penjumlahan &amp; pengurangan pecahan</li>
+        </ul>
+        <div class="rules">
+          <span>⭐ +100 poin tiap jawaban benar</span>
+          <span>🔥 bonus jawaban beruntun</span>
+          <span>🔍 3 petunjuk tersedia</span>
+        </div>
+        <button class="btn btn-primary" id="btnStart">🔎 MULAI PENYELIDIKAN</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BRIEF ================= -->
+  <section id="scr-brief" class="screen">
+    <div class="brief-wrap papercard">
+      <span class="tape l"></span>
+      <span class="case-no" id="bNum">KASUS #01</span>
+      <h2 class="brief-title" id="bTitle"></h2>
+      <p class="brief-body" id="bBrief"></p>
+      <div class="brief-chips">
+        <span class="chip" id="bTag"></span>
+        <span class="chip">4 soal penyelidikan</span>
+        <span class="chip badge" id="bBadge"></span>
+      </div>
+      <button class="btn btn-primary" id="btnInvestigate">🔍 SELIDIKI KASUS</button>
+    </div>
+  </section>
+
+  <!-- ================= KUIS ================= -->
+  <section id="scr-quiz" class="screen">
+    <div class="papercard">
+      <span class="tape l"></span><span class="tape r"></span>
+      <div class="qtab"><span id="qNum">SOAL 1/4</span><span class="qcase" id="qCase"></span></div>
+      <p class="story" id="qStory"></p>
+      <h3 class="qtext" id="qText"></h3>
+      <div class="artzone" id="artZone"></div>
+      <div class="choices" id="choices"></div>
+      <div id="hintBox" class="hintbox hidden"></div>
+      <div id="fb" class="hidden"></div>
+      <div class="qctrl">
+        <button class="btn btn-hint" id="btnHintMain">🔍 Gunakan Petunjuk</button>
+        <div class="qdots" id="qDots"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KASUS SELESAI ================= -->
+  <section id="scr-casedone" class="screen">
+    <div class="papercard center" style="max-width:620px;margin:3vh auto">
+      <span class="tape l"></span>
+      <p class="fc-head" style="border:none;margin-bottom:16px">LAPORAN KASUS</p>
+      <div class="stamp big">TERPECAHKAN!</div>
+      <div class="stars" id="cdStars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+      <div class="badgebox">
+        <div class="badge-circle" id="cdBadgeIcon">🍕</div>
+        <div class="badge-name" id="cdBadgeName"></div>
+      </div>
+      <div class="statrow" id="cdStats"></div>
+      <button class="btn btn-primary" id="btnNextCase"></button>
+    </div>
+  </section>
+
+  <!-- ================= PENGHARGAAN ================= -->
+  <section id="scr-final" class="screen">
+    <div class="cert">
+      <div class="cert-head">MARKAS DETEKTIF PECAHAN • SERTIFIKAT RESMI</div>
+      <div class="cert-title">🏵 PENGHARGAAN DETEKTIF 🏵</div>
+      <p class="cert-for">dengan bangga dianugerahkan kepada</p>
+      <div class="cert-name" id="fName">—</div>
+      <div class="cert-rank"><span class="rk-e" id="fRankE">🏆</span> <span id="fRank">—</span></div>
+      <div id="fAward"></div>
+      <p style="font-weight:800;color:var(--ink-soft);max-width:46ch;margin:6px auto 0">telah menyelesaikan seluruh misteri pecahan di Kota Matematika dengan keberanian dan ketelitian seorang detektif sejati.</p>
+      <div class="cert-badges" id="fBadges"></div>
+      <div class="cert-stats">
+        <div><b id="fScore">0</b>Skor Total</div>
+        <div><b id="fCorrect">0</b>Jawaban Tepat</div>
+        <div><b id="fHints">0</b>Petunjuk Dipakai</div>
+        <div><b>4/4</b>Kasus Selesai</div>
+      </div>
+      <div class="cert-date" id="fDate"></div>
+    </div>
+    <div class="final-actions">
+      <button class="btn btn-primary" id="btnReplay">🔁 MAIN LAGI</button>
+      <button class="btn btn-ghost" id="btnHome">🏠 Ke Beranda</button>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+/* ================= AUDIO ================= */
+let actx=null,sndOn=true;
+function ac(){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}return actx}
+document.addEventListener("pointerdown",()=>{const c=ac();if(c&&c.state==="suspended")c.resume()},{once:true});
+function beep(f,d=.12,type="sine",v=.14,dl=0){if(!sndOn)return;const c=ac();if(!c)return;const t=c.currentTime+dl;
+  const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.06)}
+const SFX={
+  click:()=>beep(760,.05,"triangle",.05),
+  ok:()=>{beep(523,.1,"triangle",.13);beep(659,.1,"triangle",.13,.09);beep(784,.18,"triangle",.13,.18)},
+  bad:()=>{beep(196,.2,"sawtooth",.07);beep(147,.26,"sawtooth",.07,.13)},
+  hint:()=>{beep(880,.08,"sine",.08);beep(1175,.14,"sine",.08,.09)},
+  stamp:()=>{beep(120,.16,"square",.18);beep(88,.22,"square",.14,.06)},
+  fanfare:()=>{[523,659,784,1047].forEach((f,i)=>beep(f,.18,"triangle",.13,i*.14));beep(1319,.5,"triangle",.12,.6)}
+};
+
+/* ================= LATAR ================= */
+(function stars(){const box=$("#stars");for(let i=0;i<85;i++){const s=document.createElement("i");
+  s.style.left=rnd(0,100)+"%";s.style.top=rnd(0,62)+"%";const z=rnd(1,2.7);
+  s.style.width=s.style.height=z+"px";s.style.animationDuration=rnd(2,5.5)+"s";s.style.animationDelay=rnd(0,4)+"s";box.appendChild(s)}})();
+(function floaters(){const box=$("#floaters");const items=["½","¾","⅔","¼","?","🔎","?","⅚"];
+  items.forEach((t,i)=>{const s=document.createElement("span");s.textContent=t;
+  s.style.left=rnd(4,88)+"%";s.style.top=rnd(6,82)+"%";s.style.fontSize=rnd(2.2,5)+"rem";
+  s.style.color=i%2?"#ffd666":"#5aa9ff";s.style.animationDuration=rnd(11,20)+"s";box.appendChild(s)})})();
+window.addEventListener("pointermove",e=>{document.getElementById("torch").style.setProperty("--mx",e.clientX+"px");
+  document.getElementById("torch").style.setProperty("--my",e.clientY+"px")});
+
+/* ================= KONFETI & POIN ================= */
+const EMO=["🎉","⭐","✨","🍕","🍫","🍓","🔍","🧡"];
+function rain(n=14,spread=false){const fx=$("#fx");
+  for(let i=0;i<n;i++){const s=document.createElement("span");s.className="conf";
+    s.textContent=EMO[Math.floor(Math.random()*EMO.length)];
+    s.style.left=(spread?rnd(0,100):rnd(30,70))+"vw";s.style.fontSize=rnd(14,30)+"px";
+    s.style.setProperty("--dx",rnd(-90,90)+"px");s.style.setProperty("--rot",rnd(-400,400)+"deg");
+    s.style.setProperty("--dur",rnd(1.8,3.2)+"s");s.style.animationDelay=rnd(0,.4)+"s";
+    fx.appendChild(s);s.addEventListener("animationend",()=>s.remove())}}
+function floatPts(x,y,txt){const s=document.createElement("span");s.className="floatpt";s.textContent=txt;
+  s.style.left=x+"px";s.style.top=y+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),1100)}
+
+/* ================= PEMBANGUN ILUSTRASI SVG ================= */
+const pt=(deg,rad,cx=100,cy=100)=>{const a=(deg-90)*Math.PI/180;return [cx+rad*Math.cos(a),cy+rad*Math.sin(a)]};
+function pizzaSVG(n,eaten,cap){
+  const r=84,ang=360/n;let cheese="",crust="",pep="",crumb="",label="";
+  for(let i=0;i<n;i++){
+    const a0=i*ang,a1=a0+ang,mid=a0+ang/2;
+    const p0=pt(a0,r),p1=pt(a1,r);
+    const path=`M100,100 L${p0[0].toFixed(1)},${p0[1].toFixed(1)} A${r},${r} 0 0 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)} Z`;
+    const arc=`M${p0[0].toFixed(1)},${p0[1].toFixed(1)} A${r},${r} 0 0 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)}`;
+    if(i<eaten){
+      crumb+=`<path d="${path}" fill="rgba(13,20,40,.30)" stroke="#7e89a8" stroke-width="2" stroke-dasharray="5 5"/>`;
+      const m=pt(mid,r*.55);
+      crumb+=`<circle cx="${m[0]-6}" cy="${m[1]}" r="2.6" fill="#d9a15b"/><circle cx="${m[0]+7}" cy="${m[1]+6}" r="2" fill="#d9a15b"/><circle cx="${m[0]+1}" cy="${m[1]-8}" r="1.7" fill="#d9a15b"/>`;
+      label+=`<text x="${m[0]}" y="${m[1]+4}" text-anchor="middle" font-size="12" font-family="Bangers" fill="#8fa0c8">${i+1}</text>`;
+    }else{
+      cheese+=`<path d="${path}" fill="#ffcf5c" stroke="#a05a20" stroke-width="3"/>`;
+      crust+=`<path d="${arc}" fill="none" stroke="#e08a3c" stroke-width="13"/>`;
+      const q1=pt(mid,r*.62),q2=pt(mid+ang*.2,r*.32),q3=pt(mid-ang*.2,r*.4);
+      pep+=`<circle cx="${q1[0]}" cy="${q1[1]}" r="8.5" fill="#e2504c" stroke="#b23a36" stroke-width="2"/>
+           <circle cx="${q2[0]}" cy="${q2[1]}" r="7" fill="#e2504c" stroke="#b23a36" stroke-width="2"/>
+           <circle cx="${q3[0]}" cy="${q3[1]}" r="6" fill="#e2504c" stroke="#b23a36" stroke-width="2"/>
+           <circle cx="${pt(mid+ang*.3,r*.55)[0]}" cy="${pt(mid+ang*.3,r*.55)[1]}" r="2.2" fill="#5da24a"/>`;
+    }
+  }
+  return wrap(`<svg viewBox="0 0 200 200" width="230" role="img">
+    <circle cx="100" cy="100" r="97" fill="#fffaf0" stroke="#d8c9a3" stroke-width="3"/>
+    ${crumb}${cheese}${crust}${pep}${label}</svg>`,cap)}
+function chocoSVG(cols,rows,eaten,cap){
+  const P=46,G=5,W=cols*(P+G)+17,H=rows*(P+G)+31;let pc="";
+  for(let i=0;i<cols*rows;i++){
+    const cx2=14+(i%cols)*(P+G),cy=20+Math.floor(i/cols)*(P+G);
+    if(i<eaten){pc+=`<rect x="${cx2}" y="${cy}" width="${P}" height="${P}" rx="7" fill="none" stroke="#7a5b43" stroke-width="2.5" stroke-dasharray="6 5"/>
+      <circle cx="${cx2+14}" cy="${cy+32}" r="2.4" fill="#8a5a33"/><circle cx="${cx2+32}" cy="${cy+16}" r="2" fill="#8a5a33"/>`}
+    else{pc+=`<rect x="${cx2}" y="${cy}" width="${P}" height="${P}" rx="7" fill="#7b4a2d" stroke="#2f1b0e" stroke-width="3"/>
+      <rect x="${cx2+7}" y="${cy+7}" width="${P-14}" height="9" rx="4.5" fill="#9a6238"/>
+      <rect x="${cx2+7}" y="${cy+P-15}" width="${P-14}" height="7" rx="3.5" fill="#5c3620"/>`}
+  }
+  return wrap(`<svg viewBox="0 0 ${W} ${H}" width="${Math.min(W*1.25,430)}" role="img">
+    <rect x="4" y="10" width="${W-8}" height="${H-14}" rx="12" fill="#3c2415" stroke="#241207" stroke-width="3"/>${pc}</svg>`,cap)}
+function cakeSVG(cols,eaten,cap){
+  const P=46,G=5,W=cols*(P+G)+19,H=112;let pc="";
+  for(let i=0;i<cols;i++){const x=15+i*(P+G);
+    if(i<eaten){pc+=`<rect x="${x}" y="38" width="${P}" height="54" rx="8" fill="none" stroke="#b98a95" stroke-width="2.5" stroke-dasharray="6 5"/>
+      <circle cx="${x+15}" cy="${H-10}" r="2.2" fill="#e58ba4"/><circle cx="${x+33}" cy="${H-8}" r="1.8" fill="#e58ba4"/>`}
+    else{pc+=`<rect x="${x}" y="38" width="${P}" height="54" rx="8" fill="#ff9eb5" stroke="#c2536e" stroke-width="3"/>
+      <rect x="${x}" y="34" width="${P}" height="20" rx="9" fill="#fff5f8" stroke="#c2536e" stroke-width="3"/>
+      <circle cx="${x+10}" cy="55" r="5" fill="#fff5f8" stroke="#c2536e" stroke-width="2.5"/>
+      <circle cx="${x+P/2}" cy="57" r="5.5" fill="#fff5f8" stroke="#c2536e" stroke-width="2.5"/>
+      <circle cx="${x+P-10}" cy="55" r="5" fill="#fff5f8" stroke="#c2536e" stroke-width="2.5"/>
+      <text x="${x+P/2}" y="30" text-anchor="middle" font-size="15">🍒</text>`}
+  }
+  return wrap(`<svg viewBox="0 0 ${W} ${H}" width="${Math.min(W*1.3,460)}" role="img">
+    <rect x="7" y="${H-15}" width="${W-14}" height="12" rx="6" fill="#9aa7c7" stroke="#5f6d94" stroke-width="3"/>${pc}</svg>`,cap)}
+function fruitSVG(list,cap){
+  const colsN=Math.min(list.length,4),rows=Math.ceil(list.length/4),SP=62,W=colsN*SP+24,H=rows*SP+16;let it="";
+  list.forEach((f,i)=>{const cx2=43+(i%4)*SP,cy=40+Math.floor(i/4)*SP;
+    if(f.hi)it+=`<circle cx="${cx2}" cy="${cy}" r="26" fill="#ffe58a" stroke="#ffc531" stroke-width="3"/>`;
+    it+=`<text x="${cx2}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="32" ${f.fade?'opacity=".35"':""}>${f.e}</text>`});
+  return wrap(`<svg viewBox="0 0 ${W} ${H}" width="${Math.min(W*1.25,430)}" role="img">${it}</svg>`,cap)}
+function anatomySVG(){return `<div class="anatomy"><div class="ana-card">
+  <div class="ana-lab ana-top">◀ PEMBITUNG? ❌<br>PEMBILANG ✔<small>(bagian yang dihitung)</small></div>
+  <div class="ana-frac"><span>5</span><span class="ln"></span><span>9</span></div>
+  <div class="ana-lab ana-bot">PENYEBUT ▶<small>(jumlah semua bagian)</small></div></div></div>`}
+function wrap(svg,cap){return `<figure>${svg}<figcaption class="artcap">${cap||""}</figcaption></figure>`}
+function frH(n,d){return `<span class="frac"><b>${n}</b><i></i><b>${d}</b></span>`}
+function duel(a,b){
+  const mk=s=>{const svg=s.t==="pizza"?pizzaSVG(s.n,s.e,""):s.t==="choco"?chocoSVG(s.c,s.r,s.e,""):cakeSVG(s.c,s.e,"");
+    return `<div>${svg}<div class="duel-cap"><b>${s.lab}:</b> ${frH(s.f[0],s.f[1])}</div></div>`};
+  return `<div class="duel">${mk(a)}<div class="vs">?</div>${mk(b)}</div>`}
+const F=(e,n)=>Array.from({length:n},()=>({e,hi:false}));
+const Fhi=(e,hi,rest)=>[...Array.from({length:hi},()=>({e,hi:true})),...Array.from({length:rest},()=>({e:arguments[3]||"🍌",hi:false}))];
+
+/* ================= DATA KASUS ================= */
+const CMP=[{s:"<",l:"lebih kecil"},{s:"=",l:"sama besar"},{s:">",l:"lebih besar"}];
+const CASES=[
+{no:"01",emoji:"🍕",title:"Misteri Pizza yang Dicamil",tag:"Mengenal Pembilang & Penyebut",
+ badge:{icon:"🍕",name:"Lencana Pembilang"},
+ brief:"Semalam, seseorang menyelinap ke dapur Pak Kumis dan mencamil pizzanya! Gunakan kekuatan pecahanmu untuk menghitung jejak si pencamil, Detektif.",
+ qs:[
+ {story:"Pizza Pak Kumis dipotong menjadi 8 bagian sama besar. Lihat — beberapa bagian raib dicamil!",
+  text:"Pecahan berapa yang menunjukkan bagian pizza yang DIMAKAN?",
+  art:()=>pizzaSVG(8,3,"3 bagian hilang dari 8 potongan"),
+  choices:[{f:[3,8]},{f:[8,3]},{f:[5,8]},{f:[3,5]}],answer:0,
+  hint:"Pembilang (angka atas) = bagian yang dimakan. Penyebut (angka bawah) = jumlah SEMUA potongan.",
+  explain:"3 bagian dimakan dari total 8 potongan, jadi 3/8 — dibaca “tiga per delapan”."},
+ {story:"Di meja juga ada kue stroberi yang dipotong 6 sama besar. Dua potong ikut hilang!",
+  text:"Berapa pecahan yang menunjukkan kue yang HILANG?",
+  art:()=>cakeSVG(6,2,"2 potong hilang dari 6 potongan"),
+  choices:[{f:[2,6]},{f:[6,2]},{f:[4,6]},{f:[2,4]}],answer:0,
+  hint:"Potongan yang hilang jadi angka atas. Semua potongan jadi angka bawah.",
+  explain:"2 potong hilang dari 6 potong, jadi 2/6."},
+ {story:"Detektif juga harus tahu istilah pecahan. Perhatikan poster buronan angka ini!",
+  text:"Pada pecahan 5/9, angka 9 disebut…",
+  art:()=>anatomySVG(),
+  choices:[{t:"Penyebut"},{t:"Pembilang"},{t:"Pecahan campuran"},{t:"Sisa kue"}],answer:0,
+  hint:"Angka di BAWAH garis menunjukkan jumlah semua bagian. Namanya berawalan “pe…ebut”.",
+  explain:"Angka bawah disebut PENYEBUT (semua bagian), angka atas disebut PEMBILANG."},
+ {story:"Petunjuk terakhir: semangkuk buah di meja si pencamil!",
+  text:"Ada 7 buah — 3 di antaranya apel 🍎. Berapa PEMBILANG pecahan yang menunjukkan apel?",
+  art:()=>fruitSVG([{e:"🍎",hi:true},{e:"🍎",hi:true},{e:"🍎",hi:true},{e:"🍌"},{e:"🍌"},{e:"🍇"},{e:"🍇"}],"3 apel dari 7 buah → pecahannya 3/7"),
+  choices:[{t:"3"},{t:"7"},{t:"4"},{t:"10"}],answer:0,
+  hint:"Pembilang adalah angka atas — yaitu jumlah bagian yang kita sorot. Ada berapa apelnya?",
+  explain:"Ada 3 apel dari 7 buah → 3/7. Pembilangnya 3, penyebutnya 7."}]},
+{no:"02",emoji:"🍫",title:"Duel Cokelat Dua Koki",tag:"Membandingkan Pecahan",
+ badge:{icon:"🍫",name:"Lencana Pembanding"},
+ brief:"Koki Cokelat A dan B saling menantang: bagian cokelat siapa yang termakan LEBIH BANYAK? Bandingkan dengan teliti, jangan sampai tertipu tampilan!",
+ qs:[
+ {story:"Kedua koki memamerkan batang cokelat mereka yang sudah dicamil.",
+  text:"Pilih tanda yang tepat: 2/6 ⬜ 4/6",
+  art:()=>duel({t:"choco",c:6,r:1,e:2,lab:"Koki A",f:[2,6]},{t:"choco",c:6,r:1,e:4,lab:"Koki B",f:[4,6]}),
+  choices:CMP,answer:0,type:"cmp",
+  hint:"Penyebutnya sama-sama 6. Cukup bandingkan pembilangnya: mana yang lebih kecil?",
+  explain:"Penyebut sama → bandingkan pembilang. 2 < 4, jadi 2/6 < 4/6."},
+ {story:"Tantangan kedua: kali ini karyanya pizza!",
+  text:"Pizza Kakak dimakan 5/8 dan pizza Adik dimakan 3/8. Tanda yang tepat?",
+  art:()=>duel({t:"pizza",n:8,e:5,lab:"Kakak",f:[5,8]},{t:"pizza",n:8,e:3,lab:"Adik",f:[3,8]}),
+  choices:CMP,answer:2,type:"cmp",
+  hint:"Lihat pembilangnya: 5 dan 3. Mana yang lebih besar?",
+  explain:"Penyebut sama (8) dan 5 > 3, jadi 5/8 > 3/8."},
+ {story:"Koki Cokelat tersenyum licik. “Potongannya beda, tapi yakin beda nilainya?”",
+  text:"1/2 ⬜ 2/4 — pilih tanda yang tepat!",
+  art:()=>duel({t:"cake",c:2,e:1,lab:"Kue",f:[1,2]},{t:"choco",c:4,r:1,e:2,lab:"Cokelat",f:[2,4]}),
+  choices:CMP,answer:1,type:"cmp",
+  hint:"Perhatikan baik-baik… bagian yang dicamil ternyata sama banyaknya, lho!",
+  explain:"1/2 senilai dengan 2/4 — nilainya sama besar! Jadi 1/2 = 2/4."},
+ {story:"Babak penentuan! Potongannya berbeda ukuran…",
+  text:"1/2 ⬜ 3/4 — mana tanda yang benar?",
+  art:()=>duel({t:"choco",c:2,r:1,e:1,lab:"Batang A",f:[1,2]},{t:"choco",c:4,r:1,e:3,lab:"Batang B",f:[3,4]}),
+  choices:CMP,answer:0,type:"cmp",
+  hint:"Bayangkan kedua batang sama panjang. Bagian yang dimakan mana yang menutupi lebih banyak cokelat?",
+  explain:"1/2 = 2/4, dan 2/4 < 3/4. Jadi 1/2 < 3/4."}]},
+{no:"03",emoji:"🍰",title:"Misteri Kue Kembar",tag:"Pecahan Senilai",
+ badge:{icon:"🍰",name:"Lencana Senilai"},
+ brief:"Dua loyang kue terlihat berbeda potongannya… tapi benarkah bagian yang dimakan sama besar? Detektif sejati tahu rahasia PECAHAN SENILAI!",
+ qs:[
+ {story:"Koki kembar menunjukkan dua pizza yang dicamil dengan cara berbeda.",
+  text:"Pecahan yang senilai dengan 1/2 adalah…",
+  art:()=>duel({t:"pizza",n:2,e:1,lab:"Cara 1",f:[1,2]},{t:"pizza",n:4,e:2,lab:"Cara 2",f:[2,4]}),
+  choices:[{f:[2,4]},{f:[2,3]},{f:[3,8]},{f:[1,4]}],answer:0,
+  hint:"Kalikan pembilang dan penyebut dengan angka yang SAMA: 1×2 = 2, lalu 2×2 = ?",
+  explain:"1/2 dikali 2 di atas dan bawah menjadi 2/4. Sama besar — itulah pecahan senilai!"},
+ {story:"Batang cokelat ini ditinggalkan dengan 4 bagian dari 8 yang termakan.",
+  text:"4/8 senilai dengan pecahan sederhana…",
+  art:()=>chocoSVG(8,1,4,"Bagian termakan: 4 dari 8"),
+  choices:[{f:[1,2]},{f:[1,4]},{f:[3,4]},{f:[4,6]}],answer:0,
+  hint:"Bagi pembilang dan penyebut dengan angka yang sama. 4 dan 8 sama-sama bisa dibagi…",
+  explain:"4/8 dibagi 4 di atas dan bawah menjadi 1/2. Lebih sederhana, nilainya tetap sama!"},
+ {story:"Kue kembar terakhir jadi saksi kunci kasus ini.",
+  text:"2/3 senilai dengan…",
+  art:()=>duel({t:"cake",c:3,e:2,lab:"Loyang kecil",f:[2,3]},{t:"cake",c:6,e:4,lab:"Loyang besar",f:[4,6]}),
+  choices:[{f:[4,6]},{f:[2,6]},{f:[3,4]},{f:[4,8]}],answer:0,
+  hint:"Kalikan 2/3 dengan 2: pembilang 2×2 = 4, penyebut 3×2 = ?",
+  explain:"2/3 dikali 2 menjadi 4/6. Keduanya menutupi bagian kue yang sama besar."},
+ {story:"Selembar catatan rahasia ditemukan di dapur. Satu angkanya hilang!",
+  text:"Lengkapi catatan ini: 1/4 = ❓/8",
+  art:()=>pizzaSVG(8,2,"2/8 ternyata sama dengan 1/4!"),
+  choices:[{t:"2"},{t:"3"},{t:"4"},{t:"6"}],answer:0,
+  hint:"Penyebut 4 menjadi 8 berarti dikali 2. Pembilang juga harus dikali angka yang sama…",
+  explain:"4×2 = 8, maka pembilang juga dikali 2: 1×2 = 2. Jadi 1/4 = 2/8."}]},
+{no:"04",emoji:"🍇",title:"Perampokan di Pesta Buah",tag:"Penjumlahan & Pengurangan Pecahan",
+ badge:{icon:"🍇",name:"Lencana Master Hitung"},
+ brief:"Pesta buah berantakan! Sisa makanan di mana-mana. Jumlahkan dan kurangkan pecahan untuk membongkar apa yang terjadi di pesta semalam.",
+ qs:[
+ {story:"Jejak pertama: pizza pesta dicamil dua kali oleh tamu misterius.",
+  text:"Pertama 2/8 pizza dimakan, lalu 3/8 lagi. Berapa bagian pizza yang termakan semuanya?",
+  art:()=>pizzaSVG(8,5,"Jejak: 2/8 + 3/8 termakan"),
+  choices:[{f:[5,8]},{f:[5,16]},{f:[6,8]},{f:[1,8]}],answer:0,
+  hint:"Kalau penyebutnya sama, cukup JUMLAHKAN pembilangnya. Penyebut tidak ikut dijumlah!",
+  explain:"2/8 + 3/8 = (2+3)/8 = 5/8. Penyebut tetap 8!"},
+ {story:"Kue pesta tinggal sedikit. Detektif harus menghitung sisanya!",
+  text:"Kue sudah dimakan 4/6 bagian. Berapa bagian kue yang MASIH TERSISA?",
+  art:()=>cakeSVG(6,4,"4 dari 6 potong sudah dimakan"),
+  choices:[{f:[2,6]},{f:[2,12]},{f:[10,6]},{f:[3,6]}],answer:0,
+  hint:"Kue utuh = 6/6. Kurangi dengan yang termakan: 6/6 − 4/6 = ?",
+  explain:"6/6 − 4/6 = 2/6. Masih tersisa 2 bagian dari 6."},
+ {story:"Keranjang jeruk jadi saksi berikutnya. Jeruknya dibagikan ke teman-teman.",
+  text:"Semula ada 8 jeruk (8/8). Lalu 3/8 dibagikan ke teman. Berapa pecahan jeruk yang tersisa?",
+  art:()=>fruitSVG(F("🍊",5).concat(F("🍊",3).map(o=>({...o,fade:true}))), "5 jeruk bertahan, 3 jeruk (pudar) dibagikan"),
+  choices:[{f:[5,8]},{f:[11,8]},{f:[3,8]},{f:[8,5]}],answer:0,
+  hint:"Kurangkan pembilangnya saja: 8 − 3 = ?",
+  explain:"8/8 − 3/8 = 5/8. Tersisa 5 jeruk dari 8."},
+ {story:"Kasus terakhir: cokelat panjang raksasa penutup pesta!",
+  text:"Cokelat dipotong 10. Saat istirahat dimakan 7/10, lalu 4/10 lagi dibagikan. Berapa sisanya?",
+  art:()=>chocoSVG(5,2,7,"7/10 dimakan, lalu 4/10 dibagikan"),
+  choices:[{f:[3,10]},{f:[11,10]},{f:[3,5]},{f:[4,10]}],answer:0,
+  hint:"7/10 − 4/10. Penyebut sama, jadi kurangi pembilangnya: 7 − 4 = ?",
+  explain:"7/10 − 4/10 = 3/10. Cokelat pesta tinggal 3 bagian dari 10."}]}
+];
+
+/* ================= STATE ================= */
+const G={name:"Detektif",ci:0,qi:0,score:0,streak:0,hints:3,hintsUsed:0,first:0,
+  badges:[],cs:null,att:0,answered:false,hintQ:false,curOpts:null,qResults:[]};
+
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $("#"+id).classList.add("active");window.scrollTo({top:0})}
+function updHUD(){
+  $("#hudScore").textContent="⭐ "+G.score;
+  $("#hudStreak").textContent="🔥 "+G.streak;
+  $("#hudHints").textContent=G.hints;
+  const hc=$("#hudCases");hc.innerHTML="";
+  CASES.forEach((c,i)=>{const d=document.createElement("div");
+    d.className="hc"+(i<G.ci?" done":i===G.ci?" cur":"");
+    d.textContent=i<G.ci?"✅":c.emoji;d.title="Kasus #"+c.no;hc.appendChild(d)})}
+function popScore(){const el=$("#hudScore");el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop")}
+function dots(){const d=$("#qDots");d.innerHTML="";
+  G.qResults.forEach((r,i)=>{const s=document.createElement("i");s.className=r+(i===G.qi?" on":"");d.appendChild(s)})}
+
+/* ================= ALUR ================= */
+$("#btnStart").onclick=()=>{SFX.click();
+  G.name=($("#inpName").value.trim()||"Detektif Cilik");
+  Object.assign(G,{ci:0,qi:0,score:0,streak:0,hints:3,hintsUsed:0,first:0,badges:[],qResults:[]});
+  $("#hud").classList.remove("hidden");updHUD();brief(0)};
+
+function brief(i){G.ci=i;const c=CASES[i];
+  $("#bNum").textContent="KASUS #"+c.no+" • AGEN "+G.name.toUpperCase();
+  $("#bTitle").textContent=c.emoji+" "+c.title;
+  $("#bBrief").textContent=c.brief;
+  $("#bTag").textContent="📚 "+c.tag;
+  $("#bBadge").textContent="Hadiah: "+c.badge.icon+" "+c.badge.name;
+  updHUD();show("scr-brief")}
+
+$("#btnInvestigate").onclick=()=>{SFX.click();
+  G.qi=0;G.qResults=[];G.cs={first:0,earned:0};renderQ()};
+
+function renderQ(){
+  const c=CASES[G.ci],q=c.qs[G.qi];
+  G.att=0;G.answered=false;G.hintQ=false;
+  $("#qNum").textContent=`SOAL ${G.qi+1}/${c.qs.length}`;
+  $("#qCase").textContent=`KASUS #${c.no} • ${c.title.toUpperCase()}`;
+  $("#qStory").textContent="🗒 "+q.story;
+  $("#qText").textContent=q.text;
+  $("#artZone").innerHTML=q.art();
+  $("#hintBox").classList.add("hidden");
+  const fb=$("#fb");fb.className="hidden";fb.innerHTML="";
+  $("#btnHintMain").disabled=false;
+  const box=$("#choices");box.innerHTML="";
+  box.className="choices"+(q.type==="cmp"?" cmp":"");
+  if(q.type==="cmp"){
+    q.choices.forEach((opt,i)=>{
+      const b=document.createElement("button");b.className="choice";
+      b.innerHTML=`<span><span class="sym">${opt.s}</span><span class="symlab">${opt.l}</span></span>`;
+      b.onclick=()=>pick(i,b);box.appendChild(b)});
+  }else{
+    G.curOpts=q.choices.map((ch,i)=>({...ch,ok:i===q.answer}));
+    for(let i=G.curOpts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[G.curOpts[i],G.curOpts[j]]=[G.curOpts[j],G.curOpts[i]]}
+    G.curOpts.forEach((o,i)=>{
+      const b=document.createElement("button");b.className="choice";
+      b.innerHTML=`<span class="key">${i+1}</span>`+(o.f?frH(o.f[0],o.f[1]):`<span>${o.t}</span>`);
+      b.onclick=()=>pick(i,b);box.appendChild(b)})
+  }
+  dots();updHUD();show("scr-quiz")}
+
+const PRAISE=["Keren, Detektif! 🕵️","Tepat sekali! 🎯","Insting detektifmu tajam! 🔍","Brilian! Kasusnya makin terang! 💡","Bukti tak bisa bohong! ⚖️"];
+const OOPS=["Hmm, belum tepat… periksa lagi buktinya! 🧐","Hampir! Lihat lagi ilustrasinya. 👀","Detektif hebat tak mudah menyerah — coba lagi! 💪"];
+
+function pick(i,btn){
+  if(G.answered)return;
+  const q=CASES[G.ci].qs[G.qi];
+  const ok=q.type==="cmp"?i===q.answer:G.curOpts[i].ok;
+  const allBtns=[...document.querySelectorAll("#choices .choice")];
+  if(ok){
+    G.answered=true;let pts=G.att===0?100:60,bonus="";
+    if(G.att===0){G.streak++;G.first++;G.cs.first++;
+      if(G.streak>=2){pts+=20;bonus=" (+20 bonus beruntun 🔥)"}}
+    else G.streak=0;
+    G.score+=pts;G.cs.earned+=pts;G.qResults[G.qi]="done";
+    btn.classList.add("right");allBtns.forEach(b=>b.disabled=true);
+    const r=btn.getBoundingClientRect();floatPts(r.left+r.width/2-20,r.top-10,"+"+pts);
+    rain(16);SFX.ok();popScore();
+    const fb=$("#fb");fb.className="fb ok";
+    fb.innerHTML=`<div class="fb-msg">✔ ${PRAISE[Math.floor(Math.random()*PRAISE.length)]} +${pts} poin${bonus}</div>
+      <div class="fb-exp">💡 ${q.explain}</div>
+      <div class="fb-actions"><button class="btn btn-primary" id="btnNext">LANJUT ▶</button></div>`;
+    $("#btnNext").onclick=next;
+    $("#btnHintMain").disabled=true;dots();updHUD();
+  }else{
+    G.att++;G.streak=0;SFX.bad();
+    btn.classList.add("wrong");btn.disabled=true;
+    setTimeout(()=>btn.classList.remove("wrong"),500);
+    if(G.att>=3){
+      G.answered=true;G.qResults[G.qi]="fail";
+      const ci=q.type==="cmp"?q.answer:G.curOpts.findIndex(o=>o.ok);
+      allBtns[ci].classList.add("reveal");allBtns.forEach(b=>b.disabled=true);
+      const fb=$("#fb");fb.className="fb no";
+      fb.innerHTML=`<div class="fb-msg">❌ Kali ini belum berhasil, tapi detektif belajar dari kesalahan!</div>
+        <div class="fb-exp">💡 ${q.explain}</div>
+        <div class="fb-actions"><button class="btn btn-primary" id="btnNext">LANJUT ▶</button></div>`;
+      $("#btnNext").onclick=next;$("#btnHintMain").disabled=true;
+    }else{
+      const fb=$("#fb");fb.className="fb no";
+      fb.innerHTML=`<div class="fb-msg">${OOPS[Math.floor(Math.random()*OOPS.length)]}</div>`;
+      setTimeout(()=>{if(!G.answered)fb.className="hidden"},2600);
+    }
+    dots();updHUD();
+  }}
+
+function next(){SFX.click();G.qi++;
+  const c=CASES[G.ci];
+  if(G.qi<c.qs.length)renderQ();else caseDone()}
+
+function caseDone(){
+  const c=CASES[G.ci];
+  const stars=G.cs.first===4?3:G.cs.first===3?2:1;
+  if(!G.badges.some(b=>b.icon===c.badge.icon))G.badges.push(c.badge);
+  $("#cdStars").querySelectorAll("span").forEach((s,i)=>{
+    s.classList.toggle("lit",i<stars);s.style.animationDelay=(i*.22)+"s"});
+  $("#cdBadgeIcon").textContent=c.badge.icon;
+  $("#cdBadgeName").innerHTML=`${c.badge.name}<small>Lencana baru masuk koleksimu!</small>`;
+  $("#cdStats").innerHTML=`<span>🎯 Tepat percobaan pertama: ${G.cs.first}/4</span>
+    <span>⭐ Poin kasus: ${G.cs.earned}</span><span>🕵️ Agen: ${G.name}</span>`;
+  const last=G.ci>=CASES.length-1;
+  $("#btnNextCase").textContent=last?"🏆 LIHAT PENGHARGAAN":"📂 KASUS BERIKUTNYA ▶";
+  $("#btnNextCase").onclick=()=>{SFX.click();last?final():brief(G.ci+1)};
+  updHUD();show("scr-casedone");
+  setTimeout(()=>{SFX.stamp();rain(20,true)},350)}
+
+function final(){
+  const f=G.first,t=G.badges.length;let rank,icon;
+  if(f>=16){rank="DETEKTIF LEGENDARIS";icon="🏆"}
+  else if(f>=13){rank="DETEKTIF MASTER";icon="🥇"}
+  else if(f>=9){rank="DETEKTIF HEBAT";icon="🥈"}
+  else if(f>=5){rank="DETEKTIF MUDA";icon="🥉"}
+  else{rank="CALON DETEKTIF";icon="🔍"}
+  $("#fName").textContent=G.name.toUpperCase();
+  $("#fRank").textContent=rank;$("#fRankE").textContent=icon;
+  $("#fScore").textContent=G.score;$("#fCorrect").textContent=f+"/16";$("#fHints").textContent=G.hintsUsed;
+  $("#fAward").innerHTML=(f>=14&&G.hintsUsed===0)
+    ?`<div class="cert-award">🏅 PENGHARGAAN KHUSUS: DETEKTIF TERBAIK — tanpa petunjuk!</div>`
+    :(f>=14?`<div class="cert-award">🏅 LENCANA DETEKTIF TERBAIK</div>`:"");
+  const bd=$("#fBadges");bd.innerHTML="";
+  G.badges.forEach(b=>{const d=document.createElement("div");d.className="cb";d.title=b.name;d.textContent=b.icon;bd.appendChild(d)});
+  $("#fDate").textContent="Ditetapkan di Kota Matematika, "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
+  $("#hud").classList.add("hidden");show("scr-final");
+  SFX.fanfare();rain(40,true);
+  let k=0;const iv=setInterval(()=>{rain(18,true);if(++k>3)clearInterval(iv)},900)}
+
+$("#btnReplay").onclick=()=>{SFX.click();
+  Object.assign(G,{ci:0,qi:0,score:0,streak:0,hints:3,hintsUsed:0,first:0,badges:[],qResults:[]});
+  $("#hud").classList.remove("hidden");updHUD();brief(0)};
+$("#btnHome").onclick=()=>{SFX.click();$("#hud").classList.add("hidden");show("scr-intro")};
+
+/* ===== PETUNJUK ===== */
+function useHint(){
+  if(G.hints<=0||G.hintQ||G.answered)return;
+  const q=CASES[G.ci].qs[G.qi];
+  G.hints--;G.hintsUsed++;G.hintQ=true;SFX.hint();
+  const h=$("#hintBox");
+  h.innerHTML=`<b>📝 PETUNJUK DETEKTIF:</b> ${q.hint}`;h.classList.remove("hidden");
+  $("#btnHintMain").disabled=G.hints<=0;
+  $("#btnHintMain").textContent=`🔍 Gunakan Petunjuk (sisa ${G.hints})`;
+  updHUD()}
+$("#btnHintMain").onclick=useHint;
+$("#btnHintHud").onclick=useHint;
+
+/* ===== SUARA ===== */
+$("#btnSnd").onclick=e=>{sndOn=!sndOn;e.currentTarget.textContent=sndOn?"🔊":"🔇";if(sndOn)SFX.click()};
+
+/* ===== KEYBOARD ===== */
+document.addEventListener("keydown",e=>{
+  if(!$("#scr-quiz").classList.contains("active")||G.answered)return;
+  const btns=[...document.querySelectorAll("#choices .choice")];
+  if(!btns.length)return;
+  if(btns.length===3){if(e.key==="<")btns[0].click();if(e.key==="=")btns[1].click();if(e.key===">")btns[2].click()}
+  else{const n=parseInt(e.key);if(n>=1&&n<=btns.length&&e.target.tagName!=="INPUT")btns[n-1].click()}});
+</script>
+</body>
+  </html>
