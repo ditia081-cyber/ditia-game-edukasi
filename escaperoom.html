@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Escape Room: Misteri Fungsi</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
+  body {
+    background: radial-gradient(circle at 50% 30%, #1a0b2e 0%, #0a0415 70%, #000 100%);
+    color: #e0d6ff; min-height:100vh; overflow-x:hidden;
+  }
+  /* Partikel bintang */
+  .stars { position:fixed; inset:0; pointer-events:none; z-index:0; }
+  .stars::before, .stars::after {
+    content:''; position:absolute; inset:0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, #fff, transparent),
+      radial-gradient(1px 1px at 60% 70%, #b388ff, transparent),
+      radial-gradient(1px 1px at 80% 20%, #00e5ff, transparent),
+      radial-gradient(2px 2px at 40% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 90% 50%, #b388ff, transparent);
+    background-size: 300px 300px;
+    animation: drift 60s linear infinite;
+    opacity:.6;
+  }
+  .stars::after { animation-duration:90s; opacity:.3; }
+  @keyframes drift { from{transform:translateY(0)} to{transform:translateY(-300px)} }
+
+  .container {
+    position:relative; z-index:1;
+    max-width:900px; margin:0 auto; padding:30px 20px;
+  }
+  header {
+    text-align:center; margin-bottom:20px;
+  }
+  h1 {
+    font-size:2.2em; letter-spacing:3px;
+    background: linear-gradient(90deg,#b388ff,#00e5ff,#b388ff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow: 0 0 30px rgba(179,136,255,.3);
+    animation: glitch 4s infinite;
+  }
+  @keyframes glitch {
+    0%,95%,100% { filter:none; }
+    96% { filter: hue-rotate(90deg) drop-shadow(2px 0 #00e5ff); }
+    97% { filter: hue-rotate(-90deg) drop-shadow(-2px 0 #ff00aa); }
+  }
+  .subtitle { color:#9a8fc2; font-style:italic; margin-top:8px; }
+
+  .hud {
+    display:flex; justify-content:space-around; flex-wrap:wrap; gap:10px;
+    background: rgba(20,10,40,.6); border:1px solid #4a2d7a;
+    border-radius:12px; padding:15px; margin-bottom:20px;
+    backdrop-filter: blur(8px);
+  }
+  .hud-item { text-align:center; flex:1; min-width:100px; }
+  .hud-label { font-size:.75em; color:#9a8fc2; text-transform:uppercase; letter-spacing:2px; }
+  .hud-value { font-size:1.6em; font-weight:bold; color:#00e5ff; margin-top:4px; }
+  .hud-value.danger { color:#ff4d6d; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity:.5; } }
+
+  .panel {
+    background: linear-gradient(135deg, rgba(30,15,55,.85), rgba(15,8,30,.85));
+    border:1px solid #5a3d9a; border-radius:16px; padding:30px;
+    box-shadow: 0 0 40px rgba(120,60,220,.25), inset 0 0 20px rgba(0,229,255,.05);
+    position:relative; overflow:hidden;
+  }
+  .panel::before {
+    content:''; position:absolute; top:0; left:-100%; width:100%; height:2px;
+    background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+    animation: scan 4s linear infinite;
+  }
+  @keyframes scan { to { left:100%; } }
+
+  .progress-bar {
+    display:flex; gap:8px; margin-bottom:20px;
+  }
+  .step {
+    flex:1; height:6px; background:#2a1850; border-radius:3px;
+    transition: all .5s;
+  }
+  .step.done { background: linear-gradient(90deg,#b388ff,#00e5ff); box-shadow:0 0 10px #00e5ff; }
+  .step.active { background:#ff00aa; box-shadow:0 0 10px #ff00aa; animation: pulse 1.5s infinite; }
+
+  .question-num { color:#ff00aa; font-size:.9em; letter-spacing:2px; }
+  .question {
+    font-size:1.15em; margin:12px 0 20px; line-height:1.6;
+    color:#f0e8ff;
+  }
+  .math {
+    font-family:'Cambria Math','Times New Roman', serif;
+    color:#00e5ff; font-style:italic;
+    background: rgba(0,229,255,.08); padding:2px 8px; border-radius:4px;
+  }
+
+  .options { display:grid; gap:10px; }
+  .option {
+    background: rgba(40,20,70,.5); border:1px solid #4a2d7a;
+    padding:14px 18px; border-radius:10px; cursor:pointer;
+    transition: all .25s; color:#e0d6ff; text-align:left;
+    font-size:1em;
+  }
+  .option:hover {
+    border-color:#00e5ff; background:rgba(0,229,255,.1);
+    transform: translateX(5px); box-shadow:0 0 15px rgba(0,229,255,.3);
+  }
+  .option.correct { background:rgba(0,255,150,.2); border-color:#00ff96; }
+  .option.wrong { background:rgba(255,77,109,.2); border-color:#ff4d6d; }
+  .option:disabled { cursor:not-allowed; }
+
+  .controls {
+    display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;
+  }
+  button {
+    background: linear-gradient(135deg,#5a3d9a,#b388ff);
+    color:#fff; border:none; padding:10px 20px; border-radius:8px;
+    cursor:pointer; font-weight:bold; letter-spacing:1px;
+    transition: all .2s; font-size:.9em;
+  }
+  button:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 5px 20px rgba(179,136,255,.5); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-hint { background: linear-gradient(135deg,#ff00aa,#ff6b9d); }
+  .btn-sound { background: linear-gradient(135deg,#00e5ff,#0088aa); }
+
+  .hint-box {
+    background: rgba(255,0,170,.08); border-left:3px solid #ff00aa;
+    padding:12px 16px; margin-top:15px; border-radius:6px;
+    font-size:.95em; color:#ffb3d9; display:none;
+  }
+  .hint-box.show { display:block; animation: slideIn .4s; }
+  @keyframes slideIn { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+
+  .explanation {
+    background: rgba(0,229,255,.08); border-left:3px solid #00e5ff;
+    padding:15px; margin-top:18px; border-radius:6px;
+    display:none;
+  }
+  .explanation.show { display:block; animation: slideIn .4s; }
+  .explanation h4 { color:#00e5ff; margin-bottom:8px; }
+  .code-digit {
+    display:inline-block; background:#000; color:#00ff96;
+    padding:4px 12px; border-radius:4px; font-family:monospace;
+    font-size:1.3em; border:1px solid #00ff96;
+    box-shadow:0 0 10px rgba(0,255,150,.5);
+    margin:0 4px;
+  }
+
+  .intro-screen, .final-screen {
+    text-align:center; padding:40px 20px;
+  }
+  .door {
+    font-size:5em; margin:20px 0;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 50% { transform:translateY(-10px); } }
+
+  .final-code {
+    display:flex; justify-content:center; gap:10px; margin:25px 0;
+  }
+  .final-code span {
+    width:55px; height:70px; background:#000; color:#00ff96;
+    font-family:monospace; font-size:2.2em; font-weight:bold;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid #00ff96; border-radius:8px;
+    box-shadow:0 0 20px rgba(0,255,150,.6);
+    animation: flicker 2s infinite;
+  }
+  @keyframes flicker {
+    0%,100% { opacity:1; }
+    50% { opacity:.7; }
+  }
+
+  .btn-start {
+    font-size:1.1em; padding:14px 40px;
+    background: linear-gradient(135deg,#ff00aa,#b388ff);
+  }
+
+  @media (max-width:600px) {
+    h1 { font-size:1.5em; }
+    .hud-value { font-size:1.2em; }
+    .question { font-size:1em; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+
+<div class="container">
+  <header>
+    <h1>⚡ ESCAPE ROOM: MISTERI FUNGSI ⚡</h1>
+    <p class="subtitle">"Pecahkan 5 teka-teki. Buka pintu. Keluar sebelum waktu habis..."</p>
+  </header>
+
+  <div class="hud">
+    <div class="hud-item">
+      <div class="hud-label">⏱ Waktu</div>
+      <div class="hud-value" id="timer">20:00</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">⭐ Skor</div>
+      <div class="hud-value" id="score">0</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">🔓 Pintu</div>
+      <div class="hud-value"><span id="doorNum">0</span>/5</div>
+    </div>
+  </div>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div class="panel" id="gamePanel">
+    <!-- Konten dinamis -->
+  </div>
+</div>
+
+<script>
+// ============ DATA TEKA-TEKI ============
+const puzzles = [
+  {
+    level: "MUDAH",
+    q: `Manakah dari himpunan pasangan berurutan berikut yang merupakan <span class="math">FUNGSI</span>?`,
+    options: [
+      "A = {(1,a), (2,b), (2,c), (3,d)}",
+      "B = {(1,a), (1,b), (2,c), (3,d)}",
+      "C = {(1,a), (2,b), (3,c), (4,d)}",
+      "D = {(1,a), (2,b), (3,b), (3,c)}"
+    ],
+    answer: 2,
+    hint1: "Ingat definisi fungsi: setiap anggota domain harus punya tepat SATU pasangan di kodomain.",
+    hint2: "Cek apakah ada anggota domain yang muncul lebih dari sekali dengan pasangan berbeda.",
+   
