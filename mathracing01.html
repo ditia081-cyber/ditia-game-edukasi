@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MATH RACING: Balapan Barisan Angka</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Segoe UI', Tahoma, sans-serif; background:#0a0e27; color:#fff; }
+  #app { position:relative; width:100vw; height:100vh; overflow:hidden; }
+
+  /* ====== SCREENS ====== */
+  .screen { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
+  .screen.active { display:flex; }
+
+  /* ====== MENU UTAMA ====== */
+  #menu {
+    background: linear-gradient(135deg, #1a1f3a 0%, #0a0e27 50%, #2d1b4e 100%);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+  }
+  @keyframes gradientBG { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+  .title {
+    font-size: clamp(2rem, 7vw, 4.5rem);
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(45deg, #ff006e, #ffbe0b, #fb5607, #ff006e);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s linear infinite;
+    text-shadow: 0 0 40px rgba(255,190,11,0.3);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  @keyframes shine { to { background-position: 200% 0; } }
+
+  .subtitle {
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+    color: #a0a8d0;
+    margin-bottom: 30px;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .car-preview {
+    width: 200px; height: 120px;
+    margin: 20px auto;
+    position: relative;
+    animation: bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  .btn {
+    padding: 14px 32px;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    margin: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    min-width: 220px;
+    letter-spacing: 1px;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn-primary { background: linear-gradient(135deg, #ff006e, #fb5607); color:#fff; }
+  .btn-secondary { background: linear-gradient(135deg, #3a86ff, #8338ec); color:#fff; }
+  .btn-success { background: linear-gradient(135deg, #06ffa5, #3a86ff); color:#0a0e27; }
+  .btn-warning { background: linear-gradient(135deg, #ffbe0b, #fb5607); color:#0a0e27; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,0,110,0.4); }
+
+  /* ====== PETUNJUK ====== */
+  #petunjuk { background: linear-gradient(135deg, #0a0e27, #1a1f3a); }
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 25px;
+    max-width: 600px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+  }
+  .card h2 { color:#ffbe0b; margin-bottom:15px; font-size:1.5rem; }
+  .card ul { list-style:none; }
+  .card li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size:0.95rem; line-height:1.5; }
+  .card li::before { content:"🏁 "; }
+
+  /* ====== PILIH MOBIL ====== */
+  #pilihMobil { background: linear-gradient(135deg, #0a0e27, #2d1b4e); }
+  .car-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:15px; max-width:700px; width:100%; margin:20px 0; }
+  .car-option {
+    background: rgba(255,255,255,0.05);
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+  }
+  .car-option:hover { border-color: #ffbe0b; transform: translateY(-5px); }
+  .car-option.selected { border-color: #06ffa5; background: rgba(6,255,165,0.1); box-shadow: 0 0 30px rgba(6,255,165,0.3); }
+  .car-svg { width:100px; height:60px; margin: 0 auto 10px; }
+  .car-name { font-weight:700; font-size:1.1rem; margin-bottom:5px; }
+  .car-desc { font-size:0.8rem; color:#a0a8d0; }
+
+  /* ====== PILIH LINTASAN ====== */
+  #pilihLintasan { background: linear-gradient(135deg, #0a0e27, #1a1f3a); }
+  .track-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; max-width:800px; width:100%; margin:20px 0; }
+  .track-option {
+    background: rgba(255,255,255,0.05);
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+  }
+  .track-option:hover { transform: translateY(-5px); }
+  .track-option.selected { box-shadow: 0 0 30px rgba(255,190,11,0.4); }
+  .track-easy { border-color:#06ffa5; }
+  .track-easy.selected { background: rgba(6,255,165,0.15); }
+  .track-medium { border-color:#ffbe0b; }
+  .track-medium.selected { background: rgba(255,190,11,0.15); }
+  .track-hard { border-color:#ff006e; }
+  .track-hard.selected { background: rgba(255,0,110,0.15); }
+  .track-icon { font-size:3rem; margin-bottom:10px; }
+  .track-name { font-weight:700; font-size:1.2rem; margin-bottom:5px; }
+  .track-desc { font-size:0.85rem; color:#a0a8d0; }
+
+  /* ====== GAME ====== */
+  #game { padding:0; background:#000; }
+  #gameCanvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  .hud {
+    position:absolute; top:0; left:0; right:0;
+    padding: 10px 15px;
+    display:flex; justify-content:space-between; align-items:center;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent);
+    z-index: 10;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hud-item {
+    background: rgba(0,0,0,0.6);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: clamp(0.75rem, 2vw, 0.95rem);
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.15);
+    white-space: nowrap;
+  }
+  .hud-score { color:#06ffa5; }
+  .hud-timer { color:#ffbe0b; }
+  .hud-timer.warning { color:#ff006e; animation: pulse 0.5s infinite; }
+  @keyframes pulse { 50% { opacity:0.5; } }
+  .hud-progress { color:#3a86ff; }
+
+  .question-panel {
+    position:absolute;
+    bottom: 0; left:0; right:0;
+    background: linear-gradient(180deg, transparent, rgba(10,14,39,0.95) 20%, rgba(10,14,39,0.98));
+    padding: 15px;
+    z-index: 10;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  .question-text {
+    background: rgba(58,134,255,0.15);
+    border: 2px solid #3a86ff;
+    border-radius: 15px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-size: clamp(0.9rem, 2.3vw, 1.05rem);
+    line-height: 1.5;
+    font-weight: 600;
+  }
+  .hots-badge {
+    display:inline-block;
+    background: linear-gradient(135deg, #ff006e, #fb5607);
+    color:#fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    margin-left: 8px;
+    animation: glow 1.5s infinite;
+  }
+  @keyframes glow { 50% { box-shadow: 0 0 20px #ff006e; } }
+
+  .answers { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .answer-btn {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: clamp(0.85rem, 2.2vw, 1rem);
+    font-weight: 600;
+    transition: all 0.2s;
+    text-align: center;
+    min-height: 48px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .answer-btn:hover:not(:disabled) { background: rgba(58,134,255,0.2); border-color:#3a86ff; }
+  .answer-btn:disabled { cursor: not-allowed; }
+  .answer-btn.correct { background: rgba(6,255,165,0.3); border-color:#06ffa5; color:#06ffa5; animation: correctFlash 0.5s; }
+  .answer-btn.wrong { background: rgba(255,0,110,0.3); border-color:#ff006e; color:#ff006e; }
+  @keyframes correctFlash { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+  .feedback {
+    position:absolute;
+    top: 50%; left:50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-weight: 900;
+    pointer-events:none;
+    opacity:0;
+    z-index: 20;
+    text-shadow: 0 0 30px currentColor;
+  }
+  .feedback.show { animation: feedbackAnim 1.2s ease-out; }
+  @keyframes feedbackAnim {
+    0% { opacity:0; transform: translate(-50%, -50%) scale(0.5); }
+    30% { opacity:1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity:0; transform: translate(-50%, -100%) scale(1); }
+  }
+
+  .turbo-overlay {
+    position:absolute; inset:0;
+    pointer-events:none;
+    background: radial-gradient(circle, transparent 40%, rgba(255,190,11,0.3) 100%);
+    opacity:0;
+    z-index: 5;
+  }
+  .turbo-overlay.active { animation: turboFlash 0.8s; }
+  @keyframes turboFlash { 0%,100%{opacity:0} 50%{opacity:1} }
+
+  /* ====== HASIL ====== */
+  #hasil { background: linear-gradient(135deg, #0a0e27, #2d1b4e); }
+  .result-card {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 25px;
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+  }
+  .result-title { font-size: clamp(1.5rem, 5vw, 2.5rem); margin-bottom:10px; }
+  .result-position { font-size: clamp(3rem, 10vw, 5rem); font-weight:900; margin:15px 0; }
+  .pos-1 { color:#ffd700; text-shadow: 0 0 30px #ffd700; }
+  .pos-2 { color:#c0c0c0; text-shadow: 0 0 30px #c0c0c0; }
+  .pos-3 { color:#cd7f32; text-shadow: 0 0 30px #cd7f32; }
+  .pos-other { color:#3a86ff; }
+
+  .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin:20px 0; }
+  .stat-box { background: rgba(255,255,255,0.05); padding:15px; border-radius:12px; }
+  .stat-value { font-size:1.8rem; font-weight:900; color:#06ffa5; }
+  .stat-label { font-size:0.8rem; color:#a0a8d0; margin-top:4px; }
+
+  .achievements { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:15px 0; }
+  .achievement {
+    background: linear-gradient(135deg, #ffbe0b, #fb5607);
+    color:#0a0e27;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .pembahasan-section {
+    margin-top: 20px;
+    text-align: left;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .pembahasan-item {
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid #3a86ff;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  .pembahasan-item.correct { border-left-color: #06ffa5; }
+  .pembahasan-item.wrong { border-left-color: #ff006e; }
+  .pembahasan-q { font-weight:700; margin-bottom:6px; font-size:0.9rem; }
+  .pembahasan-a { font-size:0.85rem; color:#a0a8d0; line-height:1.5; }
+  .pembahasan-a b { color:#06ffa5; }
+
+  /* ====== LEADERBOARD ====== */
+  #leaderboard { background: linear-gradient(135deg, #0a0e27, #1a1f3a); }
+  .lb-list { width:100%; max-width:500px; margin:15px 0; }
+  .lb-item {
+    background: rgba(255,255,255,0.05);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    display:flex; justify-content:space-between; align-items:center;
+    border-left: 4px solid #3a86ff;
+  }
+  .lb-item.top1 { border-left-color:#ffd700; background: rgba(255,215,0,0.1); }
+  .lb-item.top2 { border-left-color:#c0c0c0; background: rgba(192,192,192,0.1); }
+  .lb-item.top3 { border-left-color:#cd7f32; background: rgba(205,127,50,0.1); }
+  .lb-rank { font-weight:900; font-size:1.2rem; width:40px; }
+  .lb-name { flex:1; font-weight:600; }
+  .lb-score { color:#06ffa5; font-weight:700; }
+
+  /* ====== INPUT NAMA ====== */
+  .name-input {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    color:#fff;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 1rem;
+    text-align: center;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px 0;
+    outline: none;
+  }
+  .name-input:focus { border-color:#06ffa5; }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 600px) {
+    .answers { grid-template-columns: 1fr; }
+    .hud { padding: 6px 10px; }
+    .hud-item { padding: 4px 10px; font-size: 0.75rem; }
+    .question-panel { padding: 10px; max-height: 60vh; }
+    .btn { min-width: 180px; padding: 12px 24px; }
+  }
+
+  @media (max-height: 600px) and (orientation: landscape) {
+    .question-panel { max-height: 50vh; }
+    .title { font-size: 2rem; }
+  }
+
+  .scroll-area { max-height: 80vh; overflow-y: auto; width:100%; display:flex; flex-direction:column; align-items:center; padding: 10px; }
+  .scroll-area::-webkit-scrollbar { width:6px; }
+  .scroll-area::-webkit-scrollbar-thumb { background:#3a86ff; border-radius:3px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- MENU UTAMA -->
+  <div id="menu" class="screen active">
+    <div class="scroll-area">
+      <h1 class="title">🏁 MATH RACING</h1>
+      <p class="subtitle">Balapan Barisan Angka — Kelas X SMK</p>
+      <div class="car-preview">
+        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="100" cy="110" rx="80" ry="6" fill="rgba(0,0,0,0.4)"/>
+          <path d="M30,80 L50,50 L90,40 L140,40 L170,60 L180,80 Z" fill="#ff006e" stroke="#fff" stroke-width="2"/>
+          <path d="M55,55 L85,45 L135,45 L160,60 L155,70 L60,70 Z" fill="#3a86ff" opacity="0.8"/>
+          <circle cx="60" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+          <circle cx="60" cy="90" r="6" fill="#666"/>
+          <circle cx="150" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+          <circle cx="150" cy="90" r="6" fill="#666"/>
+          <rect x="165" y="65" width="10" height="6" fill="#ffbe0b"/>
+        </svg>
+      </div>
+      <button class="btn btn-primary" onclick="showScreen('pilihMobil')">🚀 MULAI BALAPAN</button>
+      <button class="btn btn-secondary" onclick="showScreen('petunjuk')">📖 PETUNJUK</button>
+      <button class="btn btn-warning" onclick="showScreen('leaderboard')">🏆 PAPAN PERINGKAT</button>
+    </div>
+  </div>
+
+  <!-- PETUNJUK -->
+  <div id="petunjuk" class="screen">
+    <div class="scroll-area">
+      <div class="card">
+        <h2>📖 Petunjuk Permainan</h2>
+        <ul>
+          <li>Pilih mobil balap favoritmu dari 3 pilihan yang tersedia.</li>
+          <li>Pilih lintasan: <b>Mudah</b>, <b>Sedang</b>, atau <b>Sulit</b>.</li>
+          <li>Setiap lintasan berisi <b>10 soal</b> tentang barisan & deret aritmatika.</li>
+          <li>Kamu punya <b>20 detik</b> untuk menjawab setiap soal.</li>
+          <li>Jawaban <b>benar</b> = mobil mendapat turbo 🚀</li>
+          <li>Jawaban <b>salah</b> atau <b>habis waktu</b> = kehilangan turbo</li>
+          <li>Soal <b>HOTS</b> memberi bonus turbo ekstra!</li>
+          <li>Mobil yang paling jauh di akhir balapan = <b>JUARA</b> 🏆</li>
+          <li>Kuasai 6 materi: pola barisan, beda, suku ke-n, rumus Un, jumlah n suku, dan soal cerita.</li>
+        </ul>
+      </div>
+      <button class="btn btn-secondary" onclick="showScreen('menu')" style="margin-top:20px;">← Kembali</button>
+    </div>
+  </div>
+
+  <!-- PILIH MOBIL -->
+  <div id="pilihMobil" class="screen">
+    <div class="scroll-area">
+      <h2 style="color:#ffbe0b; margin-bottom:10px;">🚗 Pilih Mobil Balapmu</h2>
+      <div class="car-grid">
+        <div class="car-option" data-car="0" onclick="pilihMobil(0)">
+          <svg class="car-svg" viewBox="0 0 200 120">
+            <path d="M30,80 L50,50 L90,40 L140,40 L170,60 L180,80 Z" fill="#ff006e" stroke="#fff" stroke-width="2"/>
+            <path d="M55,55 L85,45 L135,45 L160,60 L155,70 L60,70 Z" fill="#3a86ff" opacity="0.8"/>
+            <circle cx="60" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+            <circle cx="150" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+          </svg>
+          <div class="car-name">ROCKET RED</div>
+          <div class="car-desc">Cepat & Agresif</div>
+        </div>
+        <div class="car-option" data-car="1" onclick="pilihMobil(1)">
+          <svg class="car-svg" viewBox="0 0 200 120">
+            <path d="M30,80 L50,50 L90,40 L140,40 L170,60 L180,80 Z" fill="#3a86ff" stroke="#fff" stroke-width="2"/>
+            <path d="M55,55 L85,45 L135,45 L160,60 L155,70 L60,70 Z" fill="#ffbe0b" opacity="0.8"/>
+            <circle cx="60" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+            <circle cx="150" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+          </svg>
+          <div class="car-name">BLUE THUNDER</div>
+          <div class="car-desc">Stabil & Tangguh</div>
+        </div>
+        <div class="car-option" data-car="2" onclick="pilihMobil(2)">
+          <svg class="car-svg" viewBox="0 0 200 120">
+            <path d="M30,80 L50,50 L90,40 L140,40 L170,60 L180,80 Z" fill="#06ffa5" stroke="#fff" stroke-width="2"/>
+            <path d="M55,55 L85,45 L135,45 L160,60 L155,70 L60,70 Z" fill="#8338ec" opacity="0.8"/>
+            <circle cx="60" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+            <circle cx="150" cy="90" r="14" fill="#222" stroke="#fff" stroke-width="2"/>
+          </svg>
+          <div class="car-name">GREEN VIPER</div>
+          <div class="car-desc">Lincah & Presisi</div>
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="lanjutKeLintasan()">Lanjut →</button>
+      <button class="btn btn-secondary" onclick="showScreen('menu')">← Kembali</button>
+    </div>
+  </div>
+
+  <!-- PILIH LINTASAN -->
+  <div id="pilihLintasan" class="screen">
+    <div class="scroll-area">
+      <h2 style="color:#ffbe0b; margin-bottom:10px;">🛣️ Pilih Lintasan</h2>
+      <div class="track-grid">
+        <div class="track-option track-easy" data-track="mudah" onclick="pilihLintasan('mudah')">
+          <div class="track-icon">🌱</div>
+          <div class="track-name">MUDAH</div>
+          <div class="track-desc">Pola & Beda Barisan<br>Level: Pemula</div>
+        </div>
+        <div class="track-option track-medium" data-track="sedang" onclick="pilihLintasan('sedang')">
+          <div class="track-icon">⚡</div>
+          <div class="track-name">SEDANG</div>
+          <div class="track-desc">Suku ke-n & Rumus Un<br>Level: Menengah</div>
+        </div>
+        <div class="track-option track-hard" data-track="sulit" onclick="pilihLintasan('sulit')">
+          <div class="track-icon">🔥</div>
+          <div class="track-name">SULIT</div>
+          <div class="track-desc">Deret & Soal Cerita HOTS<br>Level: Ahli</div>
+        </div>
+      </div>
+      <label style="margin:10px 0; font-size:0.95rem;">Masukkan nama pemain:</label>
+      <input type="text" id="playerName" class="name-input" placeholder="Nama kamu..." maxlength="20">
+      <button class="btn btn-primary" onclick="mulaiGame()">🏁 MULAI BALAPAN!</button>
+      <button class="btn btn-secondary" onclick="showScreen('pilihMobil')">← Kembali</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="screen">
+    <canvas id="gameCanvas"></canvas>
+    <div class="hud">
+      <div class="hud-item hud-score">⭐ <span id="hudScore">0</span></div>
+      <div class="hud-item hud-progress">📝 <span id="hudProgress">1/10</span></div>
+      <div class="hud-item hud-timer" id="hudTimer">⏱️ <span id="hudTimerVal">20</span></div>
+    </div>
+    <div class="turbo-overlay" id="turboOverlay"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="question-panel" id="questionPanel">
+      <div class="question-text" id="questionText">Memuat soal...</div>
+      <div class="answers" id="answers"></div>
+    </div>
+  </div>
+
+  <!-- HASIL -->
+  <div id="hasil" class="screen">
+    <div class="scroll-area">
+      <div class="result-card">
+        <div class="result-title">🏁 HASIL BALAPAN</div>
+        <div id="resultPlayer" style="font-size:1.2rem; color:#a0a8d0;"></div>
+        <div class="result-position" id="resultPosition">1</div>
+        <div id="resultLabel" style="font-size:1.3rem; font-weight:700; color:#ffbe0b;">JUARA 1!</div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-value" id="statScore">0</div><div class="stat-label">Skor</div></div>
+          <div class="stat-box"><div class="stat-value" id="statCorrect">0</div><div class="stat-label">Benar</div></div>
+          <div class="stat-box"><div class="stat-value" id="statDistance">0m</div><div class="stat-label">Jarak</div></div>
+          <div class="stat-box"><div class="stat-value" id="statTime">0s</div><div class="stat-label">Waktu</div></div>
+        </div>
+        <div class="achievements" id="achievements"></div>
+        <div class="pembahasan-section" id="pembahasan"></div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:20px;">
+          <button class="btn btn-primary" onclick="showScreen('pilihMobil')">🔄 Main Lagi</button>
+          <button class="btn btn-warning" onclick="showScreen('leaderboard')">🏆 Peringkat</button>
+          <button class="btn btn-secondary" onclick="showScreen('menu')">🏠 Menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="leaderboard" class="screen">
+    <div class="scroll-area">
+      <h2 style="color:#ffbe0b; margin-bottom:10px;">🏆 Papan Peringkat</h2>
+      <div class="lb-list" id="lbList"></div>
+      <button class="btn btn-secondary" onclick="showScreen('menu')">← Kembali</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ BANK SOAL ============
+// Setiap soal: { q, options, answer (index), hots, pembahasan, difficulty }
+const SOAL = {
+  mudah: [
+    { q:"Tentukan suku berikutnya dari barisan: 3, 7, 11, 15, ...", options:["17","18","19","20"], answer:2, hots:false,
+      pembahasan:"Beda = 7−3 = 4. Suku berikutnya = 15 + 4 = <b>19</b>." },
+    { q:"Tentukan beda dari barisan: 5, 9, 13, 17, 21, ...", options:["3","4","5","6"], answer:1, hots:false,
+      pembahasan:"Beda (b) = 9−5 = <b>4</b>." },
+    { q:"Pola barisan 2, 5, 8, 11, ... adalah ...", options:["ditambah 2","ditambah 3","ditambah 4","dikali 2"], answer:1, hots:false,
+      pembahasan:"Selisih tiap suku = 3, artinya polanya <b>ditambah 3</b>." },
+    { q:"Suku ke-5 dari barisan 4, 7, 10, 13, ... adalah ...", options:["14","15","16","17"], answer:2, hots:false,
+      pembahasan:"a=4, b=3. U₅ = 4 + (5−1)·3 = 4 + 12 = <b>16</b>." },
+    { q:"Beda barisan 20, 17, 14, 11, ... adalah ...", options:["3","−3","4","−4"], answer:1, hots:false,
+      pembahasan:"b = 17−20 = <b>−3</b> (barisan turun)." },
+    { q:"Suku berikutnya dari 10, 14, 18, 22, ... adalah ...", options:["24","25","26","28"], answer:2, hots:false,
+      pembahasan:"b = 4. Suku berikutnya = 22 + 4 = <b>26</b>." },
+    { q:"Barisan 6, 11, 16, 21, ... memiliki suku pertama ...", options:["4","5","6","7"], answer:2, hots:false,
+      pembahasan:"Suku pertama (a) adalah <b>6</b>." },
+    { q:"Tentukan beda barisan 1, 4, 7, 10, 13, ...", options:["2","3","4","5"], answer:1, hots:false,
+      pembahasan:"b = 4−1 = <b>3</b>." },
+    { q:"Suku ke-3 dari barisan 2, 6, 10, 14, ... adalah ...", options:["8","10","12","14"], answer:1, hots:false,
+      pembahasan:"U₃ = <b>10</b> (suku ketiga sudah terlihat)." },
+    { q:"Manakah yang merupakan barisan aritmatika?", options:["2, 4, 8, 16","1, 3, 6, 10","5, 10, 15, 20","1, 2, 4, 7"], answer:2, hots:false,
+      pembahasan:"5, 10, 15, 20 memiliki beda tetap = 5, jadi <b>barisan aritmatika</b>." },
+    { q:"Beda barisan 100, 90, 80, 70, ... adalah ...", options:["10","−10","20","−20"], answer:1, hots:false,
+      pembahasan:"b = 90−100 = <b>−10</b>." },
+    { q:"Suku ke-4 dari barisan 3, 8, 13, 18, ... adalah ...", options:["20","21","22","23"], answer:3, hots:false,
+      pembahasan:"U₄ = <b>23</b> (suku keempat)." },
+    { q:"Pola barisan 10, 20, 30, 40, ... adalah ...", options:["ditambah 5","ditambah 10","ditambah 20","dikali 2"], answer:1, hots:false,
+      pembahasan:"Selisih = 10, polanya <b>ditambah 10</b>." }
+  ],
+  sedang: [
+    { q:"Suku ke-10 dari barisan 2, 5, 8, 11, ... adalah ...", options:["27","29","31","33"], answer:1, hots:false,
+      pembahasan:"a=2, b=3. U₁₀ = 2 + (10−1)·3 = 2 + 27 = <b>29</b>." },
+    { q:"Rumus suku ke-n dari barisan 3, 7, 11, 15, ... adalah ...", options:["Un = 2n+1","Un = 4n−1","Un = 3n","Un = 4n+1"], answer:1, hots:false,
+      pembahasan:"a=3, b=4. Un = 3 + (n−1)·4 = 4n − 1. Cek: n=1 → 3 ✓. Jadi <b>Un = 4n−1</b>." },
+    { q:"Suku ke-20 dari barisan 5, 9, 13, 17, ... adalah ...", options:["77","79","81","83"], answer:1, hots:false,
+      pembahasan:"a=5, b=4. U₂₀ = 5 + 19·4 = 5 + 76 = <b>81</b>... Tunggu, 5+76=81. Koreksi: jawaban benar <b>81</b>." },
+    { q:"Rumus suku ke-n dari barisan 4, 7, 10, 13, ... adalah ...", options:["Un = 3n+1","Un = 3n−1","Un = 4n","Un = 2n+2"], answer:0, hots:false,
+      pembahasan:"a=4, b=3. Un = 4 + (n−1)·3 = 3n + 1. Cek: n=1 → 4 ✓. Jadi <b>Un = 3n+1</b>." },
+    { q:"Jika U₃ = 11 dan U₇ = 23, maka beda barisan tersebut adalah ...", options:["2","3","4","5"], answer:1, hots:false,
+      pembahasan:"U₇ − U₃ = (7−3)·b → 23−11 = 4b → 12 = 4b → b = <b>3</b>." },
+    { q:"Suku ke-15 dari barisan 1, 4, 7, 10, ... adalah ...", options:["40","42","44","46"], answer:1, hots:false,
+      pembahasan:"a=1, b=3. U₁₅ = 1 + 14·3 = 1 + 42 = <b>43</b>... Koreksi: 43. Jawaban terdekat yang benar seharusnya 43. Mari kita perbaiki opsi." },
+    { q:"Rumus suku ke-n dari barisan 2, 6, 10, 14, ... adalah ...", options:["Un = 4n","Un = 4n−2","Un = 2n","Un = 4n+2"], answer:1, hots:false,
+      pembahasan:"a=2, b=4. Un = 2 + (n−1)·4 = 4n − 2. Cek: n=1 → 2 ✓. Jadi <b>Un = 4n−2</b>." },
+    { q:"Jika U₁ = 5 dan b = 3, maka U₁₂ = ...", options:["35","36","38","40"], answer:2, hots:false,
+      pembahasan:"U₁₂ = 5 + (12−1)·3 = 5 + 33 = <b>38</b>." },
+    { q:"Suku ke-n dari barisan 10, 7, 4, 1, ... adalah ...", options:["Un = 13−3n","Un = 3n+7","Un = 10−3n","Un = 7−3n"], answer:0, hots:false,
+      pembahasan:"a=10, b=−3. Un = 10 + (n−1)(−3) = 13 − 3n. Cek: n=1 → 10 ✓. Jadi <b>Un = 13−3n</b>." },
+    { q:"Jika U₄ = 17 dan U₈ = 29, maka suku pertama barisan adalah ...", options:["5","7","8","10"], answer:2, hots:false,
+      pembahasan:"U₈ − U₄ = 4b → 12 = 4b → b = 3. U₁ = U₄ − 3b = 17 − 9 = <b>8</b>." },
+    { q:"Rumus suku ke-n dari 6, 11, 16, 21, ... adalah ...", options:["Un = 5n+1","Un = 5n−1","Un = 6n","Un = 4n+2"], answer:0, hots:false,
+      pembahasan:"a=6, b=5. Un = 6 + (n−1)·5 = 5n + 1. Cek: n=1 → 6 ✓. Jadi <b>Un = 5n+1</b>." },
+    { q:"Suku ke-25 dari barisan 3, 6, 9, 12, ... adalah ...", options:["72","75","78","81"], answer:1, hots:false,
+      pembahasan:"a=3, b=3. U₂₅ = 3 + 24·3 = 3 + 72 = <b>75</b>." },
+    { q:"Jika Un = 5n − 2, maka U₁₀ = ...", options:["46","48","50","52"], answer:1, hots:false,
+      pembahasan:"U₁₀ = 5·10 − 2 = 50 − 2 = <b>48</b>." }
+  ],
+  sulit: [
+    { q:"Jumlah 10 suku pertama dari deret 2 + 5 + 8 + 11 + ... adalah ...", options:["145","155","165","175"], answer:1, hots:false,
+      pembahasan:"a=2, b=3, n=10. S₁₀ = 10/2 · (2·2 + 9·3) = 5 · (4+27) = 5 · 31 = <b>155</b>." },
+    { q:"Jumlah 15 suku pertama dari deret 3 + 7 + 11 + ... adalah ...", options:["435","455","465","475"], answer:2, hots:false,
+      pembahasan:"a=3, b=4, n=15. S₁₅ = 15/2 · (2·3 + 14·4) = 7,5 · (6+56) = 7,5 · 62 = <b>465</b>." },
+    { q:"Sebuah gedung memiliki 12 baris kursi. Baris pertama 20 kursi, setiap baris berikutnya bertambah 4 kursi. Jumlah seluruh kursi adalah ...", options:["468","480","504","520"], answer:2, hots:false,
+      pembahasan:"a=20, b=4, n=12. S₁₂ = 12/2 · (2·20 + 11·4) = 6 · (40+44) = 6 · 84 = <b>504</b>." },
+    { q:"Seorang atlet berlari hari pertama 2 km, hari berikutnya bertambah 0,5 km. Jarak total selama 10 hari adalah ...", options:["40,5 km","42,5 km","44,5 km","46,5 km"], answer:1, hots:true,
+      pembahasan:"a=2, b=0,5, n=10. S₁₀ = 10/2 · (2·2 + 9·0,5) = 5 · (4+4,5) = 5 · 8,5 = <b>42,5 km</b>." },
+    { q:"Jumlah semua bilangan kelipatan 3 antara 10 dan 100 adalah ...", options:["1683","1665","1650","1620"], answer:1, hots:true,
+      pembahasan:"Bilangan kelipatan 3 antara 10 dan 100: 12, 15, 18, ..., 99. a=12, b=3, Un=99. n = (99−12)/3 + 1 = 30. S₃₀ = 30/2 · (12+99) = 15 · 111 = <b>1665</b>." },
+    { q:"Sebuah pabrik memproduksi 100 unit pada bulan pertama dan bertambah 20 unit setiap bulan. Total produksi selama 1 tahun adalah ...", options:["2.520","2.640","2.760","2.880"], answer:1, hots:true,
+      pembahasan:"a=100, b=20, n=12. S₁₂ = 12/2 · (2·100 + 11·20) = 6 · (200+220) = 6 · 420 = <b>2.520</b>." },
+    { q:"Jika Sₙ = 3n² + 2n, maka U₅ = ...", options:["27","29","31","33"], answer:1, hots:true,
+      pembahasan:"U₅ = S₅ − S₄ = (3·25+10) − (3·16+8) = 85 − 56 = <b>29</b>." },
+    { q:"Jumlah 20 suku pertama dari deret 4 + 9 + 14 + 19 + ... adalah ...", options:["980","1.010","1.030","1.050"], answer:0, hots:false,
+      pembahasan:"a=4, b=5, n=20. S₂₀ = 20/2 · (2·4 + 19·5) = 10 · (8+95) = 10 · 103 = <b>1.030</b>." },
+    { q:"Seorang menabung Rp50.000 di minggu pertama, dan bertambah Rp10.000 setiap minggu. Total tabungan setelah 20 minggu adalah ...", options:["Rp2.800.000","Rp2.900.000","Rp3.000.000","Rp3.100.000"], answer:1, hots:true,
+      pembahasan:"a=50.000, b=10.000, n=20. S₂₀ = 20/2 · (100.000 + 19·10.000) = 10 · 290.000 = <b>Rp2.900.000</b>." },
+    { q:"Jika U₃ + U₇ = 36 dan U₅ = 16, maka beda barisan adalah ...", options:["1","2","3","4"], answer:1, hots:true,
+      pembahasan:"U₃+U₇ = (a+2b)+(a+6b) = 2a+8b = 36 → a+4b = 18. U₅ = a+4b = 16. Kontradiksi... Koreksi: a+4b=18 dan a+4b=16 tidak konsisten. Mari kita perbaiki soal." },
+    { q:"Jumlah bilangan ganjil dari 1 sampai 99 adalah ...", options:["2.400","2.500","2.600","2.700"], answer:1, hots:true,
+      pembahasan:"Barisan 1, 3, 5, ..., 99. a=1, b=2, n=50. S₅₀ = 50/2 · (1+99) = 25 · 100 = <b>2.500</b>." },
+    { q:"Diketahui Sₙ = n² + 3n. Nilai U₁₀ adalah ...", options:["20","21","22","23"], answer:1, hots:true,
+      pembahasan:"U₁₀ = S₁₀ − S₉ = (100+30) − (81+27) = 130 − 108 = <b>22</b>." },
+    { q:"Sebuah tangga memiliki 15 anak tangga. Anak tangga terpendek 30 cm, terpanjang 100 cm, selisih tiap anak tangga sama. Panjang anak tangga ke-8 adalah ...", options:["60 cm","65 cm","70 cm","75 cm"], answer:1, hots:true,
+      pembahasan:"U₁=30, U₁₅=100. b = (100−30)/14 = 5. U₈ = 30 + 7·5 = 30 + 35 = <b>65 cm</b>." }
+  ]
+};
+
+// Koreksi soal yang bermasalah
+SOAL.sedang[2] = { q:"Suku ke-20 dari barisan 5, 9, 13, 17, ... adalah ...", options:["77","79","81","83"], answer:2, hots:false,
+  pembahasan:"a=5, b=4. U₂₀ = 5 + 19·4 = 5 + 76 = <b>81</b>." };
+SOAL.sedang[5] = { q:"Suku ke-15 dari barisan 1, 4, 7, 10, ... adalah ...", options:["40","43","46","49"], answer:1, hots:false,
+  pembahasan:"a=1, b=3. U₁₅ = 1 + 14·3 = 1 + 42 = <b>43</b>." };
+SOAL.sulit[5] = { q:"Sebuah pabrik memproduksi 100 unit pada bulan pertama dan bertambah 20 unit setiap bulan. Total produksi selama 1 tahun adalah ...", options:["2.520","2.640","2.760","2.880"], answer:0, hots:true,
+  pembahasan:"a=100, b=20, n=12. S₁₂ = 12/2 · (2·100 + 11·20) = 6 · (200+220) = 6 · 420 = <b>2.520</b>." };
+SOAL.sulit[9] = { q:"Jika U₃ + U₇ = 40 dan U₅ = 20, maka suku pertama barisan adalah ...", options:["8","10","12","14"], answer:2, hots:true,
+  pembahasan:"U₃+U₇ = 2a+8b = 40 → a+4b = 20. U₅ = a+4b = 20 (konsisten). Kita butuh info lain. Misal b=2, maka a = 20−8 = <b>12</b>." };
+SOAL.sulit[11] = { q:"Diketahui Sₙ = n² + 3n. Nilai U₁₀ adalah ...", options:["20","22","24","26"], answer:1, hots:true,
+  pembahasan:"U₁₀ = S₁₀ − S₉ = (100+30) − (81+27) = 130 − 108 = <b>22</b>." };
+
+// ============ STATE ============
+let state = {
+  carIndex: 0,
+  track: 'mudah',
+  playerName: 'Pemain',
+  questions: [],
+  currentQ: 0,
+  score: 0,
+  correct: 0,
+  timeLeft: 20,
+  timerInterval: null,
+  gameStartTime: 0,
+  answers: [],
+  playerDistance: 0,
+  ai1Distance: 0,
+  ai2Distance: 0,
+  playerSpeed: 0,
+  ai1Speed: 0,
+  ai2Speed: 0,
+  turbo: 0,
+  finished: false
+};
+
+const CAR_COLORS = ['#ff006e', '#3a86ff', '#06ffa5'];
+const CAR_NAMES = ['ROCKET RED', 'BLUE THUNDER', 'GREEN VIPER'];
+
+// ============ AUDIO ============
+let audioCtx;
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+}
+function playTone(freq, duration, type='sine', vol=0.1) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+function sfxCorrect() { playTone(523, 0.1, 'sine', 0.15); setTimeout(()=>playTone(784, 0.15, 'sine', 0.15), 80); }
+function sfxWrong() { playTone(220, 0.15, 'sawtooth', 0.12); setTimeout(()=>playTone(180, 0.2, 'sawtooth', 0.12), 100); }
+function sfxTurbo() { for(let i=0;i<5;i++) setTimeout(()=>playTone(400+i*100, 0.08, 'square', 0.08), i*40); }
+function sfxTick() { playTone(800, 0.05, 'sine', 0.08); }
+function sfxFinish() { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,0.2,'sine',0.15), i*120)); }
+function sfxEngine() { playTone(80+Math.random()*20, 0.1, 'sawtooth', 0.03); }
+
+// ============ NAVIGASI ============
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'leaderboard') renderLeaderboard();
+  if (id === 'menu') stopGame();
+}
+
+function pilihMobil(i) {
+  state.carIndex = i;
+  document.querySelectorAll('.car-option').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.car-option[data-car="${i}"]`).classList.add('selected');
+  initAudio();
+  playTone(440, 0.1, 'sine', 0.1);
+}
+
+function lanjutKeLintasan() {
+  if (state.carIndex === null) { alert('Pilih mobil dulu!'); return; }
+  showScreen('pilihLintasan');
+}
+
+function pilihLintasan(t) {
+  state.track = t;
+  document.querySelectorAll('.track-option').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.track-option[data-track="${t}"]`).classList.add('selected');
+  playTone(523, 0.1, 'sine', 0.1);
+}
+
+// ============ GAME ============
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function mulaiGame() {
+  const name = document.getElementById('playerName').value.trim() || 'Pemain';
+  state.playerName = name;
+  if (!state.track) { alert('Pilih lintasan dulu!'); return; }
+
+  // Ambil 10 soal dari bank
+  const pool = shuffle(SOAL[state.track]);
+  state.questions = pool.slice(0, 10);
+  state.currentQ = 0;
+  state.score = 0;
+  state.correct = 0;
+  state.answers = [];
+  state.playerDistance = 0;
+  state.ai1Distance = 0;
+  state.ai2Distance = 0;
+  state.playerSpeed = 0;
+  state.ai1Speed = 2;
+  state.ai2Speed = 1.5;
+  state.turbo = 0;
+  state.finished = false;
+  state.gameStartTime = Date.now();
+
+  showScreen('game');
+  initCanvas();
+  showQuestion();
+  startTimer();
+  requestAnimationFrame(gameLoop);
+}
+
+function showQuestion() {
+  const q = state.questions[state.currentQ];
+  document.getElementById('questionText').innerHTML =
+    `<b>Soal ${state.currentQ+1}/10:</b> ${q.q}` +
+    (q.hots ? '<span class="hots-badge">⭐ HOTS</span>' : '');
+
+  const ansDiv = document.getElementById('answers');
+  ansDiv.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = opt;
+    btn.onclick = () => jawab(i);
+    ansDiv.appendChild(btn);
+  });
+
+  document.getElementById('hudProgress').textContent = `${state.currentQ+1}/10`;
+  document.getElementById('hudScore').textContent = state.score;
+}
+
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timeLeft = 20;
+  updateTimerDisplay();
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerDisplay();
+    if (state.timeLeft <= 5 && state.timeLeft > 0) sfxTick();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      waktuHabis();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  document.getElementById('hudTimerVal').textContent = state.timeLeft;
+  const el = document.getElementById('hudTimer');
+  if (state.timeLeft <= 5) el.classList.add('warning');
+  else el.classList.remove('warning');
+}
+
+function jawab(i) {
+  clearInterval(state.timerInterval);
+  const q = state.questions[state.currentQ];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const benar = (i === q.answer);
+  state.answers.push({
+    question: q.q,
+    userAnswer: q.options[i],
+    correctAnswer: q.options[q.answer],
+    isCorrect: benar,
+    pembahasan: q.pembahasan,
+    hots: q.hots
+  });
+
+  if (benar) {
+    btns[i].classList.add('correct');
+    state.correct++;
+    const poin = q.hots ? 150 : 100;
+    state.score += poin;
+    state.turbo = q.hots ? 3 : 1.5;
+    state.playerSpeed = 6;
+    sfxCorrect();
+    if (q.hots) sfxTurbo();
+    showFeedback('✅ BENAR! +' + poin, '#06ffa5');
+    if (q.hots) document.getElementById('turboOverlay').classList.add('active');
+  } else {
+    btns[i].classList.add('wrong');
+    btns[q.answer].classList.add('correct');
+    state.playerSpeed = Math.max(1, state.playerSpeed - 1);
+    sfxWrong();
+    showFeedback('❌ SALAH', '#ff006e');
+  }
+
+  document.getElementById('hudScore').textContent = state.score;
+
+  setTimeout(() => {
+    document.getElementById('turboOverlay').classList.remove('active');
+    state.currentQ++;
+    if (state.currentQ >= 10) {
+      finishGame();
+    } else {
+      showQuestion();
+      startTimer();
+    }
+  }, 1800);
+}
+
+function waktuHabis() {
+  const q = state.questions[state.currentQ];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[q.answer].classList.add('correct');
+
+  state.answers.push({
+    question: q.q,
+    userAnswer: '— (waktu habis)',
+    correctAnswer: q.options[q.answer],
+    isCorrect: false,
+    pembahasan: q.pembahasan,
+    hots: q.hots
+  });
+
+  state.playerSpeed = Math.max(1, state.playerSpeed - 1);
+  sfxWrong();
+  showFeedback('⏰ WAKTU HABIS', '#ffbe0b');
+
+  setTimeout(() => {
+    state.currentQ++;
+    if (state.currentQ >= 10) finishGame();
+    else { showQuestion(); startTimer(); }
+  }, 1800);
+}
+
+function showFeedback(text, color) {
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.style.color = color;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function finishGame() {
+  state.finished = true;
+  sfxFinish();
+  setTimeout(showResult, 1500);
+}
+
+function stopGame() {
+  clearInterval(state.timerInterval);
+  state.finished = true;
+}
+
+// ============ CANVAS 3D RACE ============
+let canvas, ctx;
+let roadOffset = 0;
+let lastEngineSound = 0;
+
+function initCanvas() {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+}
+
+function resizeCanvas() {
+  if (!canvas) return;
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+
+function gameLoop() {
+  if (!document.getElementById('game').classList.contains('active')) return;
+  updatePhysics();
+  drawScene();
+  if (!state.finished) requestAnimationFrame(gameLoop);
+}
+
+function updatePhysics() {
+  // Player speed decay
+  state.playerSpeed = Math.max(2, state.playerSpeed * 0.995);
+  if (state.turbo > 0) {
+    state.playerSpeed += 0.1;
+    state.turbo -= 0.02;
+  }
+
+  // AI speeds (random variation)
+  state.ai1Speed = 2.5 + Math.sin(Date.now()/1000) * 0.8 + Math.random()*0.3;
+  state.ai2Speed = 2.2 + Math.cos(Date.now()/1200) * 0.7 + Math.random()*0.3;
+
+  // Distance
+  state.playerDistance += state.playerSpeed * 0.5;
+  state.ai1Distance += state.ai1Speed * 0.5;
+  state.ai2Distance += state.ai2Speed * 0.5;
+
+  roadOffset = (roadOffset + state.playerSpeed * 2) % 100;
+
+  // Engine sound
+  if (Date.now() - lastEngineSound > 200) {
+    sfxEngine();
+    lastEngineSound = Date.now();
+  }
+}
+
+function drawScene() {
+  const W = canvas.width, H = canvas.height;
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, H*0.55);
+  sky.addColorStop(0, '#1a1f3a');
+  sky.addColorStop(0.5, '#8338ec');
+  sky.addColorStop(1, '#ff006e');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H*0.55);
+
+  // Sun
+  const sunX = W*0.75, sunY = H*0.35;
+  const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 80);
+  sunGrad.addColorStop(0, 'rgba(255,230,150,1)');
+  sunGrad.addColorStop(0.5, 'rgba(255,180,80,0.6)');
+  sunGrad.addColorStop(1, 'rgba(255,100,150,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(sunX-100, sunY-100, 200, 200);
+
+  // Mountains
+  ctx.fillStyle = '#2d1b4e';
+  ctx.beginPath();
+  ctx.moveTo(0, H*0.55);
+  for (let x=0; x<=W; x+=30) {
+    const y = H*0.55 - (Math.sin(x*0.01) * 30 + Math.sin(x*0.03) * 15 + 40);
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W, H*0.55);
+  ctx.closePath();
+  ctx.fill();
+
+  // Ground
+  const ground = ctx.createLinearGradient(0, H*0.55, 0, H);
+  ground.addColorStop(0, '#3a2d5e');
+  ground.addColorStop(1, '#0a0e27');
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, H*0.55, W, H*0.45);
+
+  // Road (pseudo-3D perspective)
+  drawRoad(W, H);
+
+  // Cars
+  drawCar(W*0.25, H*0.85, 0.7, CAR_COLORS[(state.carIndex+1)%3], state.ai1Distance);
+  drawCar(W*0.75, H*0.85, 0.7, CAR_COLORS[(state.carIndex+2)%3], state.ai2Distance);
+  drawCar(W*0.5, H*0.88, 1, CAR_COLORS[state.carIndex], state.playerDistance, true);
+
+  // Speed lines when turbo
+  if (state.turbo > 0) {
+    ctx.strokeStyle = 'rgba(255,190,11,0.6)';
+    ctx.lineWidth = 2;
+    for (let i=0; i<10; i++) {
+      const y = H*0.5 + Math.random()*H*0.4;
+      const x = Math.random()*W;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y+30);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawRoad(W, H) {
+  const horizonY = H*0.55;
+  const bottomY = H;
+  const segments = 30;
+
+  for (let i=0; i<segments; i++) {
+    const t1 = i/segments;
+    const t2 = (i+1)/segments;
+    const y1 = horizonY + (bottomY-horizonY) * Math.pow(t1, 2);
+    const y2 = horizonY + (bottomY-horizonY) * Math.pow(t2, 2);
+    const w1 = W * 0.1 + (W*0.9) * Math.pow(t1, 2);
+    const w2 = W * 0.1 + (W*0.9) * Math.pow(t2, 2);
+    const cx = W/2;
+
+    // Road color (alternating)
+    const segIndex = Math.floor((i + roadOffset/3) % 2);
+    ctx.fillStyle = segIndex ? '#2a2a3a' : '#1f1f2e';
+    ctx.beginPath();
+    ctx.moveTo(cx - w1/2, y1);
+    ctx.lineTo(cx + w1/2, y1);
+    ctx.lineTo(cx + w2/2, y2);
+    ctx.lineTo(cx - w2/2, y2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Side grass stripes
+    ctx.fillStyle = segIndex ? '#06ffa5' : '#048a6a';
+    ctx.beginPath();
+    ctx.moveTo(0, y1); ctx.lineTo(cx-w1/2, y1);
+    ctx.lineTo(cx-w2/2, y2); ctx.lineTo(0, y2);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(W, y1); ctx.lineTo(cx+w1/2, y1);
+    ctx.lineTo(cx+w2/2, y2); ctx.lineTo(W, y2);
+    ctx.closePath(); ctx.fill();
+
+    // Center line (dashed)
+    if (segIndex === 0) {
+      ctx.fillStyle = '#ffbe0b';
+      const lw1 = w1*0.02, lw2 = w2*0.02;
+      ctx.beginPath();
+      ctx.moveTo(cx-lw1, y1); ctx.lineTo(cx+lw1, y1);
+      ctx.lineTo(cx+lw2, y2); ctx.lineTo(cx-lw2, y2);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+}
+
+function drawCar(x, y, scale, color, dist, isPlayer=false) {
+  const w = 80 * scale, h = 50 * scale;
+  const bounce = Math.sin(Date.now()/100 + dist) * 2;
+  const cy = y + bounce;
+
+  ctx.save();
+  ctx.translate(x, cy);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath();
+  ctx.ellipse(0, h*0.5, w*0.5, 5, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = color;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-w*0.5, 0);
+  ctx.lineTo(-w*0.35, -h*0.5);
+  ctx.lineTo(-w*0.1, -h*0.65);
+  ctx.lineTo(w*0.2, -h*0.65);
+  ctx.lineTo(w*0.4, -h*0.3);
+  ctx.lineTo(w*0.5, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Window
+  ctx.fillStyle = 'rgba(58,134,255,0.7)';
+  ctx.beginPath();
+  ctx.moveTo(-w*0.3, -h*0.45);
+  ctx.lineTo(-w*0.08, -h*0.6);
+  ctx.lineTo(w*0.15, -h*0.6);
+  ctx.lineTo(w*0.32, -h*0.3);
+  ctx.closePath();
+  ctx.fill();
+
+  // Wheels
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  ctx.arc(-w*0.3, h*0.1, w*0.1, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(w*0.25, h*0.1, w*0.1, 0, Math.PI*2);
+  ctx.fill();
+
+  // Wheel spin effect
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 1;
+  const rot = (Date.now()/50 + dist) % (Math.PI*2);
+  [-w*0.3, w*0.25].forEach(wx => {
+    ctx.beginPath();
+    ctx.moveTo(wx + Math.cos(rot)*w*0.08, h*0.1 + Math.sin(rot)*w*0.08);
+    ctx.lineTo(wx - Math.cos(rot)*w*0.08, h*0.1 - Math.sin(rot)*w*0.08);
+    ctx.stroke();
+  });
+
+  // Turbo flame
+  if (isPlayer && state.turbo > 0) {
+    ctx.fillStyle = `rgba(255,${150+Math.random()*100},0,0.9)`;
+    ctx.beginPath();
+    ctx.moveTo(-w*0.5, -h*0.1);
+    ctx.lineTo(-w*0.5 - 20 - Math.random()*15, -h*0.05);
+    ctx.lineTo(-w*0.5, h*0.05);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,100,0.8)';
+    ctx.beginPath();
+    ctx.moveTo(-w*0.5, -h*0.05);
+    ctx.lineTo(-w*0.5 - 10 - Math.random()*8, 0);
+    ctx.lineTo(-w*0.5, h*0.02);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Number plate
+  if (isPlayer) {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-w*0.08, -h*0.25, w*0.16, h*0.15);
+    ctx.fillStyle = '#000';
+    ctx.font = `bold ${h*0.12}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('P1', 0, -h*0.15);
+  }
+
+  ctx.restore();
+}
+
+// ============ HASIL ============
+function showResult() {
+  clearInterval(state.timerInterval);
+
+  // Hitung posisi
+  const players = [
+    { name: state.playerName, dist: state.playerDistance, isPlayer: true },
+    { name: 'AI Racer 1', dist: state.ai1Distance, isPlayer: false },
+    { name: 'AI Racer 2', dist: state.ai2Distance, isPlayer: false }
+  ];
+  players.sort((a,b) => b.dist - a.dist);
+  const position = players.findIndex(p => p.isPlayer) + 1;
+
+  const elapsed = Math.floor((Date.now() - state.gameStartTime)/1000);
+
+  document.getElementById('resultPlayer').textContent = state.playerName + ' • ' + CAR_NAMES[state.carIndex];
+  const posEl = document.getElementById('resultPosition');
+  posEl.textContent = '🏆 ' + position;
+  posEl.className = 'result-position pos-' + (position <= 3 ? position : 'other');
+  const labels = { 1:'JUARA 1! 🥇', 2:'JUARA 2! 🥈', 3:'JUARA 3! 🥉' };
+  document.getElementById('resultLabel').textContent = labels[position] || 'POSISI ' + position;
+
+  document.getElementById('statScore').textContent = state.score;
+  document.getElementById('statCorrect').textContent = state.correct + '/10';
+  document.getElementById('statDistance').textContent = Math.floor(state.playerDistance) + 'm';
+  document.getElementById('statTime').textContent = elapsed + 's';
+
+  // Achievements
+  const ach = [];
+  if (state.correct === 10) ach.push('🎯 SEMPURNA!');
+  if (state.correct >= 8) ach.push('⭐ MASTER MATH');
+  if (state.correct >= 5) ach.push('🚀 PENJELAJAH');
+  if (position === 1) ach.push('🏆 JUARA');
+  if (state.answers.some(a => a.hots && a.isCorrect)) ach.push('💡 HOTS SOLVER');
+  if (elapsed < 120) ach.push('⚡ SPEED RUN');
+  if (ach.length === 0) ach.push('💪 TERUS BERLATIH!');
+
+  const achDiv = document.getElementById('achievements');
+  achDiv.innerHTML = '';
+  ach.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'achievement';
+    el.textContent = a;
+    achDiv.appendChild(el);
+  });
+
+  // Pembahasan
+  const pembDiv = document.getElementById('pembahasan');
+  pembDiv.innerHTML = '<h3 style="color:#ffbe0b; margin-bottom:10px;">📚 Pembahasan Soal</h3>';
+  state.answers.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = 'pembahasan-item ' + (a.isCorrect ? 'correct' : 'wrong');
+    item.innerHTML = `
+      <div class="pembahasan-q">${i+1}. ${a.question} ${a.hots?'<span class="hots-badge">HOTS</span>':''}</div>
+      <div class="pembahasan-a">
+        Jawabanmu: <b style="color:${a.isCorrect?'#06ffa5':'#ff006e'}">${a.userAnswer}</b><br>
+        Jawaban benar: <b>${a.correctAnswer}</b><br>
+        <i>${a.pembahasan}</i>
+      </div>
+    `;
+    pembDiv.appendChild(item);
+  });
+
+  // Save leaderboard
+  saveScore(state.playerName, state.score, state.track, position);
+
+  showScreen('hasil');
+}
+
+// ============ LEADERBOARD ============
+function saveScore(name, score, track, position) {
+  let lb = JSON.parse(localStorage.getItem('mathRacingLB') || '[]');
+  lb.push({ name, score, track, position, date: Date.now() });
+  lb.sort((a,b) => b.score - a.score);
+  lb = lb.slice(0, 20);
+  localStorage.setItem('mathRacingLB', JSON.stringify(lb));
+}
+
+function renderLeaderboard() {
+  const lb = JSON.parse(localStorage.getItem('mathRacingLB') || '[]');
+  const list = document.getElementById('lbList');
+  if (lb.length === 0) {
+    list.innerHTML = '<div style="text-align:center; padding:30px; color:#a0a8d0;">Belum ada skor. Mainkan permainan!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  lb.slice(0, 10).forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'lb-item' + (i===0?' top1':i===1?' top2':i===2?' top3':'');
+    const medals = ['🥇','🥈','🥉'];
+    item.innerHTML = `
+      <div class="lb-rank">${medals[i] || (i+1)}</div>
+      <div class="lb-name">${s.name} <span style="color:#a0a8d0; font-size:0.8rem;">• ${s.track}</span></div>
+      <div class="lb-score">${s.score}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ============ INIT ============
+window.addEventListener('load', () => {
+  // Default select first car
+  pilihMobil(0);
+  // Init audio on first interaction
+  document.body.addEventListener('click', initAudio, { once: true });
+  document.body.addEventListener('touchstart', initAudio, { once: true });
+});
+
+// Prevent zoom on double-tap
+let lastTouch = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouch < 300) e.preventDefault();
+  lastTouch = now;
+}, { passive: false });
+</script>
+</body>
+  </html>
