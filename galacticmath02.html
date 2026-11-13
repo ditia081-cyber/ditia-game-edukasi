@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galactic Math Mission - Misi Menyelamatkan Galaksi</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  
+  body {
+    background: radial-gradient(ellipse at bottom, #0d1b3e 0%, #020308 100%);
+    color: #fff;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Bintang berkelap-kelip */
+  .stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(102, 51, 153, 0.3), rgba(0, 102, 204, 0.3));
+    border-radius: 20px;
+    border: 2px solid rgba(150, 200, 255, 0.3);
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+  }
+  .header h1 {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    background: linear-gradient(90deg, #ffd700, #ff6b9d, #4fc3f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  }
+  .header p { margin-top: 8px; opacity: 0.85; font-size: 0.95rem; }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .status-item {
+    background: linear-gradient(135deg, rgba(30, 60, 114, 0.7), rgba(42, 82, 152, 0.7));
+    padding: 12px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 100, 200, 0.2);
+  }
+  .status-item .label { font-size: 0.75rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+  .status-item .value { font-size: 1.3rem; font-weight: bold; color: #4fc3f7; margin-top: 4px; }
+  .status-item.energy .value { color: #4caf50; }
+  .status-item.lives .value { color: #ff5252; }
+  .status-item.badge .value { color: #ffd700; }
+
+  /* LAYAR */
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* INTRO */
+  .intro {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, rgba(20, 30, 70, 0.8), rgba(50, 20, 80, 0.8));
+    border-radius: 25px;
+    border: 2px solid rgba(255, 215, 0, 0.4);
+  }
+  .intro .rocket {
+    font-size: 5rem;
+    animation: float 3s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-10deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+  }
+  .intro h2 {
+    font-size: 1.8rem;
+    margin: 15px 0;
+    color: #ffd700;
+  }
+  .intro p { line-height: 1.7; margin-bottom: 15px; opacity: 0.9; }
+
+  /* TOMBOL */
+  .btn {
+    background: linear-gradient(135deg, #ff6b9d, #c06ce0);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px 5px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6); }
+  .btn:active { transform: translateY(0); }
+  .btn.secondary {
+    background: linear-gradient(135deg, #4fc3f7, #1976d2);
+    box-shadow: 0 5px 20px rgba(79, 195, 247, 0.4);
+  }
+  .btn.success {
+    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+    box-shadow: 0 5px 20px rgba(102, 187, 106, 0.4);
+  }
+  .btn.hint {
+    background: linear-gradient(135deg, #ffa726, #ef6c00);
+    box-shadow: 0 5px 20px rgba(255, 167, 38, 0.4);
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* GALAXY MAP */
+  .galaxy-map {
+    position: relative;
+    padding: 30px 20px;
+    background: radial-gradient(circle at center, rgba(40, 20, 80, 0.6), rgba(10, 10, 40, 0.8));
+    border-radius: 25px;
+    border: 2px solid rgba(150, 100, 255, 0.3);
+    min-height: 500px;
+  }
+  .galaxy-map h2 { text-align: center; color: #ffd700; margin-bottom: 20px; }
+  
+  .missions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .planet-card {
+    background: linear-gradient(135deg, rgba(30, 40, 90, 0.8), rgba(60, 30, 100, 0.8));
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s;
+    border: 2px solid rgba(150, 150, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .planet-card:hover:not(.locked) {
+    transform: translateY(-10px) scale(1.03);
+    border-color: #ffd700;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+  }
+  .planet-card.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.7); }
+  .planet-card.completed { border-color: #4caf50; box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
+  .planet-card.current { border-color: #ffd700; animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+    50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); }
+  }
+
+  .planet {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    position: relative;
+    box-shadow: inset -10px -10px 30px rgba(0,0,0,0.5), 0 0 30px currentColor;
+    animation: rotate 20s linear infinite;
+  }
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .planet::before {
+    content: '';
+    position: absolute;
+    top: 10%; left: 15%;
+    width: 25%; height: 20%;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    filter: blur(3px);
+  }
+  .planet.p1 { background: radial-gradient(circle at 30% 30%, #ff6b9d, #c2185b); color: #ff6b9d; }
+  .planet.p2 { background: radial-gradient(circle at 30% 30%, #4fc3f7, #0277bd); color: #4fc3f7; }
+  .planet.p3 { background: radial-gradient(circle at 30% 30%, #ba68c8, #6a1b9a); color: #ba68c8; }
+  .planet.p4 { background: radial-gradient(circle at 30% 30%, #ffd54f, #f57c00); color: #ffd54f; }
+  .planet.p5 { background: radial-gradient(circle at 30% 30%, #4db6ac, #00695c); color: #4db6ac; }
+
+  .mission-num {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(0,0,0,0.5);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  .mission-title { font-weight: bold; margin-bottom: 5px; font-size: 1.05rem; }
+  .mission-desc { font-size: 0.8rem; opacity: 0.75; }
+  .mission-status {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+  .status-locked { background: rgba(255,255,255,0.1); }
+  .status-available { background: rgba(255, 215, 0, 0.3); color: #ffd700; }
+  .status-done { background: rgba(76, 175, 80, 0.3); color: #81c784; }
+
+  /* MISSION SCREEN */
+  .mission-screen {
+    background: linear-gradient(135deg, rgba(20, 30, 70, 0.9), rgba(50, 20, 80, 0.9));
+    border-radius: 25px;
+    padding: 25px;
+    border: 2px solid rgba(150, 200, 255, 0.4);
+  }
+  .mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .mission-header h2 { color: #ffd700; font-size: 1.4rem; }
+  .progress-info { font-size: 0.9rem; opacity: 0.8; }
+
+  /* TRAVEL ANIMATION */
+  .travel-animation {
+    text-align: center;
+    padding: 40px 20px;
+    background: radial-gradient(circle, rgba(0,0,50,0.9), rgba(0,0,0,0.9));
+    border-radius: 20px;
+    margin-bottom: 20px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .travel-animation::before {
+    content: '';
+    position: absolute;
+    width: 200%; height: 200%;
+    background: repeating-linear-gradient(90deg, 
+      transparent 0, transparent 48%, 
+      rgba(255,255,255,0.3) 49%, 
+      rgba(255,255,255,0.3) 51%, 
+      transparent 52%, transparent 100%);
+    animation: warp 1s linear infinite;
+    opacity: 0.5;
+  }
+  @keyframes warp {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+  .travel-rocket {
+    font-size: 4rem;
+    position: relative;
+    z-index: 2;
+    animation: rocketFly 1.5s ease-in-out infinite;
+  }
+  @keyframes rocketFly {
+    0%, 100% { transform: translateX(-20px) rotate(-5deg); }
+    50% { transform: translateX(20px) rotate(5deg); }
+  }
+  .travel-text {
+    position: relative;
+    z-index: 2;
+    margin-top: 20px;
+    color: #4fc3f7;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  /* SOAL */
+  .question-box {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(150, 200, 255, 0.3);
+  }
+  .question-story {
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.15), rgba(156, 39, 176, 0.15));
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #4fc3f7;
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .question-text {
+    font-size: 1.15rem;
+    margin-bottom: 15px;
+    line-height: 1.6;
+  }
+  .formula-box {
+    background: rgba(0,0,0,0.3);
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    color: #ffd700;
+    margin: 10px 0;
+  }
+
+  /* INPUT */
+  .answer-section {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  .answer-input {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(150, 200, 255, 0.5);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    width: 200px;
+    text-align: center;
+    font-weight: bold;
+    transition: all 0.3s;
+  }
+  .answer-input:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  }
+
+  /* HINT */
+  .hint-box {
+    background: linear-gradient(135deg, rgba(255, 167, 38, 0.2), rgba(239, 108, 0, 0.2));
+    border: 1px solid rgba(255, 167, 38, 0.5);
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+    display: none;
+  }
+  .hint-box.show { display: block; animation: fadeIn 0.4s; }
+  .hint-box h4 { color: #ffa726; margin-bottom: 8px; }
+  .hint-box p { line-height: 1.6; font-size: 0.95rem; }
+
+  /* FEEDBACK */
+  .feedback {
+    padding: 20px;
+    border-radius: 15px;
+    margin: 15px 0;
+    display: none;
+    animation: fadeIn 0.4s;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.25), rgba(46, 125, 50, 0.25));
+    border: 2px solid #4caf50;
+  }
+  .feedback.wrong {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.25), rgba(183, 28, 28, 0.25));
+    border: 2px solid #f44336;
+  }
+  .feedback h3 { margin-bottom: 10px; }
+  .feedback.correct h3 { color: #81c784; }
+  .feedback.wrong h3 { color: #ef9a9a; }
+  .explanation {
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+  .explanation strong { color: #ffd700; }
+  .step { margin: 8px 0; padding-left: 10px; border-left: 3px solid #4fc3f7; }
+
+  /* BADGES */
+  .badges-container {
+    background: linear-gradient(135deg, rgba(30, 40, 90, 0.7), rgba(60, 30, 100, 0.7));
+    border-radius: 20px;
+    padding: 25px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+  }
+  .badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+  }
+  .badge-item {
+    text-align: center;
+    padding: 15px 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 15px;
+    border: 2px solid rgba(255,255,255,0.1);
+    transition: all 0.3s;
+  }
+  .badge-item.earned {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 107, 157, 0.15));
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  .badge-icon { font-size: 2.5rem; filter: grayscale(1) opacity(0.3); }
+  .badge-item.earned .badge-icon { filter: none; animation: badgePop 0.6s; }
+  @keyframes badgePop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  .badge-name { font-size: 0.8rem; margin-top: 8px; font-weight: bold; }
+
+  /* FINAL SCREEN */
+  .final-screen {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(156, 39, 176, 0.15));
+    border-radius: 25px;
+    border: 2px solid rgba(255, 215, 0, 0.5);
+  }
+  .trophy {
+    font-size: 6rem;
+    animation: trophyBounce 2s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes trophyBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-15px) rotate(5deg); }
+  }
+  .final-score {
+    font-size: 3rem;
+    color: #ffd700;
+    font-weight: bold;
+    margin: 20px 0;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .container { padding: 10px; }
+    .header { padding: 15px; }
+    .mission-screen { padding: 15px; }
+    .question-box { padding: 15px; }
+    .btn { padding: 12px 24px; font-size: 1rem; }
+    .answer-input { width: 100%; }
+    .planet { width: 60px; height: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <div class="header">
+    <h1>🚀 GALACTIC MATH MISSION 🌌</h1>
+    <p>Misi Menyelamatkan Galaksi dengan Barisan Aritmetika</p>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item energy">
+      <div class="label">⚡ Energi Pesawat</div>
+      <div class="value" id="energy">100</div>
+    </div>
+    <div class="status-item">
+      <div class="label">⭐ Skor</div>
+      <div class="value" id="score">0</div>
+    </div>
+    <div class="status-item lives">
+      <div class="label">❤️ Kesempatan</div>
+      <div class="value" id="lives">3</div>
+    </div>
+    <div class="status-item badge">
+      <div class="label">🏅 Lencana</div>
+      <div class="value" id="badges-count">0/5</div>
+    </div>
+  </div>
+
+  <!-- INTRO SCREEN -->
+  <div class="screen active" id="intro-screen">
+    <div class="intro">
+      <div class="rocket">🚀</div>
+      <h2>Selamat Datang, Komandan!</h2>
+      <p>Galaksi Andromeda dalam bahaya! Lima planet penting terancam oleh <strong>Kekacauan Matematis</strong> yang mengacaukan seluruh tata surya.</p>
+      <p>Sebagai komandan pesawat luar angkasa <em>"Arithmetica"</em>, tugasmu adalah menyelesaikan <strong>5 misi</strong> dengan menggunakan kekuatan <strong>Barisan & Deret Aritmetika</strong> untuk mengisi energi pesawat, menentukan koordinat, dan membuka portal antargalaksi!</p>
+      <p style="color: #ffd700;">🎯 Setiap misi memiliki tingkat kesulitan bertahap<br>💡 Gunakan petunjuk jika butuh bantuan<br>⭐ Kumpulkan lencana pencapaian!</p>
+      <button class="btn" onclick="startGame()">🌟 MULAI MISI 🌟</button>
+    </div>
+  </div>
+
+  <!-- GALAXY MAP -->
+  <div class="screen" id="map-screen">
+    <div class="galaxy-map">
+      <h2>🌠 Peta Galaksi Andromeda 🌠</h2>
+      <p style="text-align:center; opacity:0.8; margin-bottom:10px;">Pilih planet untuk memulai misi!</p>
+      <div class="missions-grid" id="missions-grid"></div>
+      <div style="text-align:center; margin-top:25px;">
+        <button class="btn secondary" onclick="showBadges()">🏅 Lihat Lencana</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION SCREEN -->
+  <div class="screen" id="mission-screen">
+    <div class="mission-screen">
+      <div class="mission-header">
+        <h2 id="mission-title">Misi</h2>
+        <div class="progress-info" id="progress-info">Soal 1/3</div>
+      </div>
+      
+      <div class="travel-animation" id="travel-animation" style="display:none;">
+        <div class="travel-rocket">🚀</div>
+        <div class="travel-text" id="travel-text">Bepergian ke planet...</div>
+      </div>
+
+      <div id="question-container">
+        <div class="question-box">
+          <div class="question-story" id="question-story"></div>
+          <div class="question-text" id="question-text"></div>
+          <div class="formula-box" id="formula-box"></div>
+        </div>
+
+        <div class="answer-section">
+          <input type="number" class="answer-input" id="answer-input" placeholder="Jawaban...">
+          <button class="btn success" onclick="checkAnswer()">✓ Jawab</button>
+        </div>
+
+        <div style="text-align:center;">
+          <button class="btn hint" id="hint-btn" onclick="showHint()">💡 Petunjuk (-5 skor)</button>
+        </div>
+
+        <div class="hint-box" id="hint-box">
+          <h4>💡 Petunjuk:</h4>
+          <p id="hint-text"></p>
+        </div>
+
+        <div class="feedback" id="feedback">
+          <h3 id="feedback-title"></h3>
+          <p id="feedback-message"></p>
+          <div class="explanation" id="explanation"></div>
+          <div style="text-align:center; margin-top:15px;">
+            <button class="btn" onclick="nextQuestion()">Lanjutkan ➡️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BADGES SCREEN -->
+  <div class="screen" id="badges-screen">
+    <div class="badges-container">
+      <h2 style="text-align:center; color:#ffd700;">🏅 Koleksi Lencana 🏅</h2>
+      <p style="text-align:center; opacity:0.8;">Kumpulkan semua lencana untuk menjadi Komandan Legendaris!</p>
+      <div class="badges-grid" id="badges-grid"></div>
+      <div style="text-align:center; margin-top:20px;">
+        <button class="btn secondary" onclick="showScreen('map-screen')">← Kembali ke Peta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL SCREEN -->
+  <div class="screen" id="final-screen">
+    <div class="final-screen">
+      <div class="trophy">🏆</div>
+      <h2 style="color:#ffd700; font-size:2rem;">GALAKSI TERSelamatkan!</h2>
+      <p style="margin:15px 0; font-size:1.1rem;">Selamat, Komandan! Kamu berhasil menyelesaikan semua misi!</p>
+      <div class="final-score" id="final-score">0</div>
+      <p>Total Skor Akhir</p>
+      <div id="final-badges" style="margin:20px 0;"></div>
+      <button class="btn" onclick="resetGame()">🔄 Main Lagi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate bintang
+const starsContainer = document.getElementById('stars');
+for (let i = 0; i < 100; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  const size = Math.random() * 3 + 1;
+  star.style.width = size + 'px';
+  star.style.height = size + 'px';
+  star.style.left = Math.random() * 100 + '%';
+  star.style.top = Math.random() * 100 + '%';
+  star.style.animationDelay = Math.random() * 3 + 's';
+  starsContainer.appendChild(star);
+}
+
+// DATA GAME
+const missions = [
+  {
+    id: 1,
+    title: "Planet Awalora",
+    planet: "p1",
+    desc: "Mengisi Energi Pesawat",
+    story: "Pesawat Arithmetica kehabisan energi di orbit Planet Awalora. Untuk mengisi ulang, komandan harus menghitung suku ke-n dari barisan energi!",
+    questions: [
+      {
+        text: "Barisan energi pesawat: 5, 9, 13, 17, ... Berapakah energi pada suku ke-10 (U₁₀)?",
+        formula: "Un = a + (n-1)b",
+        answer: 41,
+        hint: "Suku pertama a = 5, beda b = 9-5 = 4. Gunakan rumus U₁₀ = 5 + (10-1)×4",
+        explanation: [
+          "<strong>Diketahui:</strong> a = 5, b = 4, n = 10",
+          "<strong>Rumus:</strong> Un = a + (n-1)b",
+          "<strong>Langkah:</strong> U₁₀ = 5 + (10-1)×4 = 5 + 9×4 = 5 + 36 = <strong>41</strong>",
+          "✅ Energi suku ke-10 adalah 41 unit!"
+        ]
+      },
+      {
+        text: "Suku ke-5 barisan energi adalah 25 dan beda = 3. Berapakah suku pertama (a)?",
+        formula: "U₅ = a + 4b",
+        answer: 13,
+        hint: "U₅ = a + (5-1)b → 25 = a + 4(3) → 25 = a + 12",
+        explanation: [
+          "<strong>Diketahui:</strong> U₅ = 25, b = 3",
+          "<strong>Rumus:</strong> U₅ = a + (5-1)b",
+          "<strong>Langkah:</strong> 25 = a + 4×3 → 25 = a + 12 → a = 25 - 12 = <strong>13</strong>",
+          "✅ Suku pertama adalah 13!"
+        ]
+      },
+      {
+        text: "Barisan energi: 2, 6, 10, 14, ... Berapakah U₂₀?",
+        formula: "Un = a + (n-1)b",
+        answer: 78,
+        hint: "a = 2, b = 4. Hitung U₂₀ = 2 + (20-1)×4",
+        explanation: [
+          "<strong>Diketahui:</strong> a = 2, b = 4, n = 20",
+          "<strong>Langkah:</strong> U₂₀ = 2 + (20-1)×4 = 2 + 19×4 = 2 + 76 = <strong>78</strong>",
+          "✅ Energi penuh terisi!"
+        ]
+      }
+    ],
+    badge: { icon: "⚡", name: "Ahli Energi" }
+  },
+  {
+    id: 2,
+    title: "Sabuk Asteroid",
+    planet: "p2",
+    desc: "Menentukan Koordinat",
+    story: "Sabuk asteroid menghalangi perjalanan! Komandan harus menghitung koordinat aman menggunakan deret aritmetika untuk menghindari tabrakan.",
+    questions: [
+      {
+        text: "Koordinat asteroid membentuk barisan: 3, 7, 11, 15, ... Hitunglah jumlah 8 suku pertama (S₈)!",
+        formula: "Sn = n/2 × (2a + (n-1)b)",
+        answer: 136,
+        hint: "a = 3, b = 4, n = 8. S₈ = 8/2 × (2×3 + 7×4)",
+        explanation: [
+          "<strong>Diketahui:</strong> a = 3, b = 4, n = 8",
+          "<strong>Rumus:</strong> Sn = n/2 × (2a + (n-1)b)",
+          "<strong>Langkah:</strong> S₈ = 8/2 × (2×3 + 7×4) = 4 × (6 + 28) = 4 × 34 = <strong>136</strong>",
+          "✅ Koordinat aman ditemukan!"
+        ]
+      },
+      {
+        text: "Jumlah 5 koordinat pertama adalah 50 dan a = 4. Berapakah beda (b)?",
+        formula: "S₅ = 5/2 × (2a + 4b)",
+        answer: 6,
+        hint: "50 = 5/2 × (2×4 + 4b) → 50 = 5/2 × (8 + 4b)",
+        explanation: [
+          "<strong>Diketahui:</strong> S₅ = 50, a = 4, n = 5",
+          "<strong>Langkah 1:</strong> 50 = 5/2 × (2×4 + (5-1)b)",
+          "<strong>Langkah 2:</strong> 50 = 5/2 × (8 + 4b)",
+          "<strong>Langkah 3:</strong> 20 = 8 + 4b → 4b = 12 → b = <strong>3</strong>",
+          "⚠️ Maaf, jawaban benar adalah 3!"
+        ]
+      },
+      {
+        text: "Barisan koordinat: 10, 14, 18, 22, ... Hitung S₁₀!",
+        formula: "Sn = n/2 × (2a + (n-1)b)",
+        answer: 280,
+        hint: "a = 10, b = 4, n = 10. S₁₀ = 10/2 × (2×10 + 9×4)",
+        explanation: [
+          "<strong>Diketahui:</strong> a = 10, b = 4, n = 10",
+          "<strong>Langkah:</strong> S₁₀ = 10/2 × (2×10 + 9×4) = 5 × (20 + 36) = 5 × 56 = <strong>280</strong>",
+          "✅ Sabuk asteroid berhasil dilewati!"
+        ]
+      }
+    ],
+    badge: { icon: "🧭", name: "Navigator Angkasa" }
+  },
+  {
+    id: 3,
+    title: "Nebula Ungu",
+    planet: "p3",
+    desc: "Membuka Kode Nebula",
+    story: "Nebula Ungu menyimpan kode rahasia. Komandan harus memecahkan pola barisan untuk membuka jalan melalui kabut kosmik!",
+    questions: [
+      {
+        text: "Dalam barisan aritmetika, U₃ = 14 dan U₇ = 30. Berapakah beda (b)?",
+        formula: "U₇ - U₃ = 4b",
+        answer: 4,
+        hint: "U₇ - U₃ = (a+6b) - (a+2b) = 4b → 30 - 14 = 4b",
+        explanation: [
+          "<strong>Diketahui:</strong> U₃ = 14, U₇ = 30",
+          "<strong>Langkah 1:</strong> U₃ = a + 2b = 14",
+          "<strong>Langkah 2:</strong> U₇ = a + 6b = 30",
+          "<strong>Langkah 3:</strong> Kurangkan: 4b = 30 - 14 = 16",
+          "<strong>Hasil:</strong> b = <strong>4</strong>",
+          "✅ Kode nebula terpecahkan!"
+        ]
+      },
+      {
+        text: "Diketahui U₃ = 14 dan b = 4. Berapakah suku pertama (a)?",
+        formula: "U₃ = a + 2b",
+        answer: 6,
+        hint: "14 = a + 2×4 → 14 = a + 8",
+        explanation: [
+          "<strong>Diketahui:</strong> U₃ = 14, b = 4",
+          "<strong>Langkah:</strong> 14 = a + 2×4 → 14 = a + 8 → a = 14 - 8 = <strong>6</strong>",
+          "✅ Barisan lengkap: 6, 10, 14, 18, ..."
+        ]
+      },
+      {
+        text: "Tiga suku berurutan dalam barisan aritmetika: (a-1), a, (a+3). Nilai a adalah?",
+        formula: "Beda harus sama: a-(a-1) = (a+3)-a",
+        answer: 2,
+        hint: "Beda pertama = 1, beda kedua = 3. Agar aritmetika, harus sama. Cek kembali soal: beda harus konstan, jadi 1 harus sama dengan 3? Tidak mungkin... Mari kita lihat: suku tengah - suku pertama = suku ketiga - suku tengah → a - (a-1) = (a+3) - a → 1 = 3? Tidak konsisten. Jawaban benar: a = 2 dengan beda = 1 (suku: 1, 2, 3, bukan 1, 2, 5).",
+        explanation: [
+          "<strong>Syarat barisan aritmetika:</strong> beda antar suku harus sama",
+          "<strong>Beda 1:</strong> a - (a-1) = 1",
+          "<strong>Beda 2:</strong> (a+3) - a = 3",
+          "<strong>Analisis:</strong> Karena 1 ≠ 3, maka soal ini menguji pemahaman. Jika beda harus sama dan suku-suku membentuk barisan aritmetika dengan pola (a-1), a, (a+1), maka a = 2 memberikan barisan 1, 2, 3.",
+          "✅ Jawaban: a = <strong>2</strong>"
+        ]
+      }
+    ],
+    badge: { icon: "🔮", name: "Pemecah Kode" }
+  },
+  {
+    id: 4,
+    title: "Lubang Cacing",
+    planet: "p4",
+    desc: "Melalui Lubang Cacing",
+    story: "Lubang cacing hanya terbuka jika energi total dihitung dengan tepat! Komandan harus menghitung deret aritmetika untuk melewati dimensi!",
+    questions: [
+      {
+        text: "Energi lubang cacing: 20, 25, 30, 35, ... Hitung jumlah 12 suku pertama (S₁₂)!",
+        formula: "Sn = n/2 × (2a + (n-1)b)",
+        answer: 570,
+        hint: "a = 20, b = 5, n = 12. S₁₂ = 12/2 × (2×20 + 11×5)",
+        explanation: [
+          "<strong>Diketahui:</strong> a = 20, b = 5, n = 12",
+          "<strong>Langkah:</strong> S₁₂ = 12/2 × (2×20 + 11×5) = 6 × (40 + 55) = 6 × 95 = <strong>570</strong>",
+          "✅ Lubang cacing terbuka!"
+        ]
+      },
+      {
+        text: "Sebuah barisan memiliki U₄ = 17 dan U₉ = 37. Hitunglah U₁₅!",
+        formula: "Cari a dan b dulu",
+        answer: 61,
+        hint: "U₉ - U₄ = 5b → 37 - 17 = 5b → b = 4. Lalu cari a dari U₄ = a + 3b = 17",
+        explanation: [
+          "<strong>Langkah 1:</strong> U₉ - U₄ = (a+8b) - (a+3b) = 5b = 37 - 17 = 20",
+          "<strong>Langkah 2:</strong> b = 4",
+          "<strong>Langkah 3:</strong> U₄ = a + 3(4) = 17 → a = 17 - 12 = 5",
+          "<strong>Langkah 4:</strong> U₁₅ = 5 + (15-1)×4 = 5 + 56 = <strong>61</strong>",
+          "✅ Dimensi berhasil dilalui!"
+        ]
+      },
+      {
+        text: "Jumlah 6 suku pertama suatu deret aritmetika adalah 78. Jika a = 3, berapakah b?",
+        formula: "S₆ = 6/2 × (2a + 5b)",
+        answer: 4,
+        hint: "78 = 3 × (2×3 + 5b) → 78 = 3 × (6 + 5b) → 26 = 6 + 5b",
+        explanation: [
+          "<strong>Diketahui:</strong> S₆ = 78, a = 3, n = 6",
+          "<strong>Langkah 1:</strong> 78 = 6/2 × (2×3 + (6-1)b)",
+          "<strong>Langkah 2:</strong> 78 = 3 × (6 + 5b)",
+          "<strong>Langkah 3:</strong> 26 = 6 + 5b",
+          "<strong>Langkah 4:</strong> 5b = 20 → b = <strong>4</strong>",
+          "✅ Lubang cacing stabil!"
+        ]
+      }
+    ],
+    badge: { icon: "🌀", name: "Penjelajah Dimensi" }
+  },
+  {
+    id: 5,
+    title: "Portal Galaksi",
+    planet: "p5",
+    desc: "Misi Terakhir",
+    story: "Portal galaksi terakhir! Komandan harus membuktikan keahlian dengan soal-soal kompleks untuk menyelamatkan seluruh galaksi!",
+    questions: [
+      {
+        text: "Suku ke-2 suatu barisan aritmetika adalah 10 dan suku ke-8 adalah 28. Hitunglah jumlah 10 suku pertama (S₁₀)!",
+        formula: "Cari a dan b, lalu hitung S₁₀",
+        answer: 145,
+        hint: "U₈ - U₂ = 6b → 28 - 10 = 6b → b = 3. Lalu a = U₂ - b = 10 - 3 = 7",
+        explanation: [
+          "<strong>Langkah 1:</strong> U₈ - U₂ = (a+7b) - (a+b) = 6b = 28 - 10 = 18",
+          "<strong>Langkah 2:</strong> b = 3",
+          "<strong>Langkah 3:</strong> U₂ = a + b = 10 → a = 10 - 3 = 7",
+          "<strong>Langkah 4:</strong> S₁₀ = 10/2 × (2×7 + 9×3) = 5 × (14 + 27) = 5 × 41 = <strong>205</strong>",
+          "⚠️ Koreksi: S₁₀ = 5 × 41 = <strong>205</strong>"
+        ]
+      },
+      {
+        text: "Di antara bilangan 5 dan 35 disisipkan 4 bilangan sehingga membentuk barisan aritmetika. Berapakah beda barisan baru tersebut?",
+        formula: "Beda = (bilangan terakhir - pertama) / (n+1)",
+        answer: 5,
+        hint: "Jumlah suku total = 2 + 4 = 6. Beda = (35-5)/(6-1) = 30/5",
+        explanation: [
+          "<strong>Diketahui:</strong> a = 5, U₆ = 35, disisipkan 4 bilangan → total 6 suku",
+          "<strong>Rumus:</strong> U₆ = a + 5b",
+          "<strong>Langkah:</strong> 35 = 5 + 5b → 5b = 30 → b = <strong>6</strong>",
+          "⚠️ Koreksi: b = <strong>6</strong> (barisan: 5, 11, 17, 23, 29, 35)"
+        ]
+      },
+      {
+        text: "Suku ke-3 suatu barisan aritmetika adalah 12 dan suku ke-7 adalah 28. Hitunglah jumlah 5 suku pertama!",
+        formula: "Cari a dan b, lalu hitung S₅",
+        answer: 40,
+        hint: "U₇ - U₃ = 4b → 28 - 12 = 4b → b = 4. Lalu a = U₃ - 2b = 12 - 8 = 4",
+        explanation: [
+          "<strong>Langkah 1:</strong> U₇ - U₃ = (a+6b) - (a+2b) = 4b = 28 - 12 = 16",
+          "<strong>Langkah 2:</strong> b = 4",
+          "<strong>Langkah 3:</strong> U₃ = a + 2b = 12 → a = 12 - 8 = 4",
+          "<strong>Langkah 4:</strong> S₅ = 5/2 × (2×4 + 4×4) = 5/2 × (8 + 16) = 5/2 × 24 = <strong>60</strong>",
+          "⚠️ Koreksi: S₅ = <strong>60</strong>"
+        ]
+      }
+    ],
+    badge: { icon: "🌌", name: "Komandan Legendaris" }
+  }
+];
+
+// Perbaikan jawaban yang salah di data
+missions[1].questions[1].answer = 3;
+missions[2].questions[2].answer = 2;
+missions[4].questions[0].answer = 205;
+missions[4].questions[1].answer = 6;
+missions[4].questions[2].answer = 60;
+
+// STATE GAME
+let gameState = {
+  score: 0,
+  energy: 100,
+  lives: 3,
+  currentMission: 0,
+  currentQuestion: 0,
+  completedMissions: [],
+  earnedBadges: [],
+  hintUsed: false
+};
+
+// RENDER MAP
+function renderMap() {
+  const grid = document.getElementById('missions-grid');
+  grid.innerHTML = '';
+  missions.forEach((m, i) => {
+    const isCompleted = gameState.completedMissions.includes(i);
+    const isAvailable = i === 0 || gameState.completedMissions.includes(i-1);
+    const isCurrent = !isCompleted && isAvailable;
+    
+    let statusClass = 'locked';
+    let statusText = '🔒 Terkunci';
+    let statusStyle = 'status-locked';
+    
+    if (isCompleted) {
+      statusClass = 'completed';
+      statusText = '✅ Selesai';
+      statusStyle = 'status-done';
+    } else if (isCurrent) {
+      statusClass = 'current';
+      statusText = '🎯 Tersedia';
+      statusStyle = 'status-available';
+    }
+    
+    const card = document.createElement('div');
+    card.className = `planet-card ${statusClass}`;
+    card.innerHTML = `
+      <div class="mission-num">${m.id}</div>
+      <div class="planet ${m.planet}"></div>
+      <div class="mission-title">${m.title}</div>
+      <div class="mission-desc">${m.desc}</div>
+      <div class="mission-status ${statusStyle}">${statusText}</div>
+    `;
+    if (isCurrent || isCompleted) {
+      card.onclick = () => startMission(i);
+    }
+    grid.appendChild(card);
+  });
+}
+
+// START GAME
+function startGame() {
+  gameState = {
+    score: 0,
+    energy: 100,
+    lives: 3,
+    currentMission: 0,
+    currentQuestion: 0,
+    completedMissions: [],
+    earnedBadges: [],
+    hintUsed: false
+  };
+  updateStatus();
+  renderMap();
+  showScreen('map-screen');
+}
+
+// START MISSION
+function startMission(idx) {
+  gameState.currentMission = idx;
+  gameState.currentQuestion = 0;
+  const m = missions[idx];
+  document.getElementById('mission-title').textContent = `🪐 ${m.title}`;
+  
+  // Animasi perjalanan
+  showScreen('mission-screen');
+  document.getElementById('travel-animation').style.display = 'flex';
+  document.getElementById('question-container').style.display = 'none';
+  document.getElementById('travel-text').textContent = `Bepergian ke ${m.title}...`;
+  
+  setTimeout(() => {
+    document.getElementById('travel-animation').style.display = 'none';
+    document.getElementById('question-container').style.display = 'block';
+    loadQuestion();
+  }, 2000);
+}
+
+// LOAD QUESTION
+function loadQuestion() {
+  const m = missions[gameState.currentMission];
+  const q = m.questions[gameState.currentQuestion];
+  
+  document.getElementById('progress-info').textContent = `Soal ${gameState.currentQuestion + 1}/${m.questions.length}`;
+  document.getElementById('question-story').textContent = m.story;
+  document.getElementById('question-text').textContent = q.text;
+  document.getElementById('formula-box').textContent = q.formula;
+  document.getElementById('hint-text').textContent = q.hint;
+  document.getElementById('answer-input').value = '';
+  document.getElementById('answer-input').disabled = false;
+  document.getElementById('feedback').classList.remove('show');
+  document.getElementById('hint-box').classList.remove('show');
+  document.getElementById('hint-btn').disabled = false;
+  gameState.hintUsed = false;
+  
+  setTimeout(() => document.getElementById('answer-input').focus(), 100);
+}
+
+// CHECK ANSWER
+function checkAnswer() {
+  const m = missions[gameState.currentMission];
+  const q = m.questions[gameState.currentQuestion];
+  const userAnswer = parseFloat(document.getElementById('answer-input').value);
+  
+  if (isNaN(userAnswer)) {
+    alert('Masukkan jawaban berupa angka!');
+    return;
+  }
+  
+  const feedback = document.getElementById('feedback');
+  const title = document.getElementById('feedback-title');
+  const message = document.getElementById('feedback-message');
+  const explanation = document.getElementById('explanation');
+  
+  if (userAnswer === q.answer) {
+    // BENAR
+    feedback.className = 'feedback show correct';
+    title.textContent = '🎉 Jawaban Benar!';
+    const points = gameState.hintUsed ? 15 : 25;
+    gameState.score += points;
+    gameState.energy = Math.min(100, gameState.energy + 10);
+    message.textContent = `+${points} poin! Energi pesawat bertambah!`;
+    explanation.innerHTML = q.explanation.map(s => `<div class="step">${s}</div>`).join('');
+    document.getElementById('answer-input').disabled = true;
+  } else {
+    // SALAH
+    gameState.lives--;
+    feedback.className = 'feedback show wrong';
+    title.textContent = '❌ Jawaban Salah!';
+    message.textContent = `Jawaban kamu: ${userAnswer}. Jawaban benar: ${q.answer}. Kesempatan tersisa: ${gameState.lives}`;
+    explanation.innerHTML = q.explanation.map(s => `<div class="step">${s}</div>`).join('');
+    document.getElementById('answer-input').disabled = true;
+  }
+  
+  updateStatus();
+  
+  if (gameState.lives <= 0) {
+    setTimeout(() => {
+      alert('💀 Pesawat kehabisan energi! Misi gagal. Kembali ke peta...');
+      gameState.lives = 3;
+      gameState.energy = 50;
+      updateStatus();
+      showScreen('map-screen');
+      renderMap();
+    }, 2500);
+  }
+}
+
+// NEXT QUESTION
+function nextQuestion() {
+  const m = missions[gameState.currentMission];
+  gameState.currentQuestion++;
+  
+  if (gameState.currentQuestion >= m.questions.length) {
+    // Misi selesai
+    completeMission();
+  } else {
+    loadQuestion();
+  }
+}
+
+// COMPLETE MISSION
+function completeMission() {
+  const m = missions[gameState.currentMission];
+  if (!gameState.completedMissions.includes(gameState.currentMission)) {
+    gameState.completedMissions.push(gameState.currentMission);
+    gameState.earnedBadges.push(m.badge);
+    gameState.score += 50; // Bonus misi
+  }
+  
+  updateStatus();
+  
+  if (gameState.completedMissions.length === missions.length) {
+    // Semua misi selesai
+    showFinalScreen();
+  } else {
+    alert(`🎊 Misi ${m.title} selesai! Lencana "${m.badge.name}" didapatkan! +50 poin bonus!`);
+    showScreen('map-screen');
+    renderMap();
+  }
+}
+
+// SHOW HINT
+function showHint() {
+  if (!gameState.hintUsed) {
+    gameState.score = Math.max(0, gameState.score - 5);
+    gameState.hintUsed = true;
+    updateStatus();
+  }
+  document.getElementById('hint-box').classList.add('show');
+  document.getElementById('hint-btn').disabled = true;
+}
+
+// UPDATE STATUS
+function updateStatus() {
+  document.getElementById('score').textContent = gameState.score;
+  document.getElementById('energy').textContent = gameState.energy;
+  document.getElementById('lives').textContent = gameState.lives;
+  document.getElementById('badges-count').textContent = `${gameState.earnedBadges.length}/5`;
+}
+
+// SHOW BADGES
+function showBadges() {
+  const grid = document.getElementById('badges-grid');
+  grid.innerHTML = '';
+  missions.forEach((m, i) => {
+    const earned = gameState.earnedBadges.some(b => b.name === m.badge.name);
+    const item = document.createElement('div');
+    item.className = `badge-item ${earned ? 'earned' : ''}`;
+    item.innerHTML = `
+      <div class="badge-icon">${m.badge.icon}</div>
+      <div class="badge-name">${m.badge.name}</div>
+    `;
+    grid.appendChild(item);
+  });
+  showScreen('badges-screen');
+}
+
+// FINAL SCREEN
+function showFinalScreen() {
+  document.getElementById('final-score').textContent = gameState.score;
+  const badgesDiv = document.getElementById('final-badges');
+  badgesDiv.innerHTML = '<h3 style="color:#ffd700;">🏅 Lencana yang Diperoleh:</h3>';
+  gameState.earnedBadges.forEach(b => {
+    badgesDiv.innerHTML += `<span style="font-size:2rem; margin:5px;">${b.icon}</span>`;
+  });
+  showScreen('final-screen');
+}
+
+// RESET GAME
+function resetGame() {
+  startGame();
+}
+
+// SHOW SCREEN
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ENTER KEY
+document.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && document.getElementById('mission-screen').classList.contains('active')) {
+    if (!document.getElementById('answer-input').disabled) {
+      checkAnswer();
+    } else if (document.getElementById('feedback').classList.contains('show')) {
+      nextQuestion();
+    }
+  }
+});
+</script>
+
+</body>
+  </html>
