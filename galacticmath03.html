@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galactic Math Mission - Misi Menyelamatkan Galaksi</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  
+  body {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+    overflow-x: hidden;
+    color: #fff;
+    position: relative;
+  }
+
+  /* Bintang berkedip */
+  .stars, .stars2, .stars3 {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .stars::after, .stars2::after, .stars3::after {
+    content: '';
+    position: absolute;
+    width: 2px; height: 2px;
+    background: transparent;
+    box-shadow: 
+      50px 100px #fff, 150px 250px #fff, 250px 50px #fff, 350px 300px #fff,
+      450px 150px #fff, 550px 400px #fff, 650px 200px #fff, 750px 350px #fff,
+      100px 500px #fff, 200px 600px #fff, 300px 450px #fff, 400px 550px #fff,
+      500px 700px #fff, 600px 500px #fff, 700px 650px #fff, 800px 100px #fff,
+      900px 300px #fff, 1000px 500px #fff, 1100px 200px #fff, 1200px 400px #fff,
+      80px 350px #fff, 180px 150px #fff, 280px 550px #fff, 380px 250px #fff,
+      480px 450px #fff, 580px 100px #fff, 680px 600px #fff, 780px 250px #fff;
+    animation: blink 3s infinite;
+  }
+  .stars2::after { box-shadow: 
+    30px 180px #fff, 130px 380px #fff, 230px 80px #fff, 330px 480px #fff,
+    430px 280px #fff, 530px 580px #fff, 630px 180px #fff, 730px 380px #fff,
+    830px 80px #fff, 930px 280px #fff, 1030px 480px #fff, 1130px 180px #fff;
+    animation: blink 4s infinite;
+  }
+  .stars3::after { box-shadow: 
+    70px 280px #fff, 170px 80px #fff, 270px 480px #fff, 370px 180px #fff,
+    470px 380px #fff, 570px 580px #fff, 670px 280px #fff, 770px 80px #fff,
+    870px 480px #fff, 970px 180px #fff, 1070px 380px #fff, 1170px 580px #fff;
+    animation: blink 5s infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Planet dekoratif */
+  .planet {
+    position: fixed;
+    border-radius: 50%;
+    z-index: 1;
+    box-shadow: inset -20px -20px 50px rgba(0,0,0,0.5);
+  }
+  .planet1 {
+    width: 120px; height: 120px;
+    background: radial-gradient(circle at 30% 30%, #ff6b9d, #c44569);
+    top: 10%; right: 8%;
+    animation: float 8s ease-in-out infinite;
+  }
+  .planet2 {
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at 30% 30%, #4ecdc4, #2c7873);
+    bottom: 15%; left: 5%;
+    animation: float 6s ease-in-out infinite reverse;
+  }
+  .planet3 {
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at 30% 30%, #ffe66d, #f4a261);
+    top: 60%; right: 15%;
+    animation: float 10s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .header h1 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    background: linear-gradient(90deg, #ffd700, #ff6b9d, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(255,215,0,0.3);
+    margin-bottom: 10px;
+  }
+  .header p {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    opacity: 0.9;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 15px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+  .stat-card .label {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .stat-card .value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 4px;
+    color: #ffd700;
+  }
+
+  /* Progress */
+  .progress-container {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .progress-bar {
+    height: 14px;
+    background: linear-gradient(90deg, #4ecdc4, #44a3aa, #ffd700);
+    border-radius: 20px;
+    width: 0%;
+    transition: width 0.8s ease;
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.6);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Mission area */
+  .mission-area {
+    background: linear-gradient(135deg, rgba(30, 40, 80, 0.8), rgba(50, 30, 80, 0.8));
+    border-radius: 25px;
+    padding: 25px;
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(255,255,255,0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Scene */
+  .scene {
+    position: relative;
+    height: 180px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    background: radial-gradient(ellipse at center, rgba(100,100,200,0.2), transparent);
+    overflow: hidden;
+  }
+  .target-planet {
+    position: absolute;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    top: 50%; right: 10%;
+    transform: translateY(-50%);
+    box-shadow: inset -15px -15px 30px rgba(0,0,0,0.5), 0 0 30px currentColor;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.08); }
+  }
+  .spaceship {
+    position: absolute;
+    width: 60px; height: 40px;
+    top: 50%; left: 10%;
+    transform: translateY(-50%);
+    transition: left 1.5s ease-in-out;
+    filter: drop-shadow(0 0 10px #4ecdc4);
+  }
+  .spaceship.flying {
+    left: calc(100% - 120px);
+  }
+  .trail {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    width: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #4ecdc4, #fff);
+    border-radius: 2px;
+    transition: width 1.5s ease-in-out;
+    box-shadow: 0 0 10px #4ecdc4;
+  }
+  .trail.active {
+    width: calc(80% - 60px);
+  }
+
+  /* Mission info */
+  .mission-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+  .mission-badge {
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(255,107,157,0.4);
+  }
+  .mission-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+
+  .question-box {
+    background: rgba(0,0,0,0.3);
+    border-left: 4px solid #ffd700;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .question-box .seq {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #4ecdc4;
+    margin: 8px 0;
+    letter-spacing: 1px;
+  }
+  .question-box .ask {
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 8px;
+  }
+
+  /* Choices */
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .choice-btn {
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(68, 163, 170, 0.2));
+    border: 2px solid rgba(78, 205, 196, 0.4);
+    color: #fff;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .choice-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    border-color: #4ecdc4;
+    box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+  }
+  .choice-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  .choice-btn.correct {
+    background: linear-gradient(135deg, #4ecdc4, #44a3aa);
+    border-color: #4ecdc4;
+    animation: correctPulse 0.6s;
+  }
+  .choice-btn.wrong {
+    background: linear-gradient(135deg, #ff6b6b, #c44569);
+    border-color: #ff6b6b;
+    animation: shake 0.4s;
+  }
+  @keyframes correctPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .btn-hint {
+    background: linear-gradient(135deg, #f4a261, #e76f51);
+  }
+  .btn-next {
+    background: linear-gradient(135deg, #4ecdc4, #2c7873);
+  }
+  .btn-restart {
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+  }
+  .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Hint box */
+  .hint-box {
+    background: linear-gradient(135deg, rgba(244, 162, 97, 0.2), rgba(231, 111, 81, 0.2));
+    border: 1px solid rgba(244, 162, 97, 0.5);
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: 15px;
+    display: none;
+    animation: slideDown 0.4s;
+  }
+  .hint-box.show { display: block; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hint-box h4 { color: #f4a261; margin-bottom: 8px; }
+
+  /* Explanation modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: linear-gradient(135deg, #1e2850, #32205a);
+    border-radius: 25px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.4s;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal h2 {
+    color: #ffd700;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  .step {
+    background: rgba(0,0,0,0.3);
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border-left: 3px solid #4ecdc4;
+  }
+  .step-num {
+    display: inline-block;
+    background: #4ecdc4;
+    color: #000;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 0.85rem;
+  }
+  .step-formula {
+    display: block;
+    color: #ffd700;
+    font-family: 'Courier New', monospace;
+    margin: 5px 0;
+    font-size: 0.95rem;
+  }
+
+  /* Badges */
+  .badges-container {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .badges-container h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffd700;
+  }
+  .badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 10px;
+  }
+  .badge {
+    text-align: center;
+    padding: 10px 5px;
+    border-radius: 15px;
+    background: rgba(0,0,0,0.3);
+    border: 2px dashed rgba(255,255,255,0.2);
+    transition: all 0.4s;
+  }
+  .badge.earned {
+    background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,107,157,0.2));
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255,215,0,0.3);
+  }
+  .badge-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 5px;
+    filter: grayscale(100%);
+    transition: filter 0.4s;
+  }
+  .badge.earned .badge-icon { filter: none; }
+  .badge-name {
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+  .badge.earned .badge-name { opacity: 1; color: #ffd700; }
+
+  /* Start/End screen */
+  .screen {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .screen h2 {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #ffd700, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .screen p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+    opacity: 0.9;
+  }
+  .big-rocket {
+    font-size: 5rem;
+    display: block;
+    margin: 20px auto;
+    animation: rocketFloat 3s ease-in-out infinite;
+  }
+  @keyframes rocketFloat {
+    0%, 100% { transform: translateY(0) rotate(-10deg); }
+    50% { transform: translateY(-20px) rotate(-10deg); }
+  }
+
+  .attempts-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .heart {
+    font-size: 1.5rem;
+    transition: all 0.3s;
+  }
+  .heart.lost {
+    filter: grayscale(100%);
+    opacity: 0.3;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .container { padding: 10px; }
+    .mission-area { padding: 15px; }
+    .scene { height: 140px; }
+    .target-planet { width: 60px; height: 60px; }
+    .spaceship { width: 45px; height: 30px; }
+    .planet1 { width: 80px; height: 80px; }
+    .planet2 { width: 60px; height: 60px; }
+    .planet3 { width: 40px; height: 40px; }
+    .modal { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="stars2"></div>
+<div class="stars3"></div>
+<div class="planet planet1"></div>
+<div class="planet planet2"></div>
+<div class="planet planet3"></div>
+
+<div class="container">
+  <div class="header">
+    <h1>🚀 Galactic Math Mission 🌌</h1>
+    <p>Misi Menyelamatkan Galaksi dengan Barisan Aritmetika!</p>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="startScreen" class="mission-area screen">
+    <span class="big-rocket">🚀</span>
+    <h2>Selamat Datang, Komandan!</h2>
+    <p>Galaksi Andromeda dalam bahaya! Sebagai komandan pesawat antariksa, kamu harus menyelesaikan <b>5 misi</b> untuk menyelamatkan galaksi menggunakan kekuatan <b>Barisan & Deret Aritmetika</b>.</p>
+    <p>🎯 Isi energi pesawat • 📍 Tentukan koordinat • 🌀 Buka portal antargalaksi</p>
+    <p>Setiap misi punya <b>3 kesempatan</b>. Gunakan petunjuk jika butuh bantuan!</p>
+    <button class="btn btn-next" onclick="startGame()" style="font-size: 1.2rem; padding: 15px 40px;">
+      🌟 MULAI MISI 🌟
+    </button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="gameScreen" style="display:none;">
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="label">Misi</div>
+        <div class="value" id="missionNum">1/5</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Skor</div>
+        <div class="value" id="score">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Energi</div>
+        <div class="value" id="energy">100%</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Kesempatan</div>
+        <div class="value" id="attempts">❤️❤️❤️</div>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="mission-area">
+      <div class="scene">
+        <div class="trail" id="trail"></div>
+        <svg class="spaceship" id="spaceship" viewBox="0 0 60 40">
+          <defs>
+            <linearGradient id="shipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#4ecdc4"/>
+              <stop offset="100%" style="stop-color:#2c7873"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="30" cy="20" rx="25" ry="12" fill="url(#shipGrad)" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="38" cy="17" r="5" fill="#ffd700" opacity="0.9"/>
+          <path d="M 5 20 L 0 15 L 0 25 Z" fill="#ff6b9d"/>
+          <rect x="2" y="18" width="8" height="4" fill="#ff6b9d" opacity="0.8"/>
+        </svg>
+        <div class="target-planet" id="targetPlanet" style="background: radial-gradient(circle at 30% 30%, #4ecdc4, #2c7873); color: #4ecdc4;"></div>
+      </div>
+
+      <div class="mission-title">
+        <span class="mission-badge" id="missionBadge">MISI 1</span>
+        <span class="mission-name" id="missionName">Mengisi Energi Pesawat</span>
+      </div>
+
+      <div class="question-box" id="questionBox"></div>
+
+      <div class="choices" id="choices"></div>
+
+      <div class="hint-box" id="hintBox">
+        <h4>💡 Petunjuk:</h4>
+        <p id="hintText"></p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-hint" id="hintBtn" onclick="showHint()">💡 Petunjuk</button>
+        <button class="btn btn-next" id="nextBtn" onclick="nextMission()" style="display:none;">➡️ Misi Berikutnya</button>
+      </div>
+    </div>
+
+    <div class="badges-container">
+      <h3>🏆 Lencana Pencapaian</h3>
+      <div class="badges-grid" id="badgesGrid"></div>
+    </div>
+  </div>
+
+  <!-- End Screen -->
+  <div id="endScreen" class="mission-area screen" style="display:none;"></div>
+</div>
+
+<!-- Explanation Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">✨ Penyelesaian</h2>
+    <div id="modalContent"></div>
+    <button class="btn btn-next" onclick="closeModal()" style="margin-top:15px; width:100%;">Lanjut 🚀</button>
+  </div>
+</div>
+
+<script>
+  const missions = [
+    {
+      name: "Mengisi Energi Pesawat",
+      planet: "radial-gradient(circle at 30% 30%, #4ecdc4, #2c7873)",
+      planetColor: "#4ecdc4",
+      question: `Pesawat membutuhkan energi dari <b>barisan aritmetika</b> untuk terbang.
+        <span class="seq">5, 9, 13, 17, ...</span>
+        <span class="ask">Berapa besar energi (suku ke-10) yang dibutuhkan?</span>`,
+      choices: ["39", "41", "43", "45"],
+      correct: 1,
+      hint: "Rumus suku ke-n: Un = a + (n-1)b. Tentukan a (suku pertama) dan b (beda).",
+      steps: [
+        "Diketahui barisan: 5, 9, 13, 17, ...",
+        "Suku pertama a = 5",
+        "Beda b = 9 - 5 = 4",
+        "Gunakan rumus: Un = a + (n-1)b",
+        {formula: "U₁₀ = 5 + (10-1) × 4"},
+        {formula: "U₁₀ = 5 + 9 × 4"},
+        {formula: "U₁₀ = 5 + 36 = 41"}
+      ],
+      answer: 41,
+      badge: "⚡",
+      badgeName: "Energi Penuh"
+    },
+    {
+      name: "Menentukan Koordinat Planet",
+      planet: "radial-gradient(circle at 30% 30%, #ff6b9d, #c44569)",
+      planetColor: "#ff6b9d",
+      question: `Untuk mendarat di Planet Zeta, tentukan koordinat x dari barisan:
+        <span class="seq">3, 8, 13, 18, ...</span>
+        <span class="ask">Berapakah nilai U₁₅ (koordinat ke-15)?</span>`,
+      choices: ["70", "73", "75", "78"],
+      correct: 1,
+      hint: "Cari beda b dengan mengurangkan dua suku berurutan, lalu gunakan Un = a + (n-1)b.",
+      steps: [
+        "Diketahui barisan: 3, 8, 13, 18, ...",
+        "Suku pertama a = 3",
+        "Beda b = 8 - 3 = 5",
+        "Rumus: Un = a + (n-1)b",
+        {formula: "U₁₅ = 3 + (15-1) × 5"},
+        {formula: "U₁₅ = 3 + 14 × 5"},
+        {formula: "U₁₅ = 3 + 70 = 73"}
+      ],
+      answer: 73,
+      badge: "📍",
+      badgeName: "Navigator"
+    },
+    {
+      name: "Membuka Portal Antargalaksi",
+      planet: "radial-gradient(circle at 30% 30%, #ffe66d, #f4a261)",
+      planetColor: "#ffe66d",
+      question: `Portal hanya terbuka dengan kode yang tepat. Diketahui:
+        <span class="seq">U₃ = 11 dan U₇ = 27</span>
+        <span class="ask">Tentukan nilai U₁₀ untuk membuka portal!</span>`,
+      choices: ["35", "37", "39", "41"],
+      correct: 2,
+      hint: "Gunakan sistem persamaan: Un = a + (n-1)b. Buat dua persamaan dari U₃ dan U₇, lalu eliminasi untuk mencari b.",
+      steps: [
+        "Diketahui: U₃ = 11 dan U₇ = 27",
+        "Persamaan 1: a + 2b = 11",
+        "Persamaan 2: a + 6b = 27",
+        "Eliminasi: (a+6b) - (a+2b) = 27 - 11",
+        {formula: "4b = 16 → b = 4"},
+        "Substitusi: a + 2(4) = 11 → a = 3",
+        "Hitung U₁₀:",
+        {formula: "U₁₀ = 3 + (10-1) × 4"},
+        {formula: "U₁₀ = 3 + 36 = 39"}
+      ],
+      answer: 39,
+      badge: "🌀",
+      badgeName: "Pembuka Portal"
+    },
+    {
+      name: "Mengisi Bahan Bakar Deret",
+      planet: "radial-gradient(circle at 30% 30%, #a29bfe, #6c5ce7)",
+      planetColor: "#a29bfe",
+      question: `Bahan bakar pesawat dihitung dengan <b>deret aritmetika</b>:
+        <span class="seq">4 + 7 + 10 + 13 + ... + 31</span>
+        <span class="ask">Berapa total bahan bakar (jumlah deret) yang didapat?</span>`,
+      choices: ["165", "170", "175", "180"],
+      correct: 2,
+      hint: "Cari banyak suku n dengan rumus Un = a + (n-1)b, lalu gunakan Sn = n/2 × (a + Un).",
+      steps: [
+        "Diketahui: a = 4, b = 3, Un = 31",
+        "Cari n: Un = a + (n-1)b",
+        {formula: "31 = 4 + (n-1) × 3"},
+        {formula: "27 = (n-1) × 3 → n-1 = 9 → n = 10"},
+        "Gunakan rumus deret: Sn = n/2 × (a + Un)",
+        {formula: "S₁₀ = 10/2 × (4 + 31)"},
+        {formula: "S₁₀ = 5 × 35 = 175"}
+      ],
+      answer: 175,
+      badge: "⛽",
+      badgeName: "Full Tank"
+    },
+    {
+      name: "Menyelamatkan Galaksi",
+      planet: "radial-gradient(circle at 30% 30%, #fd79a8, #e84393)",
+      planetColor: "#fd79a8",
+      question: `Misi terakhir! Untuk menyelamatkan galaksi, selesaikan:
+        <span class="seq">Diketahui U₅ = 22 dan U₁₂ = 50</span>
+        <span class="ask">Tentukan nilai S₂₀ (jumlah 20 suku pertama)!</span>`,
+      choices: ["860", "880", "900", "920"],
+      correct: 1,
+      hint: "Cari a dan b dari U₅ dan U₁₂ dengan eliminasi, lalu gunakan Sn = n/2 × (2a + (n-1)b).",
+      steps: [
+        "Diketahui: U₅ = 22 dan U₁₂ = 50",
+        "Persamaan 1: a + 4b = 22",
+        "Persamaan 2: a + 11b = 50",
+        "Eliminasi: 7b = 28 → b = 4",
+        "Substitusi: a + 4(4) = 22 → a = 6",
+        "Rumus deret: Sn = n/2 × (2a + (n-1)b)",
+        {formula: "S₂₀ = 20/2 × (2(6) + 19 × 4)"},
+        {formula: "S₂₀ = 10 × (12 + 76)"},
+        {formula: "S₂₀ = 10 × 88 = 880"}
+      ],
+      answer: 880,
+      badge: "🌟",
+      badgeName: "Penyelamat Galaksi"
+    }
+  ];
+
+  let currentMission = 0;
+  let score = 0;
+  let attempts = 3;
+  let hintUsed = false;
+  let badgesEarned = [];
+  let missionSolved = false;
+
+  function startGame() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'block';
+    renderBadges();
+    loadMission();
+  }
+
+  function renderBadges() {
+    const grid = document.getElementById('badgesGrid');
+    grid.innerHTML = missions.map((m, i) => `
+      <div class="badge ${badgesEarned.includes(i) ? 'earned' : ''}" id="badge-${i}">
+        <span class="badge-icon">${m.badge}</span>
+        <div class="badge-name">${m.badgeName}</div>
+      </div>
+    `).join('');
+  }
+
+  function loadMission() {
+    const m = missions[currentMission];
+    missionSolved = false;
+    attempts = 3;
+    hintUsed = false;
+    
+    document.getElementById('missionNum').textContent = `${currentMission + 1}/5`;
+    document.getElementById('missionBadge').textContent = `MISI ${currentMission + 1}`;
+    document.getElementById('missionName').textContent = m.name;
+    document.getElementById('questionBox').innerHTML = m.question;
+    document.getElementById('hintText').textContent = m.hint;
+    document.getElementById('hintBox').classList.remove('show');
+    document.getElementById('hintBtn').disabled = false;
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('progressBar').style.width = `${(currentMission / 5) * 100}%`;
+    
+    // Reset spaceship
+    const ship = document.getElementById('spaceship');
+    const trail = document.getElementById('trail');
+    ship.classList.remove('flying');
+    trail.classList.remove('active');
+    setTimeout(() => {
+      ship.classList.add('flying');
+      trail.classList.add('active');
+    }, 100);
+    
+    // Update planet
+    const planet = document.getElementById('targetPlanet');
+    planet.style.background = m.planet;
+    planet.style.color = m.planetColor;
+    
+    // Render choices
+    const choicesDiv = document.getElementById('choices');
+    choicesDiv.innerHTML = m.choices.map((c, i) => `
+      <button class="choice-btn" onclick="checkAnswer(${i})" id="choice-${i}">${c}</button>
+    `).join('');
+    
+    updateAttempts();
+    updateEnergy();
+  }
+
+  function updateAttempts() {
+    const hearts = '❤️'.repeat(attempts) + '🖤'.repeat(3 - attempts);
+    document.getElementById('attempts').textContent = hearts;
+  }
+
+  function updateEnergy() {
+    const energy = Math.max(0, 100 - (currentMission * 5));
+    document.getElementById('energy').textContent = energy + '%';
+  }
+
+  function checkAnswer(idx) {
+    if (missionSolved) return;
+    
+    const m = missions[currentMission];
+    const btn = document.getElementById(`choice-${idx}`);
+    
+    if (idx === m.correct) {
+      btn.classList.add('correct');
+      missionSolved = true;
+      
+      // Score based on attempts and hint
+      let points = 100;
+      if (attempts === 3 && !hintUsed) points = 200;
+      else if (attempts >= 2 && !hintUsed) points = 150;
+      else if (hintUsed) points = 75;
+      score += points;
+      document.getElementById('score').textContent = score;
+      
+      // Disable all buttons
+      document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+      document.getElementById('hintBtn').disabled = true;
+      
+      // Earn badge
+      if (!badgesEarned.includes(currentMission)) {
+        badgesEarned.push(currentMission);
+        renderBadges();
+      }
+      
+      // Show explanation
+      setTimeout(() => showExplanation(m, true), 800);
+      
+    } else {
+      btn.classList.add('wrong');
+      btn.disabled = true;
+      attempts--;
+      updateAttempts();
+      
+      if (attempts === 0) {
+        missionSolved = true;
+        document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+        document.getElementById('hintBtn').disabled = true;
+        // Show correct answer
+        document.getElementById(`choice-${m.correct}`).classList.add('correct');
+        setTimeout(() => showExplanation(m, false), 800);
+      } else {
+        setTimeout(() => btn.classList.remove('wrong'), 500);
+      }
+    }
+  }
+
+  function showHint() {
+    document.getElementById('hintBox').classList.add('show');
+    hintUsed = true;
+    document.getElementById('hintBtn').disabled = true;
+  }
+
+  function showExplanation(m, correct) {
+    const modal = document.getElementById('modalOverlay');
+    document.getElementById('modalTitle').textContent = correct ? '✨ Jawaban Benar!' : '💫 Jawaban yang Benar';
+    
+    let content = '';
+    if (!correct) {
+      content += `<div class="step" style="border-left-color:#ff6b6b;"><b>Jawaban benar: ${m.choices[m.correct]}</b></div>`;
+    }
+    content += '<h4 style="margin:15px 0 10px; color:#4ecdc4;">📝 Langkah Penyelesaian:</h4>';
+    
+    m.steps.forEach((step, i) => {
+      if (typeof step === 'string') {
+        content += `<div class="step"><span class="step-num">${i+1}</span>${step}</div>`;
+      } else {
+        content += `<div class="step"><span class="step-num">${i+1}</span><span class="step-formula">${step.formula}</span></div>`;
+      }
+    });
+    
+    document.getElementById('modalContent').innerHTML = content;
+    modal.classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    if (currentMission < missions.length - 1) {
+      document.getElementById('nextBtn').style.display = 'inline-block';
+    } else {
+      setTimeout(showEndScreen, 300);
+    }
+  }
+
+  function nextMission() {
+    currentMission++;
+    if (currentMission < missions.length) {
+      loadMission();
+    }
+  }
+
+  function showEndScreen() {
+    document.getElementById('gameScreen').style.display = 'none';
+    const end = document.getElementById('endScreen');
+    end.style.display = 'block';
+    
+    let rank = '🌟 Pemula Antariksa';
+    if (score >= 900) rank = '👑 Komandan Legendaris';
+    else if (score >= 700) rank = '🚀 Pilot Ahli';
+    else if (score >= 500) rank = '✨ Penjelajah Galaksi';
+    else if (score >= 300) rank = '🛰️ Kadet Antariksa';
+    
+    end.innerHTML = `
+      <span class="big-rocket">🏆</span>
+      <h2>Misi Selesai!</h2>
+      <p style="font-size:1.2rem;">Galaksi Andromeda telah diselamatkan!</p>
+      <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:15px; margin:20px 0;">
+        <div style="font-size:0.9rem; opacity:0.7;">TOTAL SKOR</div>
+        <div style="font-size:3rem; color:#ffd700; font-weight:bold;">${score}</div>
+        <div style="margin-top:10px; font-size:1.2rem;">${rank}</div>
+      </div>
+      <p>Lencana diperoleh: <b>${badgesEarned.length}/5</b></p>
+      <div class="badges-grid" style="margin:20px 0;">
+        ${missions.map((m, i) => `
+          <div class="badge ${badgesEarned.includes(i) ? 'earned' : ''}">
+            <span class="badge-icon">${m.badge}</span>
+            <div class="badge-name">${m.badgeName}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-restart" onclick="restartGame()" style="font-size:1.1rem; padding:15px 35px;">
+        🔄 Main Lagi
+      </button>
+    `;
+  }
+
+  function restartGame() {
+    currentMission = 0;
+    score = 0;
+    badgesEarned = [];
+    document.getElementById('endScreen').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'block';
+  }
+</script>
+
+</body>
+  </html>
