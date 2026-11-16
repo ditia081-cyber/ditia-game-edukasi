@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petualangan Nusantara: Misteri Jejak Hindu-Buddha</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --gold:#d4a017;
+    --gold-light:#f5d76e;
+    --maroon:#6b1f1f;
+    --brown:#3d2817;
+    --cream:#f4e8d0;
+    --dark:#1a0f08;
+    --green:#2e7d32;
+    --red:#c62828;
+  }
+  body{
+    font-family:'Poppins',sans-serif;
+    background:
+      radial-gradient(ellipse at top, #3d2817 0%, #1a0f08 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><path d='M0 30 L30 0 L60 30 L30 60 Z' fill='none' stroke='%23d4a01722' stroke-width='1'/></svg>");
+    color:var(--cream);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .screen{ display:none; min-height:100vh; padding:20px; animation:fadeIn .6s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes glow{ 0%,100%{box-shadow:0 0 20px var(--gold);} 50%{box-shadow:0 0 40px var(--gold-light);} }
+  @keyframes float{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+  @keyframes pulse{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  @keyframes sparkle{ 0%{opacity:0; transform:scale(0) rotate(0);} 50%{opacity:1;} 100%{opacity:0; transform:scale(1.5) rotate(360deg);} }
+
+  /* ========== HEADER ========== */
+  .top-bar{
+    position:sticky; top:0; z-index:100;
+    background:linear-gradient(180deg, rgba(26,15,8,.98), rgba(26,15,8,.85));
+    backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--gold);
+    padding:10px 20px;
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:10px;
+  }
+  .stat{
+    background:rgba(212,160,23,.15);
+    border:1px solid var(--gold);
+    padding:6px 14px; border-radius:20px;
+    font-size:14px; font-weight:600;
+  }
+  .stat span{ color:var(--gold-light); }
+  .lives{ color:#ff6b6b; font-size:18px; }
+
+  /* ========== INTRO SCREEN ========== */
+  #intro{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px 20px;
+  }
+  .temple-svg{ width:280px; max-width:80vw; animation:float 4s ease-in-out infinite; margin-bottom:20px; }
+  h1.title{
+    font-family:'Cinzel',serif;
+    font-size:clamp(28px,5vw,52px);
+    color:var(--gold);
+    text-shadow:0 0 20px rgba(212,160,23,.6), 2px 2px 0 var(--dark);
+    letter-spacing:2px;
+    line-height:1.2;
+    margin-bottom:10px;
+  }
+  .subtitle{
+    font-family:'Cinzel',serif;
+    font-size:clamp(16px,2.5vw,22px);
+    color:var(--gold-light);
+    margin-bottom:30px;
+    font-style:italic;
+  }
+  .intro-card{
+    background:linear-gradient(135deg, rgba(107,31,31,.4), rgba(61,40,23,.6));
+    border:2px solid var(--gold);
+    border-radius:20px;
+    padding:30px;
+    max-width:600px; width:100%;
+    box-shadow:0 10px 40px rgba(0,0,0,.5);
+  }
+  .intro-card p{ margin-bottom:15px; line-height:1.7; font-size:15px; }
+  .input-group{ margin:20px 0; text-align:left; }
+  .input-group label{ display:block; margin-bottom:8px; color:var(--gold-light); font-weight:600; }
+  .input-group input, .input-group select{
+    width:100%; padding:12px 16px;
+    background:rgba(0,0,0,.4);
+    border:2px solid var(--gold);
+    border-radius:10px;
+    color:var(--cream); font-size:15px;
+    font-family:inherit;
+  }
+  .input-group input:focus, .input-group select:focus{
+    outline:none; border-color:var(--gold-light);
+    box-shadow:0 0 15px rgba(212,160,23,.4);
+  }
+  .btn{
+    background:linear-gradient(135deg, var(--gold), #b8860b);
+    color:var(--dark);
+    border:none;
+    padding:14px 30px;
+    border-radius:30px;
+    font-family:'Cinzel',serif;
+    font-size:16px; font-weight:700;
+    cursor:pointer;
+    letter-spacing:1px;
+    transition:all .3s;
+    box-shadow:0 4px 15px rgba(212,160,23,.4);
+    text-transform:uppercase;
+  }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 6px 20px rgba(212,160,23,.6); }
+  .btn:active{ transform:translateY(0); }
+  .btn-secondary{
+    background:transparent; color:var(--gold);
+    border:2px solid var(--gold);
+  }
+  .btn-small{ padding:8px 16px; font-size:13px; }
+
+  /* ========== MAP SCREEN ========== */
+  .map-container{
+    max-width:1100px; margin:20px auto;
+    background:linear-gradient(135deg, rgba(61,40,23,.6), rgba(26,15,8,.8));
+    border:2px solid var(--gold);
+    border-radius:20px;
+    padding:30px;
+  }
+  .map-title{
+    font-family:'Cinzel',serif;
+    text-align:center;
+    color:var(--gold);
+    font-size:clamp(22px,3.5vw,32px);
+    margin-bottom:20px;
+  }
+  .progress-bar{
+    background:rgba(0,0,0,.5);
+    border:1px solid var(--gold);
+    border-radius:20px;
+    height:20px;
+    overflow:hidden;
+    margin-bottom:30px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--gold), var(--gold-light));
+    transition:width .6s ease;
+    box-shadow:0 0 10px var(--gold);
+  }
+  .levels-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:20px;
+  }
+  .level-card{
+    background:linear-gradient(135deg, rgba(107,31,31,.3), rgba(61,40,23,.5));
+    border:2px solid var(--gold);
+    border-radius:15px;
+    padding:20px;
+    text-align:center;
+    cursor:pointer;
+    transition:all .3s;
+    position:relative;
+    overflow:hidden;
+  }
+  .level-card:hover:not(.locked){
+    transform:translateY(-5px);
+    box-shadow:0 10px 25px rgba(212,160,23,.3);
+    border-color:var(--gold-light);
+  }
+  .level-card.locked{ opacity:.5; cursor:not-allowed; filter:grayscale(.7); }
+  .level-card.completed{ border-color:var(--green); background:linear-gradient(135deg, rgba(46,125,50,.3), rgba(61,40,23,.5)); }
+  .level-card.current{ animation:glow 2s infinite; }
+  .level-icon{ font-size:48px; margin-bottom:10px; }
+  .level-name{ font-family:'Cinzel',serif; color:var(--gold); font-size:16px; font-weight:700; margin-bottom:5px; }
+  .level-desc{ font-size:12px; color:var(--cream); opacity:.8; }
+  .level-score{ margin-top:10px; font-size:13px; color:var(--gold-light); font-weight:600; }
+  .lock-icon{
+    position:absolute; top:10px; right:10px;
+    font-size:20px; color:#ff6b6b;
+  }
+
+  /* ========== GAME SCREEN ========== */
+  .game-container{
+    max-width:900px; margin:20px auto;
+  }
+  .level-header{
+    background:linear-gradient(135deg, var(--maroon), var(--brown));
+    border:2px solid var(--gold);
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+    text-align:center;
+  }
+  .level-header h2{
+    font-family:'Cinzel',serif;
+    color:var(--gold);
+    font-size:clamp(20px,3vw,28px);
+    margin-bottom:5px;
+  }
+  .level-header p{ color:var(--cream); font-size:14px; }
+  .question-card{
+    background:linear-gradient(135deg, rgba(61,40,23,.7), rgba(26,15,8,.8));
+    border:2px solid var(--gold);
+    border-radius:15px;
+    padding:25px;
+    margin-bottom:20px;
+    animation:fadeIn .5s;
+  }
+  .q-number{
+    color:var(--gold);
+    font-family:'Cinzel',serif;
+    font-size:14px;
+    margin-bottom:10px;
+  }
+  .q-text{
+    font-size:clamp(15px,2vw,18px);
+    line-height:1.6;
+    margin-bottom:20px;
+    color:var(--cream);
+  }
+  .q-image{
+    width:100%; max-width:400px;
+    margin:0 auto 20px;
+    display:block;
+    border:2px solid var(--gold);
+    border-radius:10px;
+  }
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .option{
+    background:rgba(0,0,0,.3);
+    border:2px solid rgba(212,160,23,.4);
+    border-radius:10px;
+    padding:14px 18px;
+    cursor:pointer;
+    transition:all .2s;
+    color:var(--cream);
+    font-size:15px;
+    text-align:left;
+    font-family:inherit;
+  }
+  .option:hover:not(:disabled){
+    border-color:var(--gold);
+    background:rgba(212,160,23,.15);
+    transform:translateX(5px);
+  }
+  .option.correct{
+    background:rgba(46,125,50,.4);
+    border-color:var(--green);
+    animation:pulse .5s;
+  }
+  .option.wrong{
+    background:rgba(198,40,40,.4);
+    border-color:var(--red);
+    animation:shake .4s;
+  }
+  .option:disabled{ cursor:not-allowed; }
+
+  /* Matching game (Level 2) */
+  .matching-container{
+    display:grid; grid-template-columns:1fr 1fr; gap:20px;
+  }
+  .match-col{ display:flex; flex-direction:column; gap:10px; }
+  .match-col h3{ color:var(--gold); font-family:'Cinzel',serif; margin-bottom:10px; text-align:center; }
+  .match-item{
+    background:rgba(0,0,0,.3);
+    border:2px solid rgba(212,160,23,.4);
+    border-radius:10px;
+    padding:12px;
+    cursor:pointer;
+    transition:all .2s;
+    font-size:14px;
+    text-align:center;
+  }
+  .match-item:hover{ border-color:var(--gold); }
+  .match-item.selected{ border-color:var(--gold-light); background:rgba(212,160,23,.2); box-shadow:0 0 10px var(--gold); }
+  .match-item.matched{ background:rgba(46,125,50,.3); border-color:var(--green); cursor:default; }
+  .match-item.wrong-flash{ background:rgba(198,40,40,.3); border-color:var(--red); animation:shake .4s; }
+
+  /* Feedback */
+  .feedback{
+    margin-top:20px; padding:15px;
+    border-radius:10px;
+    animation:fadeIn .4s;
+  }
+  .feedback.correct{ background:rgba(46,125,50,.2); border:2px solid var(--green); }
+  .feedback.wrong{ background:rgba(198,40,40,.2); border:2px solid var(--red); }
+  .feedback h4{ margin-bottom:8px; font-family:'Cinzel',serif; }
+  .feedback.correct h4{ color:#81c784; }
+  .feedback.wrong h4{ color:#ef9a9a; }
+  .feedback p{ font-size:14px; line-height:1.6; }
+
+  /* Hint */
+  .hint-box{
+    background:rgba(212,160,23,.15);
+    border:1px dashed var(--gold);
+    border-radius:10px;
+    padding:12px;
+    margin-top:15px;
+    font-size:14px;
+    display:none;
+  }
+  .hint-box.show{ display:block; animation:fadeIn .4s; }
+  .hint-box strong{ color:var(--gold-light); }
+
+  /* Level complete */
+  .level-complete{
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(135deg, rgba(46,125,50,.2), rgba(61,40,23,.5));
+    border:2px solid var(--green);
+    border-radius:15px;
+    margin-top:20px;
+  }
+  .level-complete h3{
+    font-family:'Cinzel',serif;
+    color:var(--gold);
+    font-size:24px;
+    margin-bottom:10px;
+  }
+  .bonus-badge{
+    display:inline-block;
+    background:linear-gradient(135deg, var(--gold), var(--gold-light));
+    color:var(--dark);
+    padding:6px 16px;
+    border-radius:20px;
+    font-weight:700;
+    margin:10px 0;
+    animation:pulse 1s infinite;
+  }
+
+  /* ========== END SCREEN ========== */
+  .certificate{
+    background:
+      linear-gradient(135deg, rgba(244,232,208,.95), rgba(212,160,23,.3)),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><circle cx='50' cy='50' r='40' fill='none' stroke='%236b1f1f22' stroke-width='1'/></svg>");
+    color:var(--dark);
+    border:8px double var(--maroon);
+    border-radius:15px;
+    padding:40px 30px;
+    max-width:700px;
+    margin:30px auto;
+    text-align:center;
+    box-shadow:0 15px 50px rgba(0,0,0,.5);
+    position:relative;
+  }
+  .certificate::before, .certificate::after{
+    content:"❖";
+    position:absolute;
+    color:var(--maroon);
+    font-size:24px;
+  }
+  .certificate::before{ top:10px; left:15px; }
+  .certificate::after{ bottom:10px; right:15px; }
+  .cert-header{
+    font-family:'Cinzel',serif;
+    color:var(--maroon);
+    font-size:14px;
+    letter-spacing:3px;
+    margin-bottom:10px;
+  }
+  .cert-title{
+    font-family:'Cinzel',serif;
+    color:var(--maroon);
+    font-size:clamp(22px,4vw,32px);
+    font-weight:900;
+    margin-bottom:20px;
+    border-bottom:2px solid var(--maroon);
+    padding-bottom:15px;
+  }
+  .cert-body{ font-size:15px; line-height:1.8; margin-bottom:20px; }
+  .cert-name{
+    font-family:'Cinzel',serif;
+    color:var(--maroon);
+    font-size:clamp(20px,3.5vw,28px);
+    font-weight:700;
+    margin:15px 0;
+    border-bottom:1px solid var(--maroon);
+    padding-bottom:8px;
+    display:inline-block;
+    min-width:250px;
+  }
+  .cert-rank{
+    font-family:'Cinzel',serif;
+    color:var(--gold);
+    font-size:18px;
+    font-weight:700;
+    background:var(--maroon);
+    padding:8px 20px;
+    border-radius:25px;
+    display:inline-block;
+    margin:10px 0;
+  }
+  .cert-footer{
+    display:flex; justify-content:space-around;
+    margin-top:30px;
+    font-size:13px;
+  }
+  .cert-footer div{ text-align:center; }
+  .cert-footer .sign{
+    border-top:1px solid var(--maroon);
+    padding-top:5px;
+    margin-top:30px;
+    min-width:150px;
+    font-family:'Cinzel',serif;
+  }
+
+  /* Leaderboard */
+  .leaderboard{
+    background:linear-gradient(135deg, rgba(61,40,23,.7), rgba(26,15,8,.8));
+    border:2px solid var(--gold);
+    border-radius:15px;
+    padding:20px;
+    max-width:600px;
+    margin:20px auto;
+  }
+  .leaderboard h3{
+    font-family:'Cinzel',serif;
+    color:var(--gold);
+    text-align:center;
+    margin-bottom:15px;
+  }
+  .lb-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 15px;
+    border-bottom:1px solid rgba(212,160,23,.2);
+    font-size:14px;
+  }
+  .lb-row:last-child{ border-bottom:none; }
+  .lb-row.top{ background:rgba(212,160,23,.15); border-radius:8px; }
+  .lb-rank{ font-weight:700; color:var(--gold); min-width:40px; }
+  .lb-name{ flex:1; margin:0 10px; }
+  .lb-score{ font-weight:700; color:var(--gold-light); }
+
+  /* Floating effects */
+  .sparkle{
+    position:fixed;
+    pointer-events:none;
+    font-size:24px;
+    animation:sparkle 1s ease-out forwards;
+    z-index:9999;
+  }
+
+  /* Responsive */
+  @media (max-width:600px){
+    .matching-container{ grid-template-columns:1fr; }
+    .top-bar{ font-size:12px; }
+    .stat{ padding:5px 10px; font-size:12px; }
+    .certificate{ padding:25px 15px; }
+  }
+
+  @media print{
+    body *{ visibility:hidden; }
+    .certificate, .certificate *{ visibility:visible; }
+    .certificate{ position:absolute; left:0; top:0; width:100%; border:8px double var(--maroon); }
+    .no-print{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="top-bar" id="topBar" style="display:none;">
+  <div class="stat">👥 <span id="teamName">-</span></div>
+  <div class="stat">⭐ Skor: <span id="totalScore">0</span></div>
+  <div class="stat lives" id="livesDisplay">❤️❤️❤️</div>
+  <div class="stat">⏱️ <span id="timer">00:00</span></div>
+</div>
+
+<!-- ============ INTRO SCREEN ============ -->
+<div class="screen active" id="intro">
+  <svg class="temple-svg" viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg">
+    <!-- Borobudur stylized -->
+    <defs>
+      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#d4a017"/>
+        <stop offset="1" stop-color="#6b1f1f"/>
+      </linearGradient>
+    </defs>
+    <!-- Base tiers -->
+    <rect x="30" y="200" width="240" height="20" fill="url(#g1)" stroke="#3d2817" stroke-width="2"/>
+    <rect x="50" y="175" width="200" height="25" fill="url(#g1)" stroke="#3d2817" stroke-width="2"/>
+    <rect x="70" y="150" width="160" height="25" fill="url(#g1)" stroke="#3d2817" stroke-width="2"/>
+    <rect x="90" y="125" width="120" height="25" fill="url(#g1)" stroke="#3d2817" stroke-width="2"/>
+    <rect x="110" y="100" width="80" height="25" fill="url(#g1)" stroke="#3d2817" stroke-width="2"/>
+    <!-- Stupas -->
+    <circle cx="150" cy="85" r="18" fill="#d4a017" stroke="#3d2817" stroke-width="2"/>
+    <polygon points="150,50 145,80 155,80" fill="#d4a017" stroke="#3d2817" stroke-width="2"/>
+    <circle cx="80" cy="145" r="8" fill="#d4a017" stroke="#3d2817" stroke-width="1.5"/>
+    <circle cx="220" cy="145" r="8" fill="#d4a017" stroke="#3d2817" stroke-width="1.5"/>
+    <circle cx="100" cy="120" r="7" fill="#d4a017" stroke="#3d2817" stroke-width="1.5"/>
+    <circle cx="200" cy="120" r="7" fill="#d4a017" stroke="#3d2817" stroke-width="1.5"/>
+    <!-- Ground -->
+    <rect x="0" y="220" width="300" height="30" fill="#3d2817"/>
+    <text x="150" y="240" text-anchor="middle" fill="#d4a017" font-family="Cinzel" font-size="10" font-weight="700">NUSANTARA</text>
+  </svg>
+
+  <h1 class="title">Petualangan Nusantara</h1>
+  <p class="subtitle">Misteri Jejak Hindu-Buddha</p>
+
+  <div class="intro-card">
+    <p>🏛️ Selamat datang, Penjelajah Sejarah!</p>
+    <p>Kamu akan mengungkap misteri masuk dan berkembangnya agama Hindu-Buddha di Nusantara. Selesaikan <b>5 misi petualangan</b> untuk meraih gelar <b>Penjelajah Sejarah Nusantara</b>.</p>
+    <p>⏱️ Durasi: <b>60 menit</b> | 🎯 Target: <b>250 poin</b> | ❤️ Nyawa: <b>3 per level</b></p>
+
+    <div class="input-group">
+      <label>👥 Nama Kelompok / Pemain:</label>
+      <input type="text" id="teamInput" placeholder="Contoh: Kelompok Cendekia" maxlength="30">
+    </div>
+    <div class="input-group">
+      <label>🏫 Kelas:</label>
+      <input type="text" id="classInput" placeholder="Contoh: X TSM 1" value="X TSM">
+    </div>
+
+    <button class="btn" onclick="startGame()">🚀 MULAI PETUALANGAN</button>
+    <br><br>
+    <button class="btn btn-secondary btn-small" onclick="showLeaderboard()">🏆 Papan Peringkat</button>
+  </div>
+</div>
+
+<!-- ============ MAP SCREEN ============ -->
+<div class="screen" id="map">
+  <div class="map-container">
+    <h2 class="map-title">🗺️ Peta Perjalanan Petualangan</h2>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <p style="text-align:center; margin-bottom:20px; opacity:.8;">Progres: <span id="progressText">0/5</span> Misi Selesai</p>
+    <div class="levels-grid" id="levelsGrid"></div>
+    <div style="text-align:center; margin-top:25px;">
+      <button class="btn btn-secondary btn-small" onclick="showLeaderboard()">🏆 Papan Peringkat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GAME SCREEN ============ -->
+<div class="screen" id="game">
+  <div class="game-container" id="gameContainer"></div>
+</div>
+
+<!-- ============ END SCREEN ============ -->
+<div class="screen" id="end">
+  <div id="endContent"></div>
+</div>
+
+<!-- ============ LEADERBOARD MODAL ============ -->
+<div class="screen" id="lbScreen">
+  <div class="leaderboard">
+    <h3>🏆 Papan Peringkat Penjelajah</h3>
+    <div id="lbList"></div>
+    <div style="text-align:center; margin-top:20px;">
+      <button class="btn btn-secondary btn-small" onclick="closeLB()">← Kembali</button>
+      <button class="btn btn-small" onclick="clearLB()" style="background:var(--red); color:white;">🗑️ Hapus Semua</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA SOAL - AKURAT SECARA HISTORIS
+============================================================ */
+const LEVELS = [
+  {
+    id:1,
+    name:"Gerbang Sejarah",
+    icon:"🚪",
+    desc:"Teori masuknya Hindu-Buddha ke Indonesia",
+    time:480,
+    questions:[
+      {
+        q:"Menurut teori Brahmana, agama Hindu-Buddha dibawa ke Indonesia oleh kaum Brahmana (pendeta). Teori ini dikemukakan oleh...",
+        options:["J.C. Van Leur","N.J. Krom","F.D.K. Bosch","C.C. Berg"],
+        correct:0,
+        explanation:"Teori Brahmana dikemukakan oleh <b>J.C. Van Leur</b>. Ia berpendapat bahwa agama Hindu-Buddha dibawa oleh kaum Brahmana yang diundang oleh penguasa Indonesia kuno untuk menahbiskan raja dan memimpin upacara.",
+        hint:"Ingat nama sejarawan Belanda yang mengkritik teori India-sentris."
+      },
+      {
+        q:"Teori Ksatria menyatakan bahwa agama Hindu-Buddha dibawa oleh para prajurit/raja yang mengalami kekalahan perang di India. Tokoh yang mendukung teori ini adalah...",
+        options:["N.J. Krom","C.C. Berg dan Moens","F.D.K. Bosch","J.C. Van Leur"],
+        correct:1,
+        explanation:"Teori Ksatria didukung oleh <b>C.C. Berg, Moens, dan Balambam</b>. Mereka berpendapat bahwa kaum ksatria India yang kalah perang datang ke Indonesia dan mendirikan koloni.",
+        hint:"Teori ini berkaitan dengan prajurit/kaum militer."
+      },
+      {
+        q:"Teori Waisya menyatakan bahwa agama Hindu-Buddha disebarkan oleh para pedagang India yang berdagang di Nusantara. Teori ini dikemukakan oleh...",
+        options:["F.D.K. Bosch","J.C. Van Leur","N.J. Krom","C.C. Berg"],
+        correct:2,
+        explanation:"Teori Waisya dikemukakan oleh <b>N.J. Krom</b>. Ia menekankan peran pedagang India yang menikah dengan wanita lokal dan menyebarkan agama melalui jalur perdagangan.",
+        hint:"Waisya = kasta pedagang. Siapa sejarawan yang fokus pada perdagangan?"
+      },
+      {
+        q:"Teori Arus Balik menyatakan bahwa orang Indonesia sendiri yang aktif pergi ke India untuk belajar agama, lalu kembali dan menyebarkannya. Teori ini dikemukakan oleh...",
+        options:["N.J. Krom","C.C. Berg","J.C. Van Leur","F.D.K. Bosch"],
+        correct:3,
+        explanation:"Teori Arus Balik dikemukakan oleh <b>F.D.K. Bosch</b>. Ia berpendapat bahwa orang Indonesia aktif mempelajari agama Hindu-Buddha di India (seperti di Universitas Nalanda), lalu pulang dan menyebarkannya.",
+        hint:"Teori ini menekankan peran aktif orang Indonesia sendiri."
+      },
+      {
+        q:"Bukti tertua masuknya pengaruh Hindu di Indonesia adalah ditemukannya prasasti Yupa di Kutai (Kalimantan Timur) yang beraksara Pallawa dan berbahasa Sanskerta, diperkirakan berasal dari abad...",
+        options:["Abad 2 Masehi","Abad 4-5 Masehi","Abad 7-8 Masehi","Abad 13 Masehi"],
+        correct:1,
+        explanation:"Prasasti Yupa di Kutai berasal dari <b>abad ke-4 sampai ke-5 Masehi</b>. Ini merupakan bukti tertulis tertua pengaruh Hindu di Nusantara, menyebutkan raja Mulawarman yang mengadakan upacara wratiwya (kuda).",
+        hint:"Prasasti tertua di Indonesia, sangat kuno."
+      }
+    ]
+  },
+  {
+    id:2,
+    name:"Misteri Kerajaan Nusantara",
+    icon:"🏰",
+    desc:"Cocokkan kerajaan dengan informasinya",
+    time:600,
+    type:"matching",
+    pairs:[
+      {kingdom:"Kutai", info:"Kerajaan Hindu tertua di Indonesia, terletak di Kalimantan Timur, terkenal dengan prasasti Yupa dan raja Mulawarman."},
+      {kingdom:"Tarumanegara", info:"Kerajaan Hindu di Jawa Barat, dipimpin Raja Purnawarman, meninggalkan prasasti Ciaruteun dengan telapak kaki Wisnu."},
+      {kingdom:"Sriwijaya", info:"Kerajaan Buddha terbesar di Sumatera, menjadi pusat pembelajaran agama Buddha dan perdagangan maritim, dipimpin Balaputradewa."},
+      {kingdom:"Mataram Kuno", info:"Kerajaan di Jawa Tengah yang menghasilkan Candi Borobudur (Dinasti Sailendra-Buddha) dan Candi Prambanan (Dinasti Sanjaya-Hindu)."},
+      {kingdom:"Majapahit", info:"Kerajaan Hindu-Buddha terbesar di Jawa Timur, mencapai puncak kejayaan pada masa Hayam Wuruk dengan Mahapatih Gajah Mada dan Sumpah Palapa."}
+    ]
+  },
+  {
+    id:3,
+    name:"Pemburu Peninggalan Sejarah",
+    icon:"🏺",
+    desc:"Identifikasi peninggalan Hindu-Buddha",
+    time:600,
+    questions:[
+      {
+        q:"Peninggalan berupa 7 buah prasasti yang ditulis pada tiang batu (yupa) menggunakan aksara Pallawa dan bahasa Sanskerta. Prasasti ini berasal dari kerajaan Hindu tertua di Indonesia, yaitu...",
+        options:["Tarumanegara","Kutai","Sriwijaya","Majapahit"],
+        correct:1,
+        explanation:"<b>Prasasti Yupa</b> berasal dari <b>Kerajaan Kutai</b> (Kalimantan Timur), abad ke-4-5 M. Prasasti ini menceritakan upacara wratiwya (kurban kuda) yang dilakukan Raja Mulawarman.",
+        hint:"Kerajaan Hindu tertua di Indonesia, di Kalimantan."
+      },
+      {
+        q:"Prasasti yang memuat gambar telapak kaki Raja Purnawarman yang disamakan dengan telapak kaki Dewa Wisnu. Prasasti ini berasal dari kerajaan...",
+        options:["Kutai","Mataram Kuno","Tarumanegara","Sriwijaya"],
+        correct:2,
+        explanation:"<b>Prasasti Ciaruteun</b> berasal dari <b>Kerajaan Tarumanegara</b> di Jawa Barat. Prasasti ini memuat telapak kaki Raja Purnawarman yang dianalogikan dengan kaki Dewa Wisnu, menunjukkan kekuasaan sakral raja.",
+        hint:"Ada gambar telapak kaki, dari Jawa Barat."
+      },
+      {
+        q:"Candi Buddha terbesar di dunia yang dibangun oleh Dinasti Sailendra pada abad ke-8 M. Memiliki struktur mandala dengan relief kisah Lalitavistara. Candi ini adalah...",
+        options:["Candi Prambanan","Candi Borobudur","Candi Mendut","Candi Penataran"],
+        correct:1,
+        explanation:"<b>Candi Borobudur</b> dibangun oleh <b>Dinasti Sailendra</b> pada abad ke-8 M di Magelang, Jawa Tengah. Merupakan candi Buddha terbesar di dunia dengan 10 tingkat, 504 arca Buddha, dan 2.672 panel relief.",
+        hint:"Candi Buddha terbesar di dunia, di Jawa Tengah."
+      },
+      {
+        q:"Candi Hindu terbesar di Indonesia yang dibangun pada abad ke-9 M oleh Dinasti Sanjaya (Rakai Pikatan). Terdiri dari kompleks candi untuk Trimurti (Brahma, Wisnu, Siwa). Candi ini adalah...",
+        options:["Candi Borobudur","Candi Prambanan","Candi Dieng","Candi Sukuh"],
+        correct:1,
+        explanation:"<b>Candi Prambanan</b> dibangun oleh <b>Dinasti Sanjaya</b> pada abad ke-9 M di Yogyakarta. Merupakan candi Hindu terbesar di Indonesia, dipersembahkan untuk Trimurti (Siwa, Wisnu, Brahma) dan memuat relief kisah Ramayana.",
+        hint:"Candi Hindu, relief Ramayana, di Yogyakarta."
+      },
+      {
+        q:"Kitab sastra yang ditulis oleh Mpu Prapanca pada masa kerajaan Majapahit (1365 M). Kitab ini menceritakan perjalanan Hayam Wuruk dan merupakan sumber utama sejarah Majapahit. Kitab ini adalah...",
+        options:["Kitab Arjunawiwaha","Kitab Sutasoma","Kitab Negarakertagama","Kitab Bharatayudha"],
+        correct:2,
+        explanation:"<b>Kitab Negarakertagama</b> ditulis oleh <b>Mpu Prapanca</b> pada tahun 1365 M pada masa Kerajaan Majapahit. Kitab ini merupakan sumber utama sejarah Majapahit, menyebutkan wilayah kekuasaan Majapahit yang sangat luas (sesuai Sumpah Palapa Gajah Mada).",
+        hint:"Kitab karya Mpu Prapanca, tentang Majapahit."
+      }
+    ]
+  },
+  {
+    id:4,
+    name:"Dampak Hindu-Buddha bagi Indonesia",
+    icon:"💫",
+    desc:"Analisis pengaruh dalam berbagai bidang",
+    time:600,
+    questions:[
+      {
+        q:"Sebelum Hindu-Buddha masuk, masyarakat Indonesia hidup dalam kelompok suku dengan pemimpin suku (primus inter pares). Setelah masuknya Hindu-Buddha, muncul sistem pemerintahan berbentuk kerajaan dengan raja sebagai pemimpin yang dianggap keturunan dewa (dewaraja). Pengaruh ini terjadi dalam bidang...",
+        options:["Ekonomi","Sosial","Pemerintahan","Seni"],
+        correct:2,
+        explanation:"Masuknya Hindu-Buddha mengubah sistem <b>pemerintahan</b> dari kepemimpinan suku (primus inter pares) menjadi sistem kerajaan (monarki) dengan konsep dewaraja. Raja dianggap wakil dewa di dunia dan jabatannya diwariskan secara turun-temurun.",
+        hint:"Berkaitan dengan sistem kepemimpinan dan raja."
+      },
+      {
+        q:"Sebelum Hindu-Buddha masuk, masyarakat Indonesia belum mengenal tulisan. Setelah masuknya pengaruh India, masyarakat Indonesia mengenal aksara Pallawa dan bahasa Sanskerta, yang kemudian berkembang menjadi aksara Jawa Kuno, Sunda Kuno, dan Bali. Pengaruh ini terjadi dalam bidang...",
+        options:["Bahasa dan Tulisan","Arsitektur","Sastra","Agama"],
+        correct:0,
+        explanation:"Pengaruh Hindu-Buddha memperkenalkan <b>aksara Pallawa dan bahasa Sanskerta</b> ke Indonesia. Dari sinilah berkembang aksara daerah seperti Jawa Kuno (kawi), Sunda Kuno, Bali, dan Bugis. Ini menjadi awal peradaban tulis di Nusantara.",
+        hint:"Berkaitan dengan huruf dan bahasa."
+      },
+      {
+        q:"Pembangunan Candi Borobudur, Prambanan, dan candi-candi lainnya menunjukkan pengaruh Hindu-Buddha dalam bidang seni dan arsitektur. Arsitektur candi di Indonesia merupakan perpaduan antara...",
+        options:["Arsitektur India murni tanpa perubahan","Arsitektur India dengan konsep punden berundak lokal Indonesia","Arsitektur Cina dengan ornamen India","Arsitektur Timur Tengah dengan gaya India"],
+        correct:1,
+        explanation:"Arsitektur candi di Indonesia merupakan <b>akulturasi antara arsitektur India dengan tradisi punden berundak lokal Indonesia</b>. Bentuk candi yang bertingkat-tingkat (seperti Borobudur) mencerminkan konsep punden berundak warisan nenek moyang Indonesia yang digunakan untuk pemujaan roh leluhur.",
+        hint:"Ada perpaduan antara budaya asing dan budaya lokal asli Indonesia."
+      },
+      {
+        q:"Munculnya karya-karya sastra besar seperti Kitab Ramayana, Mahabharata (versi Jawa), Arjunawiwaha karya Mpu Gandring, dan Negarakertagama karya Mpu Prapanca menunjukkan pengaruh Hindu-Buddha dalam bidang...",
+        options:["Seni Bangunan","Sastra","Hukum","Politik"],
+        correct:1,
+        explanation:"Pengaruh Hindu-Buddha melahirkan <b>karya sastra besar</b> di Indonesia seperti Ramayana, Mahabharata (versi Jawa/Kakawin), Arjunawiwaha, Bharatayudha, dan Negarakertagama. Karya-karya ini ditulis dalam bentuk kakawin (puisi Jawa Kuno).",
+        hint:"Berkaitan dengan karya tulis, puisi, dan cerita."
+      },
+      {
+        q:"Upacara adat seperti Ngaben di Bali, upacara Kasada di Tengger, dan berbagai upacara adat lainnya yang memadukan unsur Hindu dengan kepercayaan lokal menunjukkan pengaruh Hindu-Buddha dalam bidang...",
+        options:["Sosial dan Budaya","Ekonomi","Teknologi","Militer"],
+        correct:0,
+        explanation:"Pengaruh Hindu-Buddha dalam bidang <b>sosial dan budaya</b> terlihat dari upacara adat yang memadukan unsur Hindu dengan kepercayaan lokal (akulturasi). Contoh: Ngaben di Bali (Hindu + kepercayaan lokal), upacara Kasada Tengger, Sekaten di Jawa, dan sistem kalender Saka.",
+        hint:"Berkaitan dengan tradisi, upacara, dan kehidupan masyarakat."
+      }
+    ]
+  },
+  {
+    id:5,
+    name:"Boss Battle: Sang Penjaga Sejarah",
+    icon:"👑",
+    desc:"Soal HOTS tingkat tinggi",
+    time:720,
+    questions:[
+      {
+        q:"Agama Hindu-Buddha dapat berkembang pesat di Nusantara pada abad ke-4 hingga ke-15 M. Faktor UTAMA yang menyebabkan berkembangnya agama tersebut di Nusantara adalah...",
+        options:[
+          "Penaklukan wilayah Indonesia oleh kerajaan-kerajaan India",
+          "Posisi strategis Nusantara di jalur perdagangan internasional India-Cina",
+          "Kekayaan alam Indonesia yang dipaksakan diambil oleh India",
+          "Perintah langsung dari Kaisar India untuk menyebarkan agama"
+        ],
+        correct:1,
+        explanation:"Faktor utama adalah <b>posisi strategis Nusantara di jalur perdagangan internasional India-Cina</b>. Nusantara menjadi tempat persinggahan pedagang yang membawa agama, budaya, dan ilmu pengetahuan. Interaksi intensif ini memungkinkan proses akulturasi berjalan alami tanpa penaklukan.",
+        hint:"Pikirkan letak geografis Indonesia di antara dua negara besar."
+      },
+      {
+        q:"Perhatikan ciri-ciri berikut: (1) Memiliki candi untuk dewa Trimurti, (2) Mengenal sistem kasta, (3) Kitab suci Weda. Ciri-ciri tersebut merupakan karakteristik agama...",
+        options:[
+          "Buddha, karena mengenal konsep Trimurti",
+          "Hindu, karena mengenal Trimurti, kasta, dan kitab Weda",
+          "Hindu-Buddha sinkretis, karena menggabungkan keduanya",
+          "Kepercayaan lokal, karena mengenal dewa-dewa"
+        ],
+        correct:1,
+        explanation:"Ciri-ciri tersebut adalah karakteristik <b>agama Hindu</b>: mengenal Trimurti (Brahma-Wisnu-Siwa), sistem kasta (Brahmana-Ksatria-Waisya-Sudra), dan kitab suci Weda. Agama Buddha tidak mengenal kasta dan Trimurti, kitab sucinya Tripitaka.",
+        hint:"Bedakan ciri khas Hindu dan Buddha."
+      },
+      {
+        q:"Kerajaan Sriwijaya di Sumatera berkembang menjadi kerajaan maritim terbesar di Asia Tenggara pada abad ke-7 hingga ke-13 M. Hubungan antara perkembangan Sriwijaya dengan jalur perdagangan adalah...",
+        options:[
+          "Sriwijaya menolak pedagang asing untuk menjaga kemurnian budaya",
+          "Sriwijaya menguasai Selat Malaka sebagai jalur perdagangan, sehingga menjadi pusat perdagangan dan penyebaran agama Buddha",
+          "Sriwijaya hanya mengandalkan pertanian, bukan perdagangan",
+          "Sriwijaya dijajah oleh kerajaan India sehingga maju"
+        ],
+        correct:1,
+        explanation:"<b>Sriwijaya menguasai Selat Malaka</b>, jalur perdagangan utama India-Cina. Dengan penguasaan ini, Sriwijaya menjadi pusat perdagangan internasional sekaligus pusat pembelajaran agama Buddha (I-Tsing, pendeta Cina, belajar di sana). Kekayaan dari perdagangan mendukung perkembangan budaya dan agama.",
+        hint:"Pikirkan letak geografis Sumatera dan selat pentingnya."
+      },
+      {
+        q:"Pengaruh Hindu-Buddha masih terlihat jelas dalam kehidupan masyarakat Indonesia modern. Contoh yang PALING TEPAT menunjukkan pengaruh tersebut masih ada saat ini adalah...",
+        options:[
+          "Sistem pemerintahan presidensial di Indonesia",
+          "Semboyan 'Bhinneka Tunggal Ika' dari Kitab Sutasoma, nama negara-negara (Indonesia), dan upacara adat seperti Ngaben",
+          "Penggunaan bahasa Inggris sebagai bahasa internasional",
+          "Sistem pendidikan modern di sekolah-sekolah"
+        ],
+        correct:1,
+        explanation:"Pengaruh Hindu-Buddha masih hidup dalam: <b>semboyan 'Bhinneka Tunggal Ika'</b> (dari Kitab Sutasoma karya Mpu Tantular), <b>nama 'Indonesia'</b> (dari kata Indus = Hindu), lambang Garuda Pancasila (Garuda wahana Wisnu), upacara Ngaben di Bali, sistem kalender Saka (Tahun Baru Saka), dan wayang yang mengangkat kisah Mahabharata/Ramayana.",
+        hint:"Cari yang berasal dari warisan Hindu-Buddha dan masih ada sekarang."
+      },
+      {
+        q:"Masuknya budaya Hindu-Buddha tidak menghapus budaya asli Indonesia, melainkan terjadi akulturasi. Contoh akulturasi yang PALING TEPAT antara budaya lokal dengan Hindu-Buddha adalah...",
+        options:[
+          "Candi di Indonesia sama persis dengan candi di India tanpa perubahan",
+          "Bentuk candi di Indonesia mengadopsi konsep punden berundak lokal yang dipadukan dengan arsitektur India",
+          "Masyarakat Indonesia sepenuhnya meninggalkan kepercayaan animisme",
+          "Sistem kasta di Indonesia sama kuatnya dengan di India"
+        ],
+        correct:1,
+        explanation:"<b>Akulturasi</b> = perpaduan dua budaya tanpa menghilangkan budaya asli. Contoh paling tepat: bentuk candi di Indonesia (seperti Borobudur) mengadopsi <b>konsep punden berundak</b> (budaya megalitikum lokal untuk pemujaan roh leluhur) yang dipadukan dengan arsitektur India. Contoh lain: konsep dewaraja dipadukan dengan kepercayaan roh leluhur, wayang yang mengadaptasi epos India dengan gaya Jawa.",
+        hint:"Akulturasi = perpaduan yang menghasilkan bentuk baru khas Indonesia."
+      }
+    ]
+  }
+];
+
+/* ============================================================
+   STATE GAME
+============================================================ */
+let state = {
+  teamName:"",
+  className:"",
+  currentLevel:0,
+  totalScore:0,
+  levelScores:[0,0,0,0,0],
+  levelCompleted:[false,false,false,false,false],
+  lives:3,
+  mistakes:0,
+  currentQ:0,
+  timeLeft:0,
+  timerId:null,
+  matchState:null
+};
+
+/* ============================================================
+   AUDIO (Web Audio API - tanpa file eksternal)
+============================================================ */
+let audioCtx = null;
+function initAudio(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  }
+}
+function playTone(freq, duration, type='sine', vol=0.15){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+function sfxCorrect(){
+  initAudio();
+  playTone(523,0.1,'sine',0.2);
+  setTimeout(()=>playTone(659,0.1,'sine',0.2),100);
+  setTimeout(()=>playTone(784,0.2,'sine',0.2),200);
+}
+function sfxWrong(){
+  initAudio();
+  playTone(300,0.15,'sawtooth',0.15);
+  setTimeout(()=>playTone(200,0.25,'sawtooth',0.15),150);
+}
+function sfxClick(){ initAudio(); playTone(800,0.05,'square',0.08); }
+function sfxLevelUp(){
+  initAudio();
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,0.15,'sine',0.2),i*120));
+}
+function sfxVictory(){
+  initAudio();
+  const notes = [523,659,784,1047,784,1047,1319];
+  notes.forEach((f,i)=>setTimeout(()=>playTone(f,0.2,'triangle',0.2),i*150));
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ============================================================
+   START GAME
+============================================================ */
+function startGame(){
+  const team = document.getElementById('teamInput').value.trim();
+  const cls = document.getElementById('classInput').value.trim();
+  if(!team){ alert('⚠️ Masukkan nama kelompok/pemain terlebih dahulu!'); return; }
+  state.teamName = team;
+  state.className = cls || 'X TSM';
+  state.currentLevel = 0;
+  state.totalScore = 0;
+  state.levelScores = [0,0,0,0,0];
+  state.levelCompleted = [false,false,false,false,false];
+  document.getElementById('topBar').style.display = 'flex';
+  document.getElementById('teamName').textContent = team;
+  updateHUD();
+  sfxClick();
+  renderMap();
+  showScreen('map');
+}
+
+/* ============================================================
+   HUD
+============================================================ */
+function updateHUD(){
+  document.getElementById('totalScore').textContent = state.totalScore;
+  let hearts = '';
+  for(let i=0;i<state.lives;i++) hearts += '❤️';
+  for(let i=state.lives;i<3;i++) hearts += '🖤';
+  document.getElementById('livesDisplay').innerHTML = hearts;
+}
+
+function startTimer(seconds){
+  clearInterval(state.timerId);
+  state.timeLeft = seconds;
+  updateTimerDisplay();
+  state.timerId = setInterval(()=>{
+    state.timeLeft--;
+    updateTimerDisplay();
+    if(state.timeLeft<=0){
+      clearInterval(state.timerId);
+      timeUp();
+    }
+  },1000);
+}
+function updateTimerDisplay(){
+  const m = Math.floor(state.timeLeft/60);
+  const s = state.timeLeft%60;
+  document.getElementById('timer').textContent =
+    String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function timeUp(){
+  alert('⏰ Waktu habis untuk level ini! Kamu akan lanjut ke level berikutnya.');
+  finishLevel();
+}
+
+/* ============================================================
+   MAP
+============================================================ */
+function renderMap(){
+  const grid = document.getElementById('levelsGrid');
+  grid.innerHTML = '';
+  LEVELS.forEach((lv,i)=>{
+    const completed = state.levelCompleted[i];
+    const locked = i>0 && !state.levelCompleted[i-1];
+    const current = !completed && !locked;
+    const card = document.createElement('div');
+    card.className = 'level-card' + (completed?' completed':'') + (locked?' locked':'') + (current?' current':'');
+    card.innerHTML = `
+      ${locked?'<div class="lock-icon">🔒</div>':''}
+      <div class="level-icon">${lv.icon}</div>
+      <div class="level-name">Level ${lv.id}: ${lv.name}</div>
+      <div class="level-desc">${lv.desc}</div>
+      <div class="level-score">${completed?'✅ Selesai | Skor: '+state.levelScores[i]:locked?'Terkunci':'🎯 Siap Dimainkan'}</div>
+    `;
+    if(!locked){
+      card.onclick = ()=>{ sfxClick(); startLevel(i); };
+    }
+    grid.appendChild(card);
+  });
+  const done = state.levelCompleted.filter(x=>x).length;
+  document.getElementById('progressFill').style.width = (done/5*100)+'%';
+  document.getElementById('progressText').textContent = done+'/5';
+}
+
+/* ============================================================
+   START LEVEL
+============================================================ */
+function startLevel(levelIdx){
+  state.currentLevel = levelIdx;
+  state.currentQ = 0;
+  state.mistakes = 0;
+  state.lives = 3;
+  updateHUD();
+  const lv = LEVELS[levelIdx];
+  startTimer(lv.time);
+  if(lv.type === 'matching'){
+    renderMatching();
+  } else {
+    renderQuestion();
+  }
+  showScreen('game');
+}
+
+/* ============================================================
+   MULTIPLE CHOICE
+============================================================ */
+function renderQuestion(){
+  const lv = LEVELS[state.currentLevel];
+  const q = lv.questions[state.currentQ];
+  const container = document.getElementById('gameContainer');
+  container.innerHTML = `
+    <div class="level-header">
+      <h2>${lv.icon} Level ${lv.id}: ${lv.name}</h2>
+      <p>Soal ${state.currentQ+1} dari ${lv.questions.length}</p>
+    </div>
+    <div class="question-card">
+      <div class="q-number">📜 Pertanyaan ${state.currentQ+1}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options" id="optionsBox">
+        ${q.options.map((o,i)=>`<button class="option" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      </div>
+      <div class="hint-box" id="hintBox"><strong>💡 Petunjuk:</strong> ${q.hint}</div>
+      <div style="text-align:center; margin-top:15px;">
+        <button class="btn btn-secondary btn-small" onclick="showHint()">💡 Tampilkan Petunjuk</button>
+      </div>
+      <div id="feedbackBox"></div>
+    </div>
+  `;
+}
+
+function showHint(){
+  document.getElementById('hintBox').classList.add('show');
+  sfxClick();
+}
+
+function selectAnswer(idx){
+  const lv = LEVELS[state.currentLevel];
+  const q = lv.questions[state.currentQ];
+  const btns = document.querySelectorAll('#optionsBox .option');
+  btns.forEach(b=>b.disabled = true);
+
+  if(idx === q.correct){
+    btns[idx].classList.add('correct');
+    state.totalScore += 10;
+    state.levelScores[state.currentLevel] += 10;
+    sfxCorrect();
+    sparkleAt(btns[idx]);
+    document.getElementById('feedbackBox').innerHTML = `
+      <div class="feedback correct">
+        <h4>✅ BENAR! +10 Poin</h4>
+        <p>${q.explanation}</p>
+      </div>
+    `;
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.correct].classList.add('correct');
+    state.mistakes++;
+    state.lives--;
+    sfxWrong();
+    document.getElementById('feedbackBox').innerHTML = `
+      <div class="feedback wrong">
+        <h4>❌ Kurang Tepat</h4>
+        <p><b>Jawaban benar:</b> ${String.fromCharCode(65+q.correct)}. ${q.options[q.correct]}</p>
+        <p>${q.explanation}</p>
+      </div>
+    `;
+  }
+  updateHUD();
+
+  setTimeout(()=>{
+    if(state.lives <= 0){
+      clearInterval(state.timerId);
+      alert('💔 Nyawa habis! Level ini selesai.');
+      finishLevel();
+      return;
+    }
+    state.currentQ++;
+    if(state.currentQ >= lv.questions.length){
+      finishLevel();
+    } else {
+      renderQuestion();
+    }
+  }, 2800);
+}
+
+/* ============================================================
+   MATCHING GAME (LEVEL 2)
+============================================================ */
+function renderMatching(){
+  const lv = LEVELS[state.currentLevel];
+  state.matchState = {
+    pairs: [...lv.pairs],
+    selectedKingdom:null,
+    matchedCount:0,
+    shuffledInfo: shuffle([...lv.pairs])
+  };
+  const container = document.getElementById('gameContainer');
+  container.innerHTML = `
+    <div class="level-header">
+      <h2>${lv.icon} Level ${lv.id}: ${lv.name}</h2>
+      <p>Cocokkan kerajaan dengan informasi yang tepat! (${state.matchState.matchedCount}/${lv.pairs.length})</p>
+    </div>
+    <div class="question-card">
+      <div class="matching-container">
+        <div class="match-col">
+          <h3>🏰 Kerajaan</h3>
+          <div id="kingdomCol">
+            ${lv.pairs.map((p,i)=>`<div class="match-item" data-type="kingdom" data-idx="${i}" onclick="selectMatch(this,'kingdom',${i})">${p.kingdom}</div>`).join('')}
+          </div>
+        </div>
+        <div class="match-col">
+          <h3>📖 Informasi</h3>
+          <div id="infoCol">
+            ${state.matchState.shuffledInfo.map((p,i)=>`<div class="match-item" data-type="info" data-kingdom="${p.kingdom}" onclick="selectMatch(this,'info','${p.kingdom}')">${p.info.substring(0,80)}...</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="hint-box show" style="margin-top:20px;">
+        <strong>💡 Cara Bermain:</strong> Klik satu kerajaan di kiri, lalu klik informasi yang sesuai di kanan. Cocokkan semua 5 pasangan!
+      </div>
+      <div id="feedbackBox"></div>
+    </div>
+  `;
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function selectMatch(el, type, val){
+  if(el.classList.contains('matched')) return;
+  const ms = state.matchState;
+
+  if(type === 'kingdom'){
+    document.querySelectorAll('[data-type="kingdom"]').forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    ms.selectedKingdom = val;
+    sfxClick();
+  } else if(type === 'info'){
+    if(ms.selectedKingdom === null){
+      alert('⚠️ Pilih kerajaan terlebih dahulu!');
+      return;
+    }
+    const kingdomName = LEVELS[state.currentLevel].pairs[ms.selectedKingdom].kingdom;
+    if(val === kingdomName){
+      // Correct match
+      el.classList.add('matched');
+      document.querySelector(`[data-type="kingdom"][data-idx="${ms.selectedKingdom}"]`).classList.add('matched');
+      ms.matchedCount++;
+      state.totalScore += 10;
+      state.levelScores[state.currentLevel] += 10;
+      sfxCorrect();
+      sparkleAt(el);
+      document.querySelector('.level-header p').textContent = `Cocokkan kerajaan dengan informasi yang tepat! (${ms.matchedCount}/${LEVELS[state.currentLevel].pairs.length})`;
+      ms.selectedKingdom = null;
+      updateHUD();
+      if(ms.matchedCount === LEVELS[state.currentLevel].pairs.length){
+        setTimeout(()=>finishLevel(),1000);
+      }
+    } else {
+      // Wrong match
+      el.classList.add('wrong-flash');
+      setTimeout(()=>el.classList.remove('wrong-flash'),500);
+      state.mistakes++;
+      state.lives--;
+      sfxWrong();
+      updateHUD();
+      if(state.lives <= 0){
+        clearInterval(state.timerId);
+        alert('💔 Nyawa habis! Level ini selesai.');
+        finishLevel();
+      }
+    }
+  }
+}
+
+/* ============================================================
+   FINISH LEVEL
+============================================================ */
+function finishLevel(){
+  clearInterval(state.timerId);
+  const lv = LEVELS[state.currentLevel];
+  const totalQ = lv.type==='matching' ? lv.pairs.length : lv.questions.length;
+  const perfect = state.mistakes === 0;
+  let bonus = 0;
+  if(perfect){
+    bonus = 20;
+    state.totalScore += 20;
+    state.levelScores[state.currentLevel] += 20;
+  }
+  state.levelCompleted[state.currentLevel] = true;
+  sfxLevelUp();
+
+  const container = document.getElementById('gameContainer');
+  container.innerHTML = `
+    <div class="level-complete">
+      <h3>🎉 Level ${lv.id} Selesai!</h3>
+      <p>${lv.name}</p>
+      <div style="margin:20px 0; font-size:18px;">
+        <p>Skor Level: <b style="color:var(--gold);">${state.levelScores[state.currentLevel]} poin</b></p>
+        <p>Kesalahan: <b>${state.mistakes}</b></p>
+        ${perfect?`<div class="bonus-badge">🌟 BONUS SEMPURNA +20 POIN!</div>`:''}
+      </div>
+      <button class="btn" onclick="backToMap()">🗺️ Lanjut ke Peta</button>
+    </div>
+  `;
+}
+
+function backToMap(){
+  sfxClick();
+  renderMap();
+  showScreen('map');
+  // Check if all levels completed
+  if(state.levelCompleted.every(x=>x)){
+    setTimeout(()=>showEndScreen(),500);
+  }
+}
+
+/* ============================================================
+   END SCREEN + CERTIFICATE
+============================================================ */
+function showEndScreen(){
+  sfxVictory();
+  const total = state.totalScore;
+  let rank = '', rankIcon = '';
+  if(total >= 230){ rank = "Penjelajah Legendaris Nusantara"; rankIcon = "👑"; }
+  else if(total >= 180){ rank = "Ahli Sejarah Nusantara"; rankIcon = "🏆"; }
+  else if(total >= 130){ rank = "Penjelajah Mahir"; rankIcon = "🥈"; }
+  else if(total >= 80){ rank = "Penjelajah Pemula"; rankIcon = "🥉"; }
+  else { rank = "Penggemar Sejarah"; rankIcon = "📜"; }
+
+  // Save to leaderboard
+  saveScore(state.teamName, state.className, total, rank);
+
+  const today = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  document.getElementById('endContent').innerHTML = `
+    <div class="certificate" id="certBox">
+      <div class="cert-header">✦ SERTIFIKAT PENGHARGAAN ✦</div>
+      <div class="cert-title">PENJELAJAH SEJARAH NUSANTARA</div>
+      <div class="cert-body">
+        Diberikan kepada:<br>
+        <div class="cert-name">${escapeHtml(state.teamName)}</div><br>
+        Kelas: <b>${escapeHtml(state.className)}</b><br><br>
+        Telah berhasil menyelesaikan <b>5 misi petualangan</b><br>
+        dalam game edukasi<br>
+        <b style="font-family:'Cinzel',serif; color:var(--maroon);">"PETUALANGAN NUSANTARA: MISTERI JEJAK HINDU-BUDDHA"</b><br><br>
+        dengan total skor <b style="font-size:22px; color:var(--maroon);">${total} poin</b>
+      </div>
+      <div class="cert-rank">${rankIcon} ${rank}</div>
+      <div style="margin-top:20px; font-size:13px; font-style:italic;">
+        "Sejarah bukan sekadar masa lalu, ia adalah cermin untuk memahami masa kini dan merancang masa depan. Lestarikan warisan budaya Nusantara!"
+      </div>
+      <div class="cert-footer">
+        <div>
+          <div class="sign">Guru Sejarah</div>
+          <div>${today}</div>
+        </div>
+        <div>
+          <div class="sign">Penjelajah</div>
+          <div>${escapeHtml(state.teamName)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin:20px 0;" class="no-print">
+      <button class="btn" onclick="window.print()">🖨️ Cetak / Simpan Sertifikat PDF</button>
+      <button class="btn btn-secondary" onclick="showLeaderboard()">🏆 Papan Peringkat</button>
+      <button class="btn btn-secondary" onclick="restartGame()">🔄 Main Lagi</button>
+    </div>
+
+    <div class="leaderboard no-print">
+      <h3>📊 Statistik Petualanganmu</h3>
+      <div class="lb-row"><span class="lb-name">Total Skor</span><span class="lb-score">${total} poin</span></div>
+      <div class="lb-row"><span class="lb-name">Misi Diselesaikan</span><span class="lb-score">5/5</span></div>
+      <div class="lb-row"><span class="lb-name">Gelar</span><span class="lb-score">${rank}</span></div>
+      <div class="lb-row"><span class="lb-name">Detail Skor per Level</span><span class="lb-score">${state.levelScores.join(' | ')}</span></div>
+    </div>
+
+    <div style="text-align:center; margin:30px 0; padding:20px; background:rgba(212,160,23,.1); border:1px solid var(--gold); border-radius:15px; max-width:700px; margin-left:auto; margin-right:auto;">
+      <h3 style="color:var(--gold); font-family:'Cinzel',serif; margin-bottom:10px;">🌟 Pesan Penutup</h3>
+      <p style="line-height:1.8; font-size:14px;">
+        Selamat, Penjelajah! Kamu telah menapaki jejak peradaban Hindu-Buddha yang membentuk wajah Nusantara. 
+        Warisan berupa candi, prasasti, kitab sastra, dan nilai-nilai budaya adalah bukti kehebatan nenek moyang kita dalam menyerap dan mengadaptasi budaya asing menjadi jati diri bangsa. 
+        <br><br>
+        <b>Sebagai generasi muda, terutama calon teknisi sepeda motor yang handal</b>, ingatlah bahwa kemajuan teknologi harus diimbangi dengan pemahaman sejarah dan budaya. 
+        Jadilah generasi yang <b>menghargai warisan leluhur</b> sambil melangkah maju menuju Indonesia Emas! 🇮🇩
+      </p>
+    </div>
+  `;
+  showScreen('end');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function restartGame(){
+  sfxClick();
+  document.getElementById('topBar').style.display = 'none';
+  showScreen('intro');
+}
+
+/* ============================================================
+   LEADERBOARD (localStorage)
+============================================================ */
+function saveScore(name, cls, score, rank){
+  let lb = JSON.parse(localStorage.getItem('nusantara_lb') || '[]');
+  lb.push({name, cls, score, rank, date:new Date().toLocaleDateString('id-ID')});
+  lb.sort((a,b)=>b.score-a.score);
+  lb = lb.slice(0,20);
+  localStorage.setItem('nusantara_lb', JSON.stringify(lb));
+}
+
+function showLeaderboard(){
+  sfxClick();
+  const lb = JSON.parse(localStorage.getItem('nusantara_lb') || '[]');
+  const list = document.getElementById('lbList');
+  if(lb.length === 0){
+    list.innerHTML = '<p style="text-align:center; opacity:.7; padding:20px;">Belum ada data. Jadilah yang pertama!</p>';
+  } else {
+    list.innerHTML = lb.map((e,i)=>`
+      <div class="lb-row ${i<3?'top':''}">
+        <span class="lb-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</span>
+        <span class="lb-name"><b>${escapeHtml(e.name)}</b><br><small style="opacity:.7;">${escapeHtml(e.cls||'')} • ${e.date||''}</small></span>
+        <span class="lb-score">${e.score}⭐</span>
+      </div>
+    `).join('');
+  }
+  const prevScreen = document.querySelector('.screen.active').id;
+  document.getElementById('lbScreen').dataset.back = prevScreen;
+  showScreen('lbScreen');
+}
+function closeLB(){
+  sfxClick();
+  const back = document.getElementById('lbScreen').dataset.back || 'intro';
+  showScreen(back);
+}
+function clearLB(){
+  if(confirm('Hapus semua data papan peringkat?')){
+    localStorage.removeItem('nusantara_lb');
+    showLeaderboard();
+  }
+}
+
+/* ============================================================
+   SPARKLE EFFECT
+============================================================ */
+function sparkleAt(el){
+  const rect = el.getBoundingClientRect();
+  const emojis = ['✨','⭐','🌟','💫'];
+  for(let i=0;i<6;i++){
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = (rect.left + Math.random()*rect.width) + 'px';
+    s.style.top = (rect.top + Math.random()*rect.height) + 'px';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 1000);
+  }
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+window.addEventListener('load',()=>{
+  // Preload audio context on first interaction
+  document.body.addEventListener('click', initAudio, {once:true});
+});
+</script>
+</body>
+  </html>
