@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>MOTORCYCLE RACING MATH CHALLENGE — Misi Menaklukkan Barisan dan Deret Aritmatika</title>
+<style>
+/* ============ RESET & VARIABEL ============ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#05060b; --panel:rgba(13,16,26,.88); --panel2:rgba(22,26,40,.9);
+  --red:#ff2338; --orange:#ff8a1f; --neon:#19e3ff; --gold:#ffd24a;
+  --green:#25f5a0; --txt:#eaf2ff; --muted:#94a3bd; --line:rgba(25,227,255,.25);
+  --shadow:0 10px 40px rgba(0,0,0,.6);
+}
+html,body{min-height:100%}
+body{
+  background:var(--bg); color:var(--txt); overflow-x:hidden;
+  font-family:"Segoe UI",Roboto,system-ui,-apple-system,sans-serif;
+  line-height:1.55; padding-bottom:40px;
+}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none}
+b,strong{color:#fff}
+small{font-size:.72rem}
+
+/* ============ LATAR 3D ============ */
+#scene{position:fixed;inset:0;z-index:-3;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 8%,#2a1038 0%,#0a0a16 45%,#05060b 100%)}
+.horizon{position:absolute;left:0;right:0;top:46%;height:3px;
+  background:linear-gradient(90deg,transparent,var(--neon),var(--red),transparent);
+  filter:blur(2px);opacity:.85}
+.sun{position:absolute;left:50%;top:24%;width:230px;height:230px;transform:translateX(-50%);
+  border-radius:50%;background:radial-gradient(circle,rgba(255,138,31,.55),rgba(255,35,56,.18) 55%,transparent 70%);
+  filter:blur(6px);animation:pulseSun 5s ease-in-out infinite}
+@keyframes pulseSun{50%{transform:translateX(-50%) scale(1.12);opacity:.8}}
+.floor{position:absolute;left:-60%;right:-60%;bottom:0;height:56%;
+  background-image:linear-gradient(rgba(25,227,255,.35) 2px,transparent 2px),
+                   linear-gradient(90deg,rgba(255,35,56,.25) 2px,transparent 2px);
+  background-size:100% 60px,60px 100%;
+  transform:perspective(300px) rotateX(66deg);transform-origin:bottom center;
+  animation:floorMove 2.6s linear infinite;opacity:.5}
+@keyframes floorMove{to{background-position:0 60px,60px 0}}
+.road{position:absolute;bottom:0;left:50%;width:min(760px,120%);height:46%;transform:translateX(-50%);
+  background:linear-gradient(#0b0d16,#141826);
+  clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);opacity:.85}
+.road::after{content:"";position:absolute;left:50%;top:0;width:10px;height:100%;transform:translateX(-50%);
+  background:repeating-linear-gradient(#fff 0 26px,transparent 26px 60px);
+  animation:dash .55s linear infinite;opacity:.6}
+@keyframes dash{to{background-position:0 60px}}
+.skyline{position:absolute;left:0;right:0;top:31%;height:16%;opacity:.55;
+  background:linear-gradient(#10131f,#05060b);
+  clip-path:polygon(0 60%,5% 60%,5% 30%,12% 30%,12% 55%,20% 55%,20% 20%,28% 20%,28% 50%,38% 50%,38% 35%,46% 35%,46% 62%,56% 62%,56% 25%,64% 25%,64% 52%,74% 52%,74% 33%,82% 33%,82% 58%,92% 58%,92% 40%,100% 40%,100% 100%,0 100%)}
+.streak{position:absolute;height:2px;width:140px;background:linear-gradient(90deg,transparent,var(--neon));
+  opacity:.5;animation:streak 3.4s linear infinite}
+@keyframes streak{from{transform:translateX(-160px)}to{transform:translateX(110vw)}}
+
+/* ============ LAYOUT ============ */
+.wrap{width:min(1080px,94vw);margin:0 auto}
+.screen{display:none;animation:fadeUp .45s ease}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;
+  box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.panel+.panel{margin-top:16px}
+.title-xl{font-size:clamp(1.5rem,5.4vw,2.9rem);font-weight:900;line-height:1.08;letter-spacing:.5px;
+  background:linear-gradient(90deg,#fff,var(--orange),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 34px rgba(255,138,31,.25)}
+.sub{color:var(--muted);font-size:.95rem}
+.tag{display:inline-block;padding:5px 12px;border-radius:999px;font-size:.72rem;font-weight:800;letter-spacing:1px;
+  background:linear-gradient(90deg,var(--red),var(--orange));color:#fff}
+.tag.blue{background:linear-gradient(90deg,#0a5f7a,var(--neon));color:#04222b}
+.tag.gold{background:linear-gradient(90deg,#b98a12,var(--gold));color:#2b1f00}
+h2.sec{font-size:1.15rem;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+
+/* ============ TOMBOL ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 22px;border-radius:12px;font-weight:800;font-size:.95rem;color:#fff;
+  background:linear-gradient(135deg,var(--red),var(--orange));
+  box-shadow:0 6px 0 #7c1220,0 10px 24px rgba(255,35,56,.32);transition:.14s;letter-spacing:.4px}
+.btn:hover{filter:brightness(1.12);transform:translateY(-2px)}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #7c1220}
+.btn.blue{background:linear-gradient(135deg,#0d7fa1,var(--neon));color:#03222c;box-shadow:0 6px 0 #06485c,0 10px 24px rgba(25,227,255,.28)}
+.btn.blue:active{box-shadow:0 2px 0 #06485c}
+.btn.ghost{background:rgba(255,255,255,.06);border:1px solid var(--line);box-shadow:none;color:var(--txt)}
+.btn.ghost:active{transform:translateY(2px)}
+.btn.gold{background:linear-gradient(135deg,#c99a12,var(--gold));color:#2b1f00;box-shadow:0 6px 0 #7a5c05}
+.btn.gold:active{box-shadow:0 2px 0 #7a5c05}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;filter:grayscale(.5)}
+.btn.sm{padding:9px 14px;font-size:.82rem;border-radius:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.center{text-align:center}
+
+/* ============ HUD ============ */
+.hud{position:sticky;top:0;z-index:40;background:rgba(5,7,13,.93);border-bottom:2px solid var(--red);
+  backdrop-filter:blur(10px);padding:8px 0;box-shadow:0 6px 26px rgba(0,0,0,.7)}
+.hud-in{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.hud-brand{font-weight:900;font-size:.78rem;line-height:1.1;letter-spacing:.5px;color:var(--orange)}
+.hud-brand span{color:#fff;font-size:.68rem;font-weight:600}
+.hud-stats{display:flex;gap:7px;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:4px 10px;text-align:center;min-width:66px}
+.chip small{display:block;color:var(--muted);font-size:.6rem;letter-spacing:1px}
+.chip b{font-size:.95rem;color:var(--neon)}
+#hud-time.warn{color:var(--red);animation:blink .9s steps(2) infinite}
+@keyframes blink{50%{opacity:.35}}
+.hud-actions{display:flex;gap:6px}
+.icon-btn{background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--txt);
+  border-radius:10px;padding:8px 11px;font-size:.85rem;font-weight:700}
+.icon-btn:active{transform:scale(.94)}
+
+/* ============ INTRO ============ */
+.hero{text-align:center;padding:26px 16px}
+.hero .badge{font-size:.72rem;letter-spacing:2px;color:var(--neon);font-weight:800}
+.bike-stage{position:relative;margin:14px auto 6px;width:min(430px,92%);filter:drop-shadow(0 18px 26px rgba(255,35,56,.35))}
+.bike-stage::after{content:"";position:absolute;left:8%;right:8%;bottom:-6px;height:16px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(25,227,255,.45),transparent 70%)}
+.bike-stage svg{width:100%;height:auto;animation:idle 2.4s ease-in-out infinite}
+@keyframes idle{50%{transform:translateY(-7px) rotate(-1deg)}}
+.wheel{transform-box:fill-box;transform-origin:center;animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+input[type=text]{width:100%;padding:14px;border-radius:12px;background:rgba(255,255,255,.06);
+  border:1px solid var(--line);color:#fff;font-size:1rem;font-weight:700}
+input[type=text]:focus{outline:2px solid var(--neon)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;text-align:center}
+.mini b{display:block;font-size:1.3rem;color:var(--orange)}
+.mini small{color:var(--muted)}
+ol.obj{margin-left:18px;color:var(--muted);font-size:.9rem}
+ol.obj li{margin:4px 0}
+
+/* ============ PETA MISI ============ */
+.mission{position:relative;display:flex;gap:14px;align-items:center;padding:16px;border-radius:16px;
+  background:linear-gradient(120deg,rgba(255,35,56,.12),rgba(13,16,26,.9));
+  border:1px solid var(--line);transition:.2s;cursor:pointer;overflow:hidden}
+.mission:hover{transform:translateY(-4px) rotateX(3deg);border-color:var(--orange);box-shadow:0 14px 30px rgba(255,35,56,.22)}
+.mission .num{flex:0 0 60px;height:60px;border-radius:14px;display:grid;place-items:center;font-size:1.7rem;
+  background:linear-gradient(135deg,var(--red),var(--orange));box-shadow:0 0 22px rgba(255,138,31,.45)}
+.mission h3{font-size:1.02rem;letter-spacing:.4px}
+.mission p{font-size:.82rem;color:var(--muted)}
+.mission.done{background:linear-gradient(120deg,rgba(37,245,160,.14),rgba(13,16,26,.9));border-color:rgba(37,245,160,.5)}
+.mission.locked{filter:grayscale(.85);opacity:.6;cursor:not-allowed}
+.mission.locked:hover{transform:none;box-shadow:none}
+.mstat{margin-left:auto;text-align:right;font-size:.75rem;color:var(--muted);white-space:nowrap}
+.mstat b{display:block;font-size:1.15rem;color:var(--gold)}
+.bar{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--orange),var(--gold));transition:width .6s}
+
+/* ============ KUIS ============ */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.dots{display:flex;gap:6px}
+.dot{width:26px;height:6px;border-radius:99px;background:rgba(255,255,255,.15)}
+.dot.ok{background:var(--green)}.dot.no{background:var(--red)}.dot.now{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.story{background:rgba(25,227,255,.07);border-left:4px solid var(--neon);border-radius:10px;padding:12px 14px;
+  font-size:.92rem;color:#cfe9ff;margin-bottom:12px}
+.qtext{font-size:clamp(1rem,2.6vw,1.18rem);font-weight:700;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin-bottom:10px;
+  border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  color:var(--txt);font-size:.98rem;font-weight:600;transition:.15s}
+.opt:hover:not(:disabled){transform:translateX(6px);border-color:var(--neon);background:rgba(25,227,255,.12)}
+.opt-key{flex:0 0 34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:900;
+  background:linear-gradient(135deg,#243049,#131828);border:1px solid var(--line);color:var(--neon)}
+.opt.correct{background:rgba(37,245,160,.18);border-color:var(--green);animation:popIn .35s}
+.opt.correct .opt-key{background:var(--green);color:#04231a}
+.opt.wrong{background:rgba(255,35,56,.18);border-color:var(--red);animation:shake .4s}
+.opt.wrong .opt-key{background:var(--red);color:#fff}
+.opt:disabled{cursor:default}
+@keyframes popIn{50%{transform:scale(1.03)}}
+@keyframes shake{25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+.feedback{border-radius:12px;padding:14px;margin-top:6px;font-size:.92rem;animation:fadeUp .3s}
+.feedback.correct{background:rgba(37,245,160,.1);border:1px solid rgba(37,245,160,.45)}
+.feedback.wrong{background:rgba(255,35,56,.1);border:1px solid rgba(255,35,56,.45)}
+.feedback h4{margin-bottom:6px;font-size:1rem}
+.lives{font-size:1.05rem;letter-spacing:2px}
+
+/* ============ MODAL ============ */
+.overlay{position:fixed;inset:0;z-index:80;background:rgba(2,3,8,.86);backdrop-filter:blur(6px);
+  display:grid;place-items:center;padding:16px;animation:fadeUp .25s}
+.modal{width:min(620px,96vw);max-height:88vh;overflow:auto;background:var(--panel2);
+  border:1px solid var(--neon);border-radius:18px;padding:22px;box-shadow:0 0 60px rgba(25,227,255,.25)}
+.modal h3{margin-bottom:10px;color:var(--orange)}
+.modal .body{font-size:.93rem;color:#dbe6f7}
+.modal .body p{margin:8px 0}
+.hintbox{background:rgba(255,210,74,.1);border-left:4px solid var(--gold);padding:10px 12px;border-radius:8px;margin:8px 0}
+.formula{background:#0a0d16;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;
+  font-family:"Consolas",monospace;color:var(--neon);font-size:.92rem;overflow-x:auto}
+
+/* ============ COUNTDOWN & FX ============ */
+#countdown{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(2,3,8,.8)}
+#cd-num{font-size:clamp(5rem,26vw,13rem);font-weight:900;color:var(--orange);
+  text-shadow:0 0 50px var(--red);animation:cdPop .7s ease}
+@keyframes cdPop{from{transform:scale(2.4);opacity:0}to{transform:scale(1);opacity:1}}
+#bikeFx{position:fixed;left:-320px;bottom:12%;width:260px;z-index:70;pointer-events:none;opacity:0}
+#bikeFx.ride{animation:ride 1.9s cubic-bezier(.3,.1,.4,1) forwards}
+@keyframes ride{0%{left:-320px;opacity:1;transform:rotate(-4deg)}
+  20%{transform:rotate(-12deg)}70%{transform:rotate(0)}100%{left:110%;opacity:1;transform:rotate(-3deg)}}
+.confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:75;pointer-events:none;border-radius:2px;
+  animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.1}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);z-index:95;
+  background:linear-gradient(135deg,var(--red),var(--orange));color:#fff;font-weight:800;padding:12px 20px;
+  border-radius:99px;box-shadow:var(--shadow);transition:.35s;max-width:92vw;text-align:center;font-size:.9rem}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ============ PODIUM & MEDALI ============ */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:18px 0;height:210px}
+.pod{width:min(30%,120px);border-radius:12px 12px 0 0;display:flex;flex-direction:column;justify-content:flex-start;
+  align-items:center;padding-top:10px;font-weight:900;color:#0b0d16;animation:rise .8s ease backwards}
+.pod small{font-size:.62rem;font-weight:700}
+.pod.p1{height:100%;background:linear-gradient(#ffe27a,var(--gold));animation-delay:.3s;box-shadow:0 0 40px rgba(255,210,74,.5)}
+.pod.p2{height:72%;background:linear-gradient(#e8eef7,#9fb0c6);animation-delay:.1s}
+.pod.p3{height:55%;background:linear-gradient(#ffb27a,#c9762f);animation-delay:.2s}
+@keyframes rise{from{height:0!important;opacity:0}}
+.pod .who{font-size:.7rem;background:rgba(0,0,0,.25);border-radius:6px;padding:2px 6px;margin-top:6px;color:#fff;
+  max-width:96%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.medal{background:rgba(255,210,74,.09);border:1px solid rgba(255,210,74,.4);border-radius:12px;padding:10px;text-align:center}
+.medal .ic{font-size:1.8rem}
+.medal b{display:block;font-size:.78rem;color:var(--gold)}
+.medal small{color:var(--muted);font-size:.66rem}
+.evalrow{margin:10px 0}
+.evalrow .lab{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px;gap:8px}
+.statbig{font-size:clamp(1.4rem,5vw,2.1rem);font-weight:900;color:var(--gold)}
+
+/* ============ TABEL ============ */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:9px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
+th{color:var(--neon);font-size:.7rem;letter-spacing:1px}
+tr.me{background:rgba(255,210,74,.12)}
+.scrollx{overflow-x:auto}
+
+/* ============ SERTIFIKAT ============ */
+.cert{background:linear-gradient(#fffdf5,#f3ead4);color:#221a08;border:10px double #b8860b;border-radius:10px;
+  padding:clamp(16px,4vw,34px);text-align:center;position:relative;overflow:hidden}
+.cert::before{content:"🏁";position:absolute;font-size:12rem;opacity:.06;left:50%;top:50%;transform:translate(-50%,-50%)}
+.cert h1{font-size:clamp(1.1rem,4.4vw,1.9rem);letter-spacing:2px;color:#8b1a1a}
+.cert .nm{font-size:clamp(1.3rem,6vw,2.3rem);font-weight:900;color:#111;border-bottom:3px solid #b8860b;
+  display:inline-block;padding:4px 18px;margin:10px 0}
+.cert .pred{font-size:clamp(1rem,4vw,1.5rem);font-weight:900;color:#a8620a;letter-spacing:1px}
+.cert table{width:100%;max-width:520px;margin:14px auto;font-size:.9rem}
+.cert td{border:none;padding:4px 8px;color:#33290f}
+.cert .ttd{display:flex;justify-content:space-around;margin-top:22px;font-size:.78rem;flex-wrap:wrap;gap:14px}
+.cert .ttd div{min-width:150px}
+.cert .ttd b{display:block;border-top:1px solid #6b5a20;margin-top:38px;padding-top:4px;color:#221a08}
+
+/* ============ RESPONSIF ============ */
+@media(max-width:760px){
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:1fr}
+  .hud-brand{display:none}
+  .hud-in{justify-content:center}
+  .chip{min-width:58px;padding:3px 7px}
+  .chip b{font-size:.82rem}
+  .mission{flex-wrap:wrap}
+  .mstat{margin-left:0;text-align:left;width:100%;display:flex;gap:10px;align-items:center}
+  .mstat b{font-size:.95rem}
+  .btn{flex:1 1 auto}
+  .podium{height:170px}
+}
+@media print{
+  #scene,.hud,.no-print,#toast,#bikeFx{display:none!important}
+  body{background:#fff;padding:0}
+  .screen{display:none!important}
+  #screen-certificate{display:block!important}
+  .wrap{width:100%}
+  .cert{border-color:#b8860b}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LATAR 3D ================= -->
+<div id="scene">
+  <div class="sun"></div><div class="skyline"></div><div class="horizon"></div>
+  <div class="floor"></div><div class="road"></div>
+  <div class="streak" style="top:52%;animation-delay:0s"></div>
+  <div class="streak" style="top:60%;animation-delay:1.1s"></div>
+  <div class="streak" style="top:68%;animation-delay:2.2s"></div>
+</div>
+
+<!-- ================= HUD ================= -->
+<header class="hud hidden" id="hud">
+  <div class="wrap hud-in">
+    <div class="hud-brand">🏁 MOTORCYCLE RACING<br><span>MATH CHALLENGE • TSM</span></div>
+    <div class="hud-stats">
+      <div class="chip"><small>SKOR</small><b id="hud-score">0</b></div>
+      <div class="chip"><small>WAKTU</small><b id="hud-time">90:00</b></div>
+      <div class="chip"><small>LEVEL</small><b id="hud-level">1/5</b></div>
+      <div class="chip"><small>PELUANG</small><b id="hud-lives" class="lives">🔧🔧🔧</b></div>
+    </div>
+    <div class="hud-actions">
+      <button class="icon-btn" id="btn-sound" title="Suara">🔊</button>
+      <button class="icon-btn" id="btn-home" title="Kembali ke garasi">🏠 Garasi</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" style="padding-top:16px">
+
+<!-- ================= INTRO ================= -->
+<section class="screen active" id="screen-intro">
+  <div class="panel hero">
+    <div class="badge">KELAS X SMK • TEKNIK SEPEDA MOTOR (TSM)</div>
+    <h1 class="title-xl">MOTORCYCLE RACING<br>MATH CHALLENGE</h1>
+    <p style="font-weight:800;color:var(--neon);letter-spacing:1px;margin-top:6px">MISI MENAKLUKKAN BARISAN DAN DERET ARITMATIKA</p>
+
+    <div class="bike-stage" id="intro-bike"></div>
+
+    <p class="sub" style="max-width:640px;margin:8px auto 16px">
+      Yo, Mechanic-Racer! 🏍️ Kamu adalah mekanik sekaligus pembalap profesional.
+      Untuk lolos ke <b>Kejuaraan Balap Motor Nasional</b>, kamu wajib menuntaskan
+      <b>5 misi matematika</b> di garasi, bengkel, dan lintasan balap. Kunci kemenangan bukan cuma gas poll —
+      tapi <b>barisan &amp; deret aritmatika</b>. Siap naik podium?
+    </p>
+
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="mini"><b>5</b><small>MISI</small></div>
+      <div class="mini"><b>25</b><small>SOAL</small></div>
+      <div class="mini"><b>90</b><small>MENIT</small></div>
+      <div class="mini"><b>3</b><small>PELUANG/LEVEL</small></div>
+    </div>
+
+    <div style="max-width:460px;margin:0 auto 14px;text-align:left">
+      <label class="sub" for="inp-name">Nama Pembalap / Mekanik</label>
+      <input type="text" id="inp-name" maxlength="22" placeholder="Contoh: Rizky TSM 1" autocomplete="off">
+      <label class="sub" for="inp-class" style="margin-top:10px;display:block">Kelas / Jurusan</label>
+      <input type="text" id="inp-class" maxlength="24" placeholder="Contoh: X TSM 1" autocomplete="off">
+    </div>
+
+    <div class="row" style="justify-content:center">
+      <button class="btn" id="btn-start">🏁 MULAI BALAPAN</button>
+      <button class="btn blue" id="btn-rules">📖 Cara Bermain</button>
+      <button class="btn ghost" id="btn-lb-intro">🏆 Papan Peringkat</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="sec">🎯 Tujuan Pembelajaran (Misi Belajarmu)</h2>
+    <ol class="obj">
+      <li>Mengidentifikasi pola barisan aritmatika.</li>
+      <li>Menentukan suku pertama (a) dan beda (b).</li>
+      <li>Menghitung suku ke-n (U<sub>n</sub>).</li>
+      <li>Menentukan jumlah n suku pertama deret aritmatika (S<sub>n</sub>).</li>
+      <li>Menyelesaikan masalah kontekstual otomotif dengan barisan &amp; deret aritmatika.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= PETA MISI ================= -->
+<section class="screen" id="screen-map">
+  <div class="panel">
+    <div class="qhead">
+      <div><span class="tag blue">GARASI UTAMA</span>
+        <h2 class="sec" style="margin:8px 0 0">🏍️ Pilih Misi Balapmu, <span id="map-name">Racer</span>!</h2></div>
+      <div class="center"><small class="sub">SKOR TOTAL</small><div class="statbig" id="map-score">0</div></div>
+    </div>
+    <p class="sub" style="margin-bottom:8px">Progres kejuaraan: <b id="map-progtext">0/5 misi</b></p>
+    <div class="bar"><i id="map-prog" style="width:0%"></i></div>
+  </div>
+  <div class="grid" id="mission-list" style="margin-top:16px"></div>
+  <div class="panel">
+    <div class="row">
+      <button class="btn ghost" id="btn-lb-map">🏆 Papan Peringkat</button>
+      <button class="btn ghost" id="btn-reset-game">🔄 Ulangi Permainan</button>
+      <button class="btn gold hidden" id="btn-finish-early">🏁 Lihat Podium</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KUIS ================= -->
+<section class="screen" id="screen-quiz">
+  <div class="panel">
+    <div class="qhead">
+      <div>
+        <span class="tag" id="quiz-tag">LEVEL 1</span>
+        <div class="sub" id="quiz-material" style="margin-top:6px"></div>
+      </div>
+      <div style="text-align:right">
+        <b id="q-counter">Soal 1 / 5</b>
+        <div class="dots" id="q-dots" style="margin-top:6px;justify-content:flex-end"></div>
+      </div>
+    </div>
+    <div class="bar" style="margin-bottom:14px"><i id="q-progress" style="width:0%"></i></div>
+
+    <div class="story" id="q-story"></div>
+    <div class="qtext" id="q-text"></div>
+    <div id="options"></div>
+    <div class="feedback hidden" id="feedback" aria-live="polite"></div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn ghost sm" id="btn-hint">💡 Petunjuk</button>
+      <button class="btn ghost sm" id="btn-explain" disabled>📚 Lihat Pembahasan</button>
+      <button class="btn ghost sm" id="btn-retry">🔄 Ulangi Level</button>
+      <button classbtn class="btn sm" id="btn-next" disabled style="margin-left:auto">Lanjutkan ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HASIL LEVEL ================= -->
+<section class="screen" id="screen-levelresult">
+  <div class="panel center">
+    <div id="lr-medal" style="font-size:4rem">🥇</div>
+    <span class="tag gold" id="lr-tag">MISI SELESAI</span>
+    <h2 class="title-xl" style="margin:10px 0" id="lr-title">LEVEL 1 CLEAR!</h2>
+    <p class="sub" id="lr-msg"></p>
+    <div class="grid g4" style="margin:18px 0">
+      <div class="mini"><b id="lr-correct">0</b><small>BENAR</small></div>
+      <div class="mini"><b id="lr-wrong">0</b><small>SALAH</small></div>
+      <div class="mini"><b id="lr-point">0</b><small>POIN LEVEL</small></div>
+      <div class="mini"><b id="lr-bonus">0</b><small>BONUS PERFECT</small></div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="btn" id="btn-lr-next">Misi Berikutnya ➜</button>
+      <button class="btn ghost" id="btn-lr-map">🏠 Kembali ke Garasi</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FINAL / PODIUM ================= -->
+<section class="screen" id="screen-final">
+  <div class="panel center">
+    <span class="tag gold">🏁 GRAND FINAL — KEJUARAAN NASIONAL TSM</span>
+    <h2 class="title-xl" style="margin:10px 0">PODIUM JUARA!</h2>
+    <div class="podium">
+      <div class="pod p2"><div>2</div><small>SILVER</small><div class="who" id="pod2">—</div></div>
+      <div class="pod p1"><div style="font-size:1.6rem">🏆</div><div>1</div><small>CHAMPION</small><div class="who" id="pod1">—</div></div>
+      <div class="pod p3"><div>3</div><small>BRONZE</small><div class="who" id="pod3">—</div></div>
+    </div>
+    <div class="pred" style="font-size:1.3rem;font-weight:900;color:var(--gold)" id="fin-pred">Rookie Mechanic</div>
+    <p class="sub" id="fin-predmsg"></p>
+    <div class="grid g4" style="margin-top:16px">
+      <div class="mini"><b id="fin-score">0</b><small>TOTAL SKOR</small></div>
+      <div class="mini"><b id="fin-acc">0%</b><small>JAWABAN BENAR</small></div>
+      <div class="mini"><b id="fin-time">00:00</b><small>WAKTU</small></div>
+      <div class="mini"><b id="fin-misi">0/5</b><small>MISI SELESAI</small></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="sec">🏅 Medali Pencapaian</h2>
+    <div class="grid g4" id="fin-medals"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="sec">📊 Evaluasi Kemampuanmu</h2>
+    <div id="fin-eval"></div>
+    <div class="hintbox" id="fin-advice" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel" id="bonus-panel">
+    <h2 class="sec">⚡ Tantangan Bonus — NITRO ROUND</h2>
+    <p class="sub" id="bonus-desc"></p>
+    <div class="row" style="margin-top:10px">
+      <button class="btn gold" id="btn-bonus">🚀 Ambil Tantangan Bonus (+150/soal)</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button class="btn gold" id="btn-cert">📜 Sertifikat Digital</button>
+      <button class="btn blue" id="btn-lb-final">🏆 Papan Peringkat</button>
+      <button class="btn ghost" id="btn-restart-final">🔄 Ulangi Permainan</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PAPAN PERINGKAT ================= -->
+<section class="screen" id="screen-leaderboard">
+  <div class="panel">
+    <span class="tag blue">HALL OF FAME</span>
+    <h2 class="sec" style="margin-top:10px">🏆 Papan Peringkat Pembalap TSM</h2>
+    <p class="sub">Data tersimpan di perangkat ini (localStorage). Adu skor bareng teman sekelas!</p>
+    <div class="scrollx" style="margin-top:12px">
+      <table id="lb-table">
+        <thead><tr><th>#</th><th>PEMBALAP</th><th>SKOR</th><th>AKURASI</th><th>WAKTU</th><th>PREDIKAT</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn ghost" id="btn-lb-back">⬅ Kembali</button>
+      <button class="btn ghost" id="btn-lb-clear">🗑️ Reset Papan Peringkat</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SERTIFIKAT ================= -->
+<section class="screen" id="screen-certificate">
+  <div class="cert" id="cert-box">
+    <div style="font-size:2rem">🏁🏍️🏆</div>
+    <h1>SERTIFIKAT PRESTASI</h1>
+    <div style="font-size:.8rem;letter-spacing:2px;color:#6b5a20">MOTORCYCLE RACING MATH CHALLENGE</div>
+    <p style="margin-top:14px;font-size:.9rem">Diberikan kepada:</p>
+    <div class="nm" id="cert-name">Nama Pembalap</div>
+    <div style="font-size:.85rem" id="cert-class">Kelas X TSM</div>
+    <p style="margin-top:12px;font-size:.9rem">atas keberhasilannya menyelesaikan misi<br>
+      <b>Barisan dan Deret Aritmatika</b> dengan predikat</p>
+    <div class="pred" id="cert-pred">GRAND CHAMPION</div>
+    <table>
+      <tr><td>Total Skor</td><td>: <b id="cert-score">0</b></td><td>Akurasi</td><td>: <b id="cert-acc">0%</b></td></tr>
+      <tr><td>Waktu</td><td>: <b id="cert-time">00:00</b></td><td>Misi Selesai</td><td>: <b id="cert-misi">0/5</b></td></tr>
+    </table>
+    <div style="font-size:.78rem;color:#6b5a20" id="cert-id">ID: —</div>
+    <div class="ttd">
+      <div>Kepala Bengkel TSM<b>Guru Produktif TSM</b></div>
+      <div>Tanggal Terbit<b id="cert-date">—</b></div>
+    </div>
+  </div>
+  <div class="panel no-print" style="margin-top:14px">
+    <div class="row">
+      <button class="btn gold" id="btn-print">🖨️ Cetak / Simpan PDF</button>
+      <button class="btn ghost" id="btn-cert-back">⬅ Kembali ke Podium</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ================= FX ================= -->
+<div id="bikeFx"></div>
+<div id="countdown" class="hidden"><div id="cd-num">3</div></div>
+<div id="toast"></div>
+<div class="overlay hidden" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Judul</h3>
+    <div class="body" id="modal-body"></div>
+    <div class="row" id="modal-actions" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<script>
+/* ==================================================================
+   MOTORCYCLE RACING MATH CHALLENGE
+   Game edukasi Barisan & Deret Aritmatika — Kelas X SMK TSM
+   ================================================================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* ============================ SVG MOTOR ============================ */
+function bikeSVG(id){return `
+<svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <linearGradient id="bg${id}" x1="0" y1="0" x2="1" y2="0">
+   <stop offset="0" stop-color="#ff2338"/><stop offset="1" stop-color="#ff8a1f"/></linearGradient>
+  <linearGradient id="fg${id}" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#19e3ff"/><stop offset="1" stop-color="#0b6d85"/></linearGradient>
+ </defs>
+ <ellipse cx="120" cy="110" rx="95" ry="7" fill="rgba(25,227,255,.18)"/>
+ <!-- roda -->
+ <g><circle cx="55" cy="86" r="27" fill="#0a0c14" stroke="#19e3ff" stroke-width="3"/>
+    <g class="wheel"><circle cx="55" cy="86" r="12" fill="none" stroke="#ff8a1f" stroke-width="3"/>
+    <path d="M55 74v24M43 86h24M46 77l18 18M64 77L46 95" stroke="#5d6b85" stroke-width="2"/></g></g>
+ <g><circle cx="185" cy="86" r="27" fill="#0a0c14" stroke="#19e3ff" stroke-width="3"/>
+    <g class="wheel"><circle cx="185" cy="86" r="12" fill="none" stroke="#ff8a1f" stroke-width="3"/>
+    <path d="M185 74v24M173 86h24M176 77l18 18M194 77l-18 18" stroke="#5d6b85" stroke-width="2"/></g></g>
+ <!-- rangka & knalpot -->
+ <path d="M55 86 L95 60 L150 58 L185 86" stroke="url(#bg${id})" stroke-width="7" fill="none" stroke-linecap="round"/>
+ <path d="M120 76 L172 84 L176 92 L118 84 Z" fill="#8b93a6"/>
+ <!-- body -->
+ <path d="M88 60 q16 -30 52 -26 l22 6 -10 20 -30 6 z" fill="url(#bg${id})"/>
+ <path d="M150 40 q22 -4 30 10 l-14 8 -18 -8 z" fill="url(#fg${id})"/>
+ <path d="M62 62 q14 -10 30 -6 l-6 14 -22 2 z" fill="#ff2338"/>
+ <!-- jok & stang -->
+ <path d="M96 52 l40 -6 4 8 -42 6z" fill="#161a26"/>
+ <path d="M168 40 l16 -10" stroke="#c9d4e6" stroke-width="4" stroke-linecap="round"/>
+ <!-- pembalap -->
+ <path d="M108 48 l10 -22 22 -2 6 14 -16 10z" fill="#1b2233"/>
+ <circle cx="132" cy="20" r="12" fill="#19e3ff"/><path d="M136 14 q10 3 8 10 l-12 -2z" fill="#06222b"/>
+ <path d="M126 34 l24 6" stroke="#ff8a1f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M112 46 l-8 18" stroke="#1b2233" stroke-width="7" stroke-linecap="round"/>
+ <!-- nomor -->
+ <circle cx="74" cy="66" r="9" fill="#fff"/><text x="74" y="70" font-size="11" font-weight="900" text-anchor="middle" fill="#c1121f">10</text>
+</svg>`;}
+$('#intro-bike').innerHTML=bikeSVG('a'); $('#bikeFx').innerHTML=bikeSVG('b');
+
+/* ============================ AUDIO ============================ */
+let AC=null, muted=false;
+function ac(){ if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}
+  if(AC.state==='suspended')AC.resume(); return AC;}
+function tone(f,dur,type='sine',vol=.18,when=0,to=null){
+  if(muted)return; const c=ac(); if(!c)return; const t=c.currentTime+when;
+  const o=c.createOscillator(),g=c.createGain(); o.type=type; o.frequency.setValueAtTime(f,t);
+  if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur+.05);}
+function engineRev(dur=1){
+  if(muted)return; const c=ac(); if(!c)return; const t=c.currentTime;
+  const o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();
+  o.type='sawtooth'; o2.type='square';
+  o.frequency.setValueAtTime(70,t); o.frequency.exponentialRampToValueAtTime(330,t+dur*.5); o.frequency.exponentialRampToValueAtTime(110,t+dur);
+  o2.frequency.setValueAtTime(36,t); o2.frequency.exponentialRampToValueAtTime(165,t+dur*.5); o2.frequency.exponentialRampToValueAtTime(55,t+dur);
+  f.type='lowpass'; f.frequency.setValueAtTime(600,t); f.frequency.exponentialRampToValueAtTime(2400,t+dur*.5);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.2,t+.05); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(f); o2.connect(f); f.connect(g); g.connect(c.destination);
+  o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);}
+const sfxClick=()=>tone(430,.06,'square',.07);
+const sfxOk=()=>[523,659,784,1046].forEach((f,i)=>tone(f,.2,'triangle',.16,i*.07));
+const sfxNo=()=>{tone(200,.35,'sawtooth',.15,0,80);tone(120,.4,'square',.1,.05,60)};
+const sfxBeep=hi=>tone(hi?1150:680,.16,'square',.16);
+const sfxWin=()=>{[[523,0],[659,.13],[784,.26],[1046,.4],[880,.6],[1046,.72],[1318,.9]].forEach(([f,w])=>tone(f,.3,'triangle',.17,w)); engineRev(1.5);};
+
+/* ============================ DATA SOAL ============================ */
+const LEVELS=[
+{
+ name:"START YOUR ENGINE", icon:"🏍️", subtitle:"Mengenali Pola Barisan Aritmatika",
+ objective:"Mengidentifikasi pola barisan aritmatika",
+ brief:"Panaskan mesin! Kenali dulu pola bilangannya sebelum ngegas.",
+ questions:[
+  {story:"🔧 Bengkel <b>TSM Jaya</b> mencatat jumlah motor yang diservis tiap hari selama minggu pertama.",
+   q:"Hari ke-1 = 8 motor, hari ke-2 = 12 motor, hari ke-3 = 16 motor, hari ke-4 = 20 motor. Pola pertambahan jumlah servis setiap hari adalah…",
+   options:["Bertambah 3 motor","Bertambah 4 motor","Bertambah 5 motor"],answer:1,
+   hints:["Tulis ulang barisannya: 8, 12, 16, 20.","Kurangkan suku ke-2 dengan suku ke-1: 12 − 8 = ?","Cek juga 16 − 12 dan 20 − 16. Kalau hasilnya sama, itulah polanya."],
+   explain:"Hitung selisih antar suku berurutan:<div class='formula'>12 − 8 = 4 ; 16 − 12 = 4 ; 20 − 16 = 4</div>Selisihnya <b>selalu tetap 4</b>, jadi ini barisan aritmatika dengan pola <b>bertambah 4 motor setiap hari</b> (beda b = 4)."},
+  {story:"⚙️ Bagian produksi bengkel membuat kampas rem dengan target naik teratur tiap minggu.",
+   q:"Minggu ke-1 = 15 buah, minggu ke-2 = 22, minggu ke-3 = 29, minggu ke-4 = 36. Berapa produksi pada minggu ke-5?",
+   options:["43 buah","42 buah","44 buah"],answer:0,
+   hints:["Cari dulu bedanya: 22 − 15 = ?","Cek 29 − 22 dan 36 − 29, hasilnya harus sama.","Suku berikutnya = suku terakhir + beda."],
+   explain:"Beda b = 22 − 15 = 7 (29 − 22 = 7, 36 − 29 = 7 ✔).<div class='formula'>U₅ = U₄ + b = 36 + 7 = 43</div>Jadi produksi minggu ke-5 adalah <b>43 buah kampas rem</b>."},
+  {story:"🏁 Kepala mekanik memberi 3 catatan data. Hanya satu yang polanya tetap (aritmatika).",
+   q:"Manakah di antara barisan berikut yang merupakan <b>barisan aritmatika</b>?",
+   options:["3, 6, 12, 24, …","5, 9, 13, 17, …","2, 5, 10, 17, …"],answer:1,
+   hints:["Barisan aritmatika punya SELISIH tetap, bukan perbandingan tetap.","Cek 3, 6, 12, 24 → selisihnya 3, 6, 12 (tidak tetap).","Cek 5, 9, 13, 17 → selisihnya 4, 4, 4 (tetap!)."],
+   explain:"• 3, 6, 12, 24 → selisih 3, 6, 12 (tidak tetap) → barisan <i>geometri</i> (rasio 2).<br>• <b>5, 9, 13, 17 → selisih 4, 4, 4 (tetap) → barisan aritmatika ✔</b><br>• 2, 5, 10, 17 → selisih 3, 5, 7 (tidak tetap) → bukan aritmatika."},
+  {story:"🏍️ Motor peserta warming-up masuk lintasan secara bergelombang dengan pola teratur.",
+   q:"Gelombang 1 = 6 motor, gelombang 2 = 11, gelombang 3 = 16, gelombang 4 = 21. Dua gelombang berikutnya berisi…",
+   options:["26 dan 31 motor","25 dan 30 motor","26 dan 32 motor"],answer:0,
+   hints:["Beda barisan = 11 − 6.","b = 5, jadi tiap gelombang tambah 5 motor.","21 + 5 = 26, lalu 26 + 5 = ?"],
+   explain:"b = 11 − 6 = 5.<div class='formula'>U₅ = 21 + 5 = 26 ; U₆ = 26 + 5 = 31</div>Dua gelombang berikutnya: <b>26 dan 31 motor</b>."},
+  {story:"🛢️ Rak oli bengkel makin kosong karena servis harian makin ramai.",
+   q:"Stok oli tercatat 30, 27, 24, 21, … botol. Pola barisan tersebut adalah…",
+   options:["Berkurang 4 botol","Bertambah 3 botol","Berkurang 3 botol"],answer:2,
+   hints:["Angkanya makin kecil, berarti bedanya negatif.","Hitung 27 − 30 = ?","Hasilnya −3, artinya berkurang 3 setiap langkah."],
+   explain:"27 − 30 = −3 ; 24 − 27 = −3 ; 21 − 24 = −3.<div class='formula'>b = −3 → pola BERKURANG 3 botol</div>Barisan aritmatika boleh punya beda negatif (barisan turun)."}
+ ]
+},
+{
+ name:"MECHANIC MATHEMATICS", icon:"🔧", subtitle:"Menentukan Suku Pertama (a) dan Beda (b)",
+ objective:"Menentukan suku pertama dan beda",
+ brief:"Setel mesin presisi! Cari nilai awal (a) dan selisih tetap (b).",
+ questions:[
+  {story:"🔩 Buku servis bengkel mencatat jumlah pekerjaan tune-up harian: 7, 12, 17, 22, …",
+   q:"Suku pertama (a) dan beda (b) barisan tersebut adalah…",
+   options:["a = 5 dan b = 7","a = 7 dan b = 5","a = 7 dan b = 12"],answer:1,
+   hints:["Suku pertama = angka paling awal pada barisan.","a = 7 (angka pertama), jangan tertukar dengan beda.","b = 12 − 7 = 5."],
+   explain:"Suku pertama adalah U₁, jadi <b>a = 7</b>.<div class='formula'>b = U₂ − U₁ = 12 − 7 = 5</div>Jadi <b>a = 7 dan b = 5</b>."},
+  {story:"⚙️ Seorang mekanik mencatat produksi ring piston, tapi catatan hari pertama robek terkena oli.",
+   q:"Diketahui suku ke-3 = 18 buah dan suku ke-7 = 34 buah. Beda (b) barisan tersebut adalah…",
+   options:["b = 3","b = 5","b = 4"],answer:2,
+   hints:["Gunakan rumus Uₙ = a + (n−1)b, lalu kurangkan kedua persamaan.","U₇ − U₃ = (7 − 3)b = 4b.","4b = 34 − 18 = 16 → b = 16 : 4."],
+   explain:"<div class='formula'>U₇ − U₃ = (a+6b) − (a+2b) = 4b<br>4b = 34 − 18 = 16 → b = 4</div>Jadi beda barisan adalah <b>b = 4</b> (dan a = 18 − 2·4 = 10)."},
+  {story:"🛞 Stok ban racing di garasi berkurang teratur setiap hari karena dipakai balap.",
+   q:"Barisan stok ban: 45, 38, 31, 24, … Nilai a dan b adalah…",
+   options:["a = 45 dan b = −7","a = 45 dan b = 7","a = 24 dan b = −7"],answer:0,
+   hints:["Barisan menurun → beda bertanda negatif.","a adalah suku pertama, yaitu 45.","b = 38 − 45 = −7."],
+   explain:"a = U₁ = <b>45</b>.<div class='formula'>b = 38 − 45 = −7 (cek: 31 − 38 = −7 ✔)</div>Jadi <b>a = 45 dan b = −7</b>."},
+  {story:"🔧 Tim tambal ban mencatat hasil kerja. Catatan hari pertama hilang, tapi hari ke-2 dan ke-5 ada.",
+   q:"U₂ = 14 ban dan U₅ = 29 ban. Suku pertama (a) barisan tersebut adalah…",
+   options:["9 ban","8 ban","10 ban"],answer:0,
+   hints:["Cari b dulu dari selisih U₅ dan U₂.","U₅ − U₂ = 3b = 15 → b = 5.","a = U₂ − b = 14 − 5."],
+   explain:"<div class='formula'>U₅ − U₂ = 3b = 29 − 14 = 15 → b = 5<br>a = U₂ − b = 14 − 5 = 9</div>Jadi suku pertama <b>a = 9 ban</b>."},
+  {story:"🏍️ Bengkel baru buka: hari pertama 12 motor, lalu naik tetap setiap hari.",
+   q:"Jika pada hari ke-6 bengkel melayani 32 motor, maka beda (b) kenaikan servis per hari adalah…",
+   options:["5 motor","4 motor","3 motor"],answer:1,
+   hints:["Tulis: U₆ = a + 5b dengan a = 12.","32 = 12 + 5b.","5b = 20 → b = ?"],
+   explain:"<div class='formula'>U₆ = a + 5b → 32 = 12 + 5b<br>5b = 20 → b = 4</div>Jadi servis bertambah <b>4 motor setiap hari</b>."}
+ ]
+},
+{
+ name:"RACING SPEED", icon:"💨", subtitle:"Menghitung Suku ke-n (Uₙ = a + (n−1)b)",
+ objective:"Menghitung suku ke-n",
+ brief:"Masuk lintasan! Pakai rumus Uₙ untuk memprediksi kecepatan & produksi.",
+ questions:[
+  {story:"💨 Test rider menaikkan kecepatan secara teratur tiap lap di lintasan straight.",
+   q:"Lap 1 = 60 km/jam, lap 2 = 68 km/jam, lap 3 = 76 km/jam, dan seterusnya. Kecepatan pada lap ke-10 adalah…",
+   options:["132 km/jam","124 km/jam","140 km/jam"],answer:0,
+   hints:["a = 60 dan b = 68 − 60 = 8.","Gunakan Uₙ = a + (n−1)b dengan n = 10.","U₁₀ = 60 + 9 × 8."],
+   explain:"a = 60, b = 8, n = 10.<div class='formula'>U₁₀ = a + 9b = 60 + 9(8) = 60 + 72 = 132</div>Kecepatan lap ke-10 = <b>132 km/jam</b>."},
+  {story:"⚡ Pabrik busi racing menambah产量 produksi secara tetap tiap hari.",
+   q:"Hari ke-1 = 20 busi, hari ke-2 = 27, hari ke-3 = 34, … Produksi pada hari ke-15 adalah…",
+   options:["111 busi","118 busi","125 busi"],answer:1,
+   hints:["b = 27 − 20 = 7.","U₁₅ = a + 14b (bukan 15b!).","20 + 14 × 7 = 20 + 98."],
+   explain:"a = 20, b = 7.<div class='formula'>U₁₅ = 20 + (15−1)·7 = 20 + 98 = 118</div>Produksi hari ke-15 = <b>118 busi</b>."},
+  {story:"🧮 Mesin pencatat bengkel otomatis menampilkan rumus, tapi kamu harus memilih yang benar.",
+   q:"Barisan jumlah servis: 5, 9, 13, 17, … Rumus suku ke-n barisan tersebut adalah…",
+   options:["Uₙ = 4n + 5","Uₙ = n + 4","Uₙ = 4n + 1"],answer:2,
+   hints:["a = 5 dan b = 4.","Uₙ = a + (n−1)b = 5 + (n−1)4, lalu sederhanakan.","5 + 4n − 4 = 4n + 1. Uji dengan n = 1 → harus menghasilkan 5."],
+   explain:"<div class='formula'>Uₙ = 5 + (n−1)4 = 5 + 4n − 4 = 4n + 1</div>Cek: n=1 → 5 ✔, n=2 → 9 ✔, n=3 → 13 ✔. Jadi <b>Uₙ = 4n + 1</b>."},
+  {story:"🛢️ Gudang kampas rem mengeluarkan barang secara teratur tiap hari untuk servis.",
+   q:"Stok awal 100 buah, hari ke-2 tinggal 94, hari ke-3 tinggal 88, … Sisa stok pada hari ke-12 adalah…",
+   options:["34 buah","28 buah","40 buah"],answer:0,
+   hints:["Barisan turun: b = 94 − 100 = −6.","U₁₂ = 100 + 11 × (−6).","100 − 66 = ?"],
+   explain:"a = 100, b = −6.<div class='formula'>U₁₂ = 100 + (12−1)(−6) = 100 − 66 = 34</div>Sisa stok hari ke-12 = <b>34 buah</b>."},
+  {story:"🏁 Data jumlah motor yang lewat pit stop hanya tercatat sebagian.",
+   q:"Diketahui U₈ = 41 motor dan U₁₄ = 71 motor. Jumlah motor pada catatan ke-20 adalah…",
+   options:["96 motor","106 motor","101 motor"],answer:2,
+   hints:["Cari b: U₁₄ − U₈ = 6b.","6b = 30 → b = 5, lalu a = U₈ − 7b = 41 − 35 = 6.","U₂₀ = 6 + 19 × 5."],
+   explain:"<div class='formula'>6b = 71 − 41 = 30 → b = 5<br>a = 41 − 7(5) = 6<br>U₂₀ = 6 + 19(5) = 6 + 95 = 101</div>Jadi <b>101 motor</b>."}
+ ]
+},
+{
+ name:"GARAGE MASTER", icon:"🏗️", subtitle:"Jumlah n Suku Pertama (Sₙ)",
+ objective:"Menentukan jumlah n suku pertama deret aritmatika",
+ brief:"Jadi kepala bengkel! Hitung TOTAL produksi & servis pakai rumus Sₙ.",
+ questions:[
+  {story:"🔧 Bengkel melayani 10 motor pada minggu ke-1 dan naik 5 motor tiap minggu.",
+   q:"Total motor yang diservis selama 8 minggu pertama adalah…",
+   options:["220 motor","200 motor","240 motor"],answer:0,
+   hints:["Ini soal TOTAL, jadi pakai Sₙ bukan Uₙ.","Sₙ = n/2 [2a + (n−1)b], dengan a=10, b=5, n=8.","S₈ = 4[20 + 35] = 4 × 55."],
+   explain:"a = 10, b = 5, n = 8.<div class='formula'>S₈ = 8/2 [2(10) + 7(5)] = 4[20 + 35] = 4 × 55 = 220</div>Total = <b>220 motor</b>."},
+  {story:"⚙️ Produksi komponen CNC: hari ke-1 = 12 buah, naik 4 buah tiap hari.",
+   q:"Total komponen yang diproduksi selama 10 hari adalah…",
+   options:["280 komponen","320 komponen","300 komponen"],answer:2,
+   hints:["a = 12, b = 4, n = 10.","S₁₀ = 10/2 [2(12) + 9(4)].","5 × [24 + 36] = 5 × 60."],
+   explain:"<div class='formula'>S₁₀ = 10/2 [2(12) + 9(4)] = 5[24 + 36] = 5 × 60 = 300</div>Total produksi = <b>300 komponen</b>."},
+  {story:"🏗️ Pipa knalpot disusun bertingkat di gudang: baris paling atas 3 batang, tiap baris di bawahnya bertambah 2.",
+   q:"Jika ada 12 baris, jumlah seluruh pipa knalpot adalah…",
+   options:["168 batang","156 batang","180 batang"],answer:0,
+   hints:["a = 3 (baris atas), b = 2, n = 12.","S₁₂ = 12/2 [2(3) + 11(2)].","6 × [6 + 22] = 6 × 28."],
+   explain:"<div class='formula'>S₁₂ = 12/2 [2(3) + 11(2)] = 6[6 + 22] = 6 × 28 = 168</div>Jumlah pipa = <b>168 batang</b>."},
+  {story:"🔩 Nomor rak suku cadang membentuk deret: 5, 9, 13, … sampai 81.",
+   q:"Jumlah seluruh nomor rak tersebut (5 + 9 + 13 + … + 81) adalah…",
+   options:["900","860","820"],answer:1,
+   hints:["Cari dulu banyaknya suku: 81 = 5 + (n−1)4.","n − 1 = 19 → n = 20.","Pakai Sₙ = n/2 (a + Uₙ) = 20/2 (5 + 81)."],
+   explain:"<div class='formula'>81 = 5 + (n−1)4 → n = 20<br>S₂₀ = 20/2 (5 + 81) = 10 × 86 = 860</div>Jumlahnya = <b>860</b>."},
+  {story:"🏟️ Tribun sirkuit nasional: baris pertama 15 kursi, tiap baris berikutnya bertambah 4 kursi.",
+   q:"Jika tribun memiliki 15 baris, kapasitas total penonton adalah…",
+   options:["615 kursi","675 kursi","645 kursi"],answer:2,
+   hints:["a = 15, b = 4, n = 15.","S₁₅ = 15/2 [2(15) + 14(4)].","7,5 × [30 + 56] = 7,5 × 86."],
+   explain:"<div class='formula'>S₁₅ = 15/2 [30 + 56] = 7,5 × 86 = 645</div>Kapasitas tribun = <b>645 kursi</b>."}
+ ]
+},
+{
+ name:"GRAND FINAL", icon:"🏆", subtitle:"Soal Cerita HOTS — Analisis Multi Langkah",
+ objective:"Menyelesaikan masalah kontekstual otomotif (HOTS)",
+ brief:"Final kejuaraan! Soal nyata bengkel & balapan, butuh 2–3 langkah perhitungan.",
+ questions:[
+  {story:"🏍️ Bengkel <b>TSM Racing Garage</b> melayani 120 motor pada bulan ke-1 dan bertambah 15 motor setiap bulan.",
+   q:"Total motor yang diservis selama <b>1 tahun (12 bulan)</b> adalah…",
+   options:["2.280 motor","2.430 motor","2.520 motor"],answer:1,
+   hints:["Ini akumulasi → pakai S₁₂, bukan U₁₂.","a = 120, b = 15, n = 12 → S₁₂ = 6[2(120) + 11(15)].","6 × [240 + 165] = 6 × 405."],
+   explain:"<div class='formula'>S₁₂ = 12/2 [2(120) + 11(15)]<br>= 6[240 + 165] = 6 × 405 = 2.430</div>Total setahun = <b>2.430 motor</b>."},
+  {story:"💰 Rizal, mekanik muda TSM, menabung Rp25.000 pada minggu pertama dan menambah Rp5.000 tiap minggu untuk membeli knalpot racing seharga Rp1.400.000.",
+   q:"Setelah 20 minggu, pernyataan yang BENAR adalah…",
+   options:["Total tabungan Rp1.450.000 → knalpot bisa dibeli","Total tabungan Rp1.350.000 → uang masih kurang","Total tabungan Rp1.500.000 → sisa Rp100.000"],answer:0,
+   hints:["Tabungan yang dikumpulkan = deret, jadi pakai S₂₀.","S₂₀ = 20/2 [2(25.000) + 19(5.000)].","10 × [50.000 + 95.000] = 10 × 145.000. Bandingkan dengan harga knalpot."],
+   explain:"<div class='formula'>S₂₀ = 20/2 [2(25.000) + 19(5.000)]<br>= 10[50.000 + 95.000] = 10 × 145.000 = Rp1.450.000</div>Rp1.450.000 &gt; Rp1.400.000 → <b>knalpot bisa dibeli</b>, sisa Rp50.000."},
+  {story:"🏭 Produksi kampas rem: catatan hari ke-3 = 26 buah dan hari ke-8 = 56 buah (kenaikan tetap).",
+   q:"Total produksi selama <b>15 hari pertama</b> adalah…",
+   options:["780 buah","900 buah","840 buah"],answer:2,
+   hints:["Langkah 1: cari b dari U₈ − U₃ = 5b.","5b = 30 → b = 6; lalu a = 26 − 2(6) = 14.","Langkah 2: S₁₅ = 15/2 [2(14) + 14(6)] = 7,5 × 112."],
+   explain:"<div class='formula'>5b = 56 − 26 = 30 → b = 6<br>a = U₃ − 2b = 26 − 12 = 14<br>S₁₅ = 15/2 [28 + 84] = 7,5 × 112 = 840</div>Total produksi = <b>840 buah</b>."},
+  {story:"🛞 Ban racing ditumpuk membentuk piramida: baris terbawah 25 ban, tiap baris di atasnya berkurang 2, baris paling atas 5 ban.",
+   q:"Jumlah seluruh ban pada tumpukan tersebut adalah…",
+   options:["150 ban","165 ban","180 ban"],answer:1,
+   hints:["Cari jumlah baris dulu: 5 = 25 + (n−1)(−2).","(n−1) = 10 → n = 11 baris.","S₁₁ = 11/2 (a + Uₙ) = 5,5 × (25 + 5)."],
+   explain:"<div class='formula'>5 = 25 − 2(n−1) → n − 1 = 10 → n = 11<br>S₁₁ = 11/2 (25 + 5) = 5,5 × 30 = 165</div>Jumlah ban = <b>165 ban</b>."},
+  {story:"⚔️ Dua bengkel bersaing! Bengkel <b>A</b>: hari ke-1 = 8 motor, naik 3 motor/hari. Bengkel <b>B</b>: hari ke-1 = 20 motor, naik 1 motor/hari.",
+   q:"Pada hari ke berapakah jumlah motor yang diservis kedua bengkel SAMA BANYAK?",
+   options:["Hari ke-6","Hari ke-8","Hari ke-7"],answer:2,
+   hints:["Tulis rumus Uₙ masing-masing bengkel.","A: Uₙ = 8 + 3(n−1) = 3n + 5 ; B: Uₙ = 20 + (n−1) = n + 19.","Samakan: 3n + 5 = n + 19 → 2n = 14."],
+   explain:"<div class='formula'>A: Uₙ = 3n + 5 ; B: Uₙ = n + 19<br>3n + 5 = n + 19 → 2n = 14 → n = 7</div>Cek hari ke-7: A = 3(7)+5 = 26 ; B = 7+19 = 26 ✔. Jadi <b>hari ke-7</b> (masing-masing 26 motor)."}
+ ]
+}];
+
+const BONUS=[
+ {story:"⚡ NITRO 1 — Analisis dua informasi sekaligus.",
+  q:"Suatu barisan aritmatika memiliki U₄ = 20 dan S₁₀ = 275. Nilai suku pertama (a) dan beda (b) adalah…",
+  options:["a = 8 dan b = 4","a = 5 dan b = 5","a = 2 dan b = 6"],answer:1,
+  hints:["Buat 2 persamaan: a + 3b = 20 dan S₁₀ = 5(2a + 9b) = 275.","Dari S₁₀: 2a + 9b = 55. Substitusi a = 20 − 3b.","40 − 6b + 9b = 55 → 3b = 15."],
+  explain:"<div class='formula'>a + 3b = 20 ; 2a + 9b = 55<br>2(20 − 3b) + 9b = 55 → 40 + 3b = 55 → b = 5, a = 5</div>Cek: U₄ = 5+15 = 20 ✔ ; S₁₀ = 5(10+45) = 275 ✔."},
+ {story:"⚡ NITRO 2 — Nomor pit stop istimewa.",
+  q:"Nomor pit stop yang mendapat oli gratis adalah semua kelipatan 7 antara 1 dan 200. Jumlah seluruh nomor tersebut adalah…",
+  options:["2.842","2.744","2.940"],answer:0,
+  hints:["Barisannya: 7, 14, 21, …, 196.","Banyaknya suku: 196 : 7 = 28.","S₂₈ = 28/2 (7 + 196) = 14 × 203."],
+  explain:"<div class='formula'>7 + 14 + … + 196 ; n = 28<br>S₂₈ = 28/2 (7 + 196) = 14 × 203 = 2.842</div>Jumlahnya = <b>2.842</b>."},
+ {story:"⚡ NITRO 3 — Test rider di lintasan lurus.",
+  q:"Jarak tempuh tiap detik: 10 m, 14 m, 18 m, … Total lintasan 280 meter habis ditempuh setelah…",
+  options:["8 detik","12 detik","10 detik"],answer:2,
+  hints:["Gunakan Sₙ = n/2 [2(10) + (n−1)4] = 280.","Sederhanakan: n(2n + 8) = 280 → 2n² + 8n − 280 = 0.","Bagi 2: n² + 4n − 140 = 0 → (n − 10)(n + 14) = 0."],
+  explain:"<div class='formula'>Sₙ = n/2[20 + 4(n−1)] = n(2n + 8) = 280<br>n² + 4n − 140 = 0 → (n − 10)(n + 14) = 0 → n = 10</div>Karena n positif, jawabannya <b>10 detik</b>."}
+];
+
+/* ============================ STATE ============================ */
+const TOTAL_TIME=90*60, BONUS_LIMIT=45*60;
+let S=null, lastScreen='map';
+function newState(name,kelas){return{
+  runId:'TSM-'+Date.now().toString(36).toUpperCase(),
+  name,kelas,score:0,lives:3,level:0,qIndex:0,answered:false,hintIndex:0,
+  levelCorrect:0,levelWrong:0,hintsUsed:0,totalCorrect:0,totalAnswered:0,
+  results:[[],[],[],[],[]],completed:[false,false,false,false,false],
+  levelStats:[null,null,null,null,null],medals:[],
+  timeLeft:TOTAL_TIME,timer:null,mode:'level',bonusCorrect:0,bonusDone:false,
+  bonusUnlocked:false,gameOver:false,timeUsed:0,accuracy:0,pred:'',snapshot:null
+};}
+
+/* ============================ UTIL ============================ */
+function show(id){
+  $$('.screen').forEach(s=>s.classList.remove('active'));
+  $('#screen-'+id).classList.add('active');
+  $('#hud').classList.toggle('hidden', id==='intro');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id!=='leaderboard'&&id!=='certificate') lastScreen=id;
+}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function fmt(sec){sec=Math.max(0,sec);const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function modal(title,body,actions){
+  $('#modal-title').innerHTML=title; $('#modal-body').innerHTML=body;
+  const a=$('#modal-actions'); a.innerHTML='';
+  (actions||[{t:'Tutup',c:'btn ghost',f:closeModal}]).forEach(o=>{
+    const b=document.createElement('button'); b.className=o.c||'btn'; b.innerHTML=o.t;
+    b.onclick=()=>{sfxClick();o.f();}; a.appendChild(b);});
+  $('#modal').classList.remove('hidden');
+}
+function closeModal(){$('#modal').classList.add('hidden');}
+function rideBike(){const b=$('#bikeFx');b.classList.remove('ride');void b.offsetWidth;b.classList.add('ride');}
+function confetti(n=40){
+  const cols=['#ff2338','#ff8a1f','#19e3ff','#ffd24a','#25f5a0','#ffffff'];
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='confetti';
+    d.style.left=Math.random()*100+'vw';d.style.background=cols[i%cols.length];
+    d.style.animationDuration=(1.6+Math.random()*1.6)+'s';d.style.animationDelay=(Math.random()*.5)+'s';
+    document.body.appendChild(d);setTimeout(()=>d.remove(),3600);}
+}
+
+/* ============================ HUD & TIMER ============================ */
+function updateHUD(){
+  if(!S)return;
+  $('#hud-score').textContent=S.score;
+  $('#hud-time').textContent=fmt(S.timeLeft);
+  $('#hud-time').classList.toggle('warn',S.timeLeft<=300);
+  $('#hud-level').textContent=S.mode==='bonus'?'BONUS':(S.level+1)+'/5';
+  $('#hud-lives').textContent=S.mode==='bonus'?'∞':('🔧'.repeat(S.lives)+'▫️'.repeat(3-S.lives));
+}
+function startTimer(){
+  clearInterval(S.timer);
+  S.timer=setInterval(()=>{
+    S.timeLeft--; updateHUD();
+    if(S.timeLeft<=10&&S.timeLeft>0)sfxBeep(false);
+    if(S.timeLeft===300){toast('⏰ Sisa 5 menit! Gas poll, Bro!');sfxBeep(true);}
+    if(S.timeLeft<=0){clearInterval(S.timer);timeUp();}
+  },1000);
+}
+function timeUp(){
+  sfxNo();
+  modal('⏰ WAKTU HABIS!',`<p>90 menit sudah lewat, Bro! Balapan dihentikan panitia. Tenang — skor dan misimu yang sudah selesai tetap dihitung.</p>`,
+    [{t:'🏁 Lihat Hasil Akhir',c:'btn',f:()=>{closeModal();finishGame();}}]);
+}
+
+/* ============================ INTRO / MAP ============================ */
+$('#btn-start').onclick=()=>{
+  ac(); const n=$('#inp-name').value.trim()||'Racer TSM';
+  const k=$('#inp-class').value.trim()||'X TSM';
+  S=newState(n,k); engineRev(1.2); startTimer(); renderMap(); show('map');
+  toast('Selamat datang di garasi, '+n+'! 🔧');
+};
+$('#btn-rules').onclick=()=>{sfxClick();modal('📖 CARA BERMAIN',`
+  <p><b>1.</b> Ada <b>5 misi</b>, tiap misi <b>5 soal</b> pilihan ganda (3 opsi: A/B/C).</p>
+  <p><b>2.</b> Waktu total <b>90 menit</b> untuk seluruh kejuaraan.</p>
+  <p><b>3.</b> Tiap level kamu punya <b>3 kesempatan (🔧)</b>. Salah 1 = kehilangan 1 kunci. Habis 3 = level gagal &amp; harus diulang.</p>
+  <p><b>4.</b> Benar = <b>+100 poin</b>. Semua soal benar dalam 1 level = <b>bonus +50 poin</b> (Perfect Tune-Up).</p>
+  <p><b>5.</b> Level berikutnya terk 🔒 sampai level sebelumnya selesai.</p>
+  <p><b>6.</b> Gunakan <b>💡 Petunjuk bertahap</b> (3 tingkat) dan <b>📚 Pembahasan lengkap</b> setelah menjawab.</p>
+  <p><b>7.</b> Selesai di bawah <b>45 menit</b> = terbuka <b>⚡ NITRO ROUND</b> (3 soal bonus, +150 poin/soal).</p>
+  <p><b>8.</b> Di akhir: podium, medali, evaluasi kemampuan, papan peringkat, dan <b>sertifikat digital</b>.</p>
+  <p class="sub">Pintasan keyboard: tekan <b>1 / 2 / 3</b> untuk memilih jawaban, <b>Enter</b> untuk lanjut.</p>`);};
+$('#btn-lb-intro').onclick=()=>{sfxClick();renderLB();show('leaderboard');};
+$('#btn-lb-map').onclick=()=>{sfxClick();renderLB();show('leaderboard');};
+$('#btn-lb-final').onclick=()=>{sfxClick();renderLB();show('leaderboard');};
+$('#btn-lb-back').onclick=()=>{sfxClick();show(S?(S.gameOver?'final':lastScreen):'intro');};
+$('#btn-lb-clear').onclick=()=>{sfxClick();modal('🗑️ Reset Papan Peringkat','<p>Semua data peringkat di perangkat ini akan dihapus. Yakin?</p>',
+  [{t:'Ya, hapus',c:'btn',f:()=>{localStorage.removeItem('mrmc_lb');renderLB();closeModal();toast('Papan peringkat direset.');}},
+   {t:'Batal',c:'btn ghost',f:closeModal}]);};
+$('#btn-reset-game').onclick=()=>confirmRestart();
+$('#btn-restart-final').onclick=()=>confirmRestart();
+function confirmRestart(){
+  sfxClick();
+  modal('🔄 Ulangi Permainan','<p>Skor dan progres misi saat ini akan dihapus dari sesi ini. Mulai dari Level 1 lagi?</p>',
+   [{t:'Ya, mulai ulang',c:'btn',f:()=>{closeModal();restartGame();}},{t:'Batal',c:'btn ghost',f:closeModal}]);
+}
+function restartGame(){
+  clearInterval(S.timer); const n=S.name,k=S.kelas;
+  S=newState(n,k); startTimer(); renderMap(); show('map'); engineRev(1); toast('Mesin di-reset. Siap balapan lagi! 🏁');
+}
+function renderMap(){
+  $('#map-name').textContent=S.name; $('#map-score').textContent=S.score;
+  const done=S.completed.filter(Boolean).length;
+  $('#map-prog').style.width=(done/5*100)+'%'; $('#map-progtext').textContent=done+'/5 misi';
+  $('#btn-finish-early').classList.toggle('hidden',done<5);
+  const box=$('#mission-list'); box.innerHTML='';
+  LEVELS.forEach((L,i)=>{
+    const locked=i>0&&!S.completed[i-1], done2=S.completed[i], st=S.levelStats[i];
+    const d=document.createElement('div');
+    d.className='mission'+(locked?' locked':'')+(done2?' done':'');
+    d.innerHTML=`<div class="num">${locked?'🔒':L.icon}</div>
+      <div style="flex:1;min-width:170px">
+        <span class="tag ${done2?'blue':''}">LEVEL ${i+1}</span>
+        <h3 style="margin-top:6px">${L.name}</h3>
+        <p>${L.subtitle}</p>
+      </div>
+      <div class="mstat">${done2?`<b>${st.correct}/5 ✔</b><span>${st.perfect?'PERFECT 🥇':'SELESAI'}</span>`
+        :locked?'<b>🔒</b><span>Terkunci</span>':'<b>▶</b><span>Mulai misi</span>'}</div>`;
+    d.onclick=()=>{
+      if(locked){sfxNo();toast('Selesaikan Level '+i+' dulu, Bro! 🔒');return;}
+      if(done2){sfxClick();toast('Misi ini sudah selesai. Skornya terkunci ✔');return;}
+      openLevel(i);
+    };
+    box.appendChild(d);
+  });
+  updateHUD();
+}
+$('#btn-finish-early').onclick=()=>{sfxClick();finishGame();};
+$('#btn-home').onclick=()=>{
+  sfxClick();
+  if(!S)return;
+  if(S.mode==='bonus'){show('final');return;}
+  if(!S.gameOver&&!S.completed[S.level]&&$('#screen-quiz').classList.contains('active')){
+    // batalkan progres level berjalan agar skor adil
+    Object.assign(S,S.snapshot); S.lives=3; S.qIndex=0; S.levelCorrect=0; S.levelWrong=0;
+    toast('Level dibatalkan. Skor dikembalikan ke awal level.');
+  }
+  if(S.gameOver){show('final');return;}
+  renderMap(); show('map');
+};
+$('#btn-sound').onclick=()=>{muted=!muted;$('#btn-sound').textContent=muted?'🔇':'🔊';if(!muted){ac();sfxClick();}};
+
+/* ============================ COUNTDOWN ============================ */
+function countdown(cb){
+  const ov=$('#countdown'),num=$('#cd-num'); ov.classList.remove('hidden');
+  let n=3; num.textContent=n; num.style.animation='none'; void num.offsetWidth; num.style.animation='';
+  sfxBeep(false);
+  const iv=setInterval(()=>{
+    n--;
+    if(n>0){num.textContent=n;num.style.color='var(--orange)';sfxBeep(false);}
+    else if(n===0){num.textContent='GO!';num.style.color='var(--green)';sfxBeep(true);engineRev(1.3);rideBike();}
+    else{clearInterval(iv);ov.classList.add('hidden');cb();}
+    num.style.animation='none';void num.offsetWidth;num.style.animation='cdPop .7s ease';
+  },750);
+}
+
+/* ============================ KUIS ============================ */
+function curSet(){return S.mode==='bonus'?BONUS:LEVELS[S.level].questions;}
+function openLevel(i){
+  S.mode='level';S.level=i;S.qIndex=0;S.lives=3;S.levelCorrect=0;S.levelWrong=0;
+  S.results[i]=[];
+  S.snapshot={score:S.score,totalCorrect:S.totalCorrect,totalAnswered:S.totalAnswered,hintsUsed:S.hintsUsed};
+  updateHUD();
+  toast(LEVELS[i].icon+' '+LEVELS[i].name+' — '+LEVELS[i].brief);
+  countdown(()=>{show('quiz');renderQuestion();});
+}
+function renderQuestion(){
+  const set=curSet(),q=set[S.qIndex];
+  S.answered=false;S.hintIndex=0;
+  $('#quiz-tag').textContent=S.mode==='bonus'?'⚡ NITRO ROUND':`LEVEL ${S.level+1} • ${LEVELS[S.level].name}`;
+  $('#quiz-material').textContent=S.mode==='bonus'?'Tantangan bonus pembalap tercepat (+150 poin/soal)':LEVELS[S.level].subtitle;
+  $('#q-counter').textContent=`Soal ${S.qIndex+1} / ${set.length}`;
+  $('#q-story').innerHTML=q.story; $('#q-text').innerHTML=q.q;
+  const box=$('#options');box.innerHTML='';
+  q.options.forEach((o,i)=>{
+    const b=document.createElement('button');b.className='opt';
+    b.innerHTML=`<span class="opt-key">${'ABC'[i]}</span><span>${o}</span>`;
+    b.onclick=()=>answer(i);box.appendChild(b);
+  });
+  $('#feedback').className='feedback hidden';$('#feedback').innerHTML='';
+  $('#btn-next').disabled=true;$('#btn-explain').disabled=true;$('#btn-hint').disabled=false;
+  $('#btn-retry').classList.toggle('hidden',S.mode==='bonus');
+  $('#btn-next').textContent='Lanjutkan ➜';
+  $('#q-progress').style.width=(S.qIndex/set.length*100)+'%';
+  renderDots();updateHUD();
+}
+function renderDots(){
+  const set=curSet(),d=$('#q-dots');d.innerHTML='';
+  const res=S.mode==='bonus'?[]:S.results[S.level];
+  for(let i=0;i<set.length;i++){
+    const s=document.createElement('span');
+    s.className='dot'+(res[i]===true?' ok':res[i]===false?' no':i===S.qIndex?' now':'');
+    d.appendChild(s);
+  }
+}
+function answer(i){
+  if(S.answered)return; S.answered=true; ac();
+  const set=curSet(),q=set[S.qIndex],opts=$$('#options .opt');
+  opts.forEach(o=>o.disabled=true);
+  opts[q.answer].classList.add('correct');
+  const benar=i===q.answer;
+  S.totalAnswered++;
+  const fb=$('#feedback');
+  if(benar){
+    const pts=S.mode==='bonus'?150:100;
+    S.score+=pts;S.totalCorrect++;
+    if(S.mode==='bonus')S.bonusCorrect++;else{S.levelCorrect++;S.results[S.level][S.qIndex]=true;}
+    sfxOk();engineRev(.55);rideBike();
+    fb.className='feedback correct';
+    fb.innerHTML=`<h4>🔥 GAS POLL! Jawaban benar +${pts} poin</h4>
+      <div>${q.explain}</div>`;
+  }else{
+    if(S.mode!=='bonus'){S.lives--;S.levelWrong++;S.results[S.level][S.qIndex]=false;}
+    opts[i].classList.add('wrong');sfxNo();
+    fb.className='feedback wrong';
+    fb.innerHTML=`<h4>❌ Belum tepat! ${S.mode==='bonus'?'':'Peluang tersisa: '+'🔧'.repeat(Math.max(0,S.lives))}</h4>
+      <p><b>Jawaban benar: ${'ABC'[q.answer]}. ${q.options[q.answer]}</b></p>
+      <div class="hintbox">💡 <b>Petunjuk kunci:</b> ${q.hints[q.hints.length-1]}</div>
+      <div>${q.explain}</div>`;
+  }
+  fb.classList.remove('hidden');
+  $('#btn-next').disabled=false;$('#btn-explain').disabled=false;$('#btn-hint').disabled=true;
+  if(S.mode==='level'&&S.lives<=0){
+    $('#btn-next').textContent='⚠️ Peluang Habis';
+    fb.innerHTML+=`<div class="hintbox" style="margin-top:8px">🛠️ Tiga kunci sudah patah! Level ini harus diulang dari soal 1. Semangat, mekanik sejati pantang menyerah!</div>`;
+  }
+  renderDots();updateHUD();
+}
+function next(){
+  if(!S.answered)return; sfxClick();
+  if(S.mode==='level'&&S.lives<=0){failLevel();return;}
+  S.qIndex++;
+  if(S.qIndex<curSet().length)renderQuestion();
+  else S.mode==='bonus'?finishBonus():finishLevel();
+}
+$('#btn-next').onclick=next;
+$('#btn-explain').onclick=()=>{
+  sfxClick();const q=curSet()[S.qIndex];
+  modal('📚 PEMBAHASAN LENGKAP',`<p><b>Soal:</b> ${q.q}</p>
+    <p><b>Jawaban benar:</b> ${'ABC'[q.answer]}. ${q.options[q.answer]}</p>${q.explain}
+    <div class="hintbox">🔑 <b>Rumus sakti:</b><br>Uₙ = a + (n − 1)b<br>Sₙ = n/2 [2a + (n − 1)b] = n/2 (a + Uₙ)</div>`);
+};
+$('#btn-hint').onclick=()=>{sfxClick();showHint();};
+function showHint(){
+  const q=curSet()[S.qIndex];
+  if(S.hintIndex<q.hints.length){S.hintIndex++;S.hintsUsed++;}
+  const list=q.hints.slice(0,S.hintIndex).map((h,i)=>`<div class="hintbox">💡 <b>Petunjuk ${i+1}:</b> ${h}</div>`).join('');
+  const more=S.hintIndex<q.hints.length;
+  modal(`💡 PETUNJUK BERTAHAP (${S.hintIndex}/${q.hints.length})`,
+    `<p class="sub">Petunjuk dibuka bertahap supaya kamu tetap berpikir sendiri. Jawaban tidak diberikan di sini 😉</p>${list}`,
+    more?[{t:'Petunjuk berikutnya ➜',c:'btn blue',f:()=>{showHint();}},{t:'Tutup',c:'btn ghost',f:closeModal}]
+        :[{t:'Oke, aku coba jawab!',c:'btn',f:closeModal}]);
+}
+$('#btn-retry').onclick=()=>{
+  sfxClick();
+  modal('🔄 Ulangi Level','<p>Kembali ke soal 1 level ini? Poin yang kamu dapat di level ini akan dikembalikan ke nilai awal level.</p>',
+   [{t:'Ya, ulangi',c:'btn',f:()=>{closeModal();retryLevel();}},{t:'Batal',c:'btn ghost',f:closeModal}]);
+};
+function retryLevel(){
+  Object.assign(S,S.snapshot);
+  S.lives=3;S.qIndex=0;S.levelCorrect=0;S.levelWrong=0;S.results[S.level]=[];
+  updateHUD();renderQuestion();toast('Level diulang. Fokus, Bro! 🔧');
+}
+function failLevel(){
+  sfxNo();
+  modal('🛠️ MESIN MOGOK!','<p>Tiga kesempatan habis di <b>Level '+(S.level+1)+' — '+LEVELS[S.level].name+'</b>.<br>Jangan menyerah! Baca lagi pembahasannya, lalu gas ulang level ini.</p>',
+   [{t:'🔄 Ulangi Level',c:'btn',f:()=>{closeModal();retryLevel();}},
+    {t:'🏠 Ke Garasi',c:'btn ghost',f:()=>{closeModal();Object.assign(S,S.snapshot);S.lives=3;renderMap();show('map');}}]);
+}
+
+/* ============================ HASIL LEVEL ============================ */
+function finishLevel(){
+  const i=S.level,perfect=S.levelCorrect===5&&S.levelWrong===0;
+  const bonus=perfect?50:0;S.score+=bonus;
+  S.completed[i]=true;
+  S.levelStats[i]={correct:S.levelCorrect,wrong:S.levelWrong,perfect};
+  let medal,ic,title,msg;
+  if(S.levelCorrect===5){medal='🥇';title='PERFECT TUNE-UP!';msg='Lima soal sikat habis tanpa cacat! Mesinmu presisi kayak motor juara. Bonus +50 poin!';
+    S.medals.push({ic:'🥇',t:'Gold Piston',d:'Level '+(i+1)+' sempurna'});}
+  else if(S.levelCorrect===4){medal='🥈';title='MISI SELESAI!';msg='Empat dari lima! Sedikit lagi sempurna. Cek pembahasan soal yang meleset ya.';
+    S.medals.push({ic:'🥈',t:'Silver Ring',d:'Level '+(i+1)+' 4/5'});}
+  else{medal='🥉';title='MISI SELESAI!';msg='Kamu lolos dengan sisa peluang tipis. Perkuat lagi konsep dasarnya, Bro!';
+    S.medals.push({ic:'🥉',t:'Bronze Chain',d:'Level '+(i+1)+' lolos'});}
+  $('#lr-medal').textContent=medal;
+  $('#lr-title').textContent=`LEVEL ${i+1} CLEAR!`;
+  $('#lr-tag').textContent=title;
+  $('#lr-msg').textContent=msg;
+  $('#lr-correct').textContent=S.levelCorrect;$('#lr-wrong').textContent=S.levelWrong;
+  $('#lr-point').textContent=S.levelCorrect*100;$('#lr-bonus').textContent=bonus?'+'+bonus:'0';
+  $('#btn-lr-next').textContent=i<4?'Misi Berikutnya ➜':'🏆 Lihat Podium Juara';
+  updateHUD();show('levelresult');sfxWin();confetti(perfect?70:35);rideBike();
+}
+$('#btn-lr-map').onclick=()=>{sfxClick();renderMap();show('map');};
+$('#btn-lr-next').onclick=()=>{
+  sfxClick();
+  if(S.level<4){openLevel(S.level+1);}else{finishGame();}
+};
+
+/* ============================ BONUS ============================ */
+$('#btn-bonus').onclick=()=>{
+  if(!S.bonusUnlocked){sfxNo();toast('Bonus terkunci. Selesaikan semua misi di bawah 45 menit!');return;}
+  sfxClick();S.mode='bonus';S.qIndex=0;S.bonusCorrect=0;
+  countdown(()=>{show('quiz');renderQuestion();});
+};
+function finishBonus(){
+  S.bonusDone=true;S.mode='level';
+  if(S.bonusCorrect===BONUS.length)S.medals.push({ic:'⚡',t:'Nitro Master',d:'Bonus sempurna'});
+  computeResult();saveScore();renderFinal();show('final');
+  sfxWin();confetti(60);toast(`Nitro Round selesai! ${S.bonusCorrect}/3 benar (+${S.bonusCorrect*150} poin)`);
+}
+
+/* ============================ FINAL ============================ */
+function computeResult(){
+  S.timeUsed=TOTAL_TIME-S.timeLeft;
+  S.accuracy=S.totalAnswered?Math.round(S.totalCorrect/S.totalAnswered*100):0;
+  const all=S.completed.every(Boolean);
+  S.bonusUnlocked=all&&S.timeUsed<=BONUS_LIMIT&&!S.bonusDone;
+  const sc=S.score,ac2=S.accuracy;
+  if(all&&sc>=2400&&ac2>=90)S.pred='Grand Champion';
+  else if(sc>=1800&&ac2>=75)S.pred='Racing Math Expert';
+  else if(sc>=1000)S.pred='Smart Mechanic';
+  else S.pred='Rookie Mechanic';
+}
+function finishGame(){
+  clearInterval(S.timer);S.timer=null;S.gameOver=true;S.mode='level';
+  computeResult();
+  if(S.completed.every(Boolean)&&S.timeUsed<=BONUS_LIMIT)S.medals.push({ic:'🚀',t:'Speed Racer',d:'Selesai < 45 menit'});
+  if(S.hintsUsed===0&&S.totalAnswered>0)S.medals.push({ic:'🧠',t:'No Hint Hero',d:'Tanpa petunjuk'});
+  if(S.accuracy>=90&&S.completed.every(Boolean))S.medals.push({ic:'👑',t:'Grand Champion',d:'Akurasi ≥ 90%'});
+  saveScore();renderFinal();show('final');sfxWin();confetti(90);engineRev(1.6);
+}
+const PRED_MSG={
+ 'Grand Champion':'Luar biasa! Kamu menguasai barisan & deret aritmatika sekaligus jago otomotif. Layak jadi juara nasional TSM! 🏆',
+ 'Racing Math Expert':'Konsepmu kuat dan analisis kontekstualmu tajam. Tinggal rapikan ketelitian biar naik ke Grand Champion! 💨',
+ 'Smart Mechanic':'Kamu sudah paham dasar barisan & deret. Perbanyak latihan soal cerita HOTS biar makin ngebut! 🔧',
+ 'Rookie Mechanic':'Semua juara mulai dari rookie. Ulangi misi, baca pembahasan, dan pakai petunjuk bertahap. Kamu pasti bisa! 🏍️'
+};
+function renderFinal(){
+  $('#fin-score').textContent=S.score;$('#fin-acc').textContent=S.accuracy+'%';
+  $('#fin-time').textContent=fmt(S.timeUsed);
+  $('#fin-misi').textContent=S.completed.filter(Boolean).length+'/5';
+  $('#fin-pred').textContent=S.pred.toUpperCase();$('#fin-predmsg').textContent=PRED_MSG[S.pred];
+  const lb=getLB();
+  $('#pod1').textContent=lb[0]?lb[0].name:S.name;
+  $('#pod2').textContent=lb[1]?lb[1].name:'—';
+  $('#pod3').textContent=lb[2]?lb[2].name:'—';
+  // medali
+  const m=$('#fin-medals');m.innerHTML='';
+  const uniq=[];S.medals.forEach(x=>{if(!uniq.some(u=>u.t===x.t&&u.d===x.d))uniq.push(x)});
+  if(!uniq.length)uniq.push({ic:'🏁',t:'Finisher',d:'Menyelesaikan balapan'});
+  uniq.forEach(x=>{const d=document.createElement('div');d.className='medal';
+    d.innerHTML=`<div class="ic">${x.ic}</div><b>${x.t}</b><small>${x.d}</small>`;m.appendChild(d);});
+  // evaluasi
+  const ev=$('#fin-eval');ev.innerHTML='';
+  LEVELS.forEach((L,i)=>{
+    const st=S.levelStats[i],p=st?st.correct*20:0;
+    const lab=!st?'Belum dikerjakan':p>=80?'Sangat Baik 🔥':p>=60?'Baik 👍':p>=40?'Cukup 🛠️':'Perlu Latihan 📚';
+    const r=document.createElement('div');r.className='evalrow';
+    r.innerHTML=`<div class="lab"><span><b>Level ${i+1}</b> — ${L.objective}</span><span>${st?st.correct+'/5':''} ${lab}</span></div>
+      <div class="bar"><i style="width:${p}%"></i></div>`;
+    ev.appendChild(r);
+  });
+  const weak=LEVELS.map((L,i)=>({i,p:S.levelStats[i]?S.levelStats[i].correct*20:-1})).filter(x=>x.p>=0&&x.p<80);
+  $('#fin-advice').innerHTML=weak.length
+    ? '💡 <b>Rekomendasi latihan:</b> fokus perbaiki '+weak.map(x=>'<b>'+LEVELS[x.i].objective+'</b>').join(', ')+'. Buka lagi pembahasannya lewat tombol 📚, kerjakan ulang soal serupa, dan hafalkan dua rumus sakti: <b>Uₙ = a + (n−1)b</b> dan <b>Sₙ = n/2 [2a + (n−1)b]</b>.'
+    : '🏆 <b>Mantap!</b> Semua indikator tujuan pembelajaran sudah kamu kuasai dengan sangat baik. Tantang dirimu mengerjakan soal HOTS variasi lain atau ajari temanmu — mekanik hebat itu yang bisa menjelaskan!';
+  // bonus panel
+  const bp=$('#bonus-panel');
+  if(S.bonusDone){bp.classList.remove('hidden');
+    $('#bonus-desc').innerHTML=`✅ Nitro Round sudah diambil: <b>${S.bonusCorrect}/3 benar</b> (+${S.bonusCorrect*150} poin).`;}
+  else if(S.bonusUnlocked){bp.classList.remove('hidden');
+    $('#bonus-desc').innerHTML=`🚀 Kamu menyelesaikan kejuaraan dalam <b>${fmt(S.timeUsed)}</b> (&lt; 45 menit). Terbuka <b>3 soal NITRO</b> super menantang, tiap soal benar bernilai <b>+150 poin</b>!`;}
+  else{bp.classList.remove('hidden');
+    $('#bonus-desc').innerHTML=`🔒 Tantangan bonus terbuka jika <b>semua 5 misi selesai</b> dan waktu penyelesaian <b>kurang dari 45 menit</b>. Waktumu: <b>${fmt(S.timeUsed)}</b>. Coba lagi lebih ngebut!`;}
+  $('#btn-bonus').disabled=!S.bonusUnlocked;
+  updateHUD();
+}
+
+/* ============================ PAPAN PERINGKAT ============================ */
+function getLB(){try{return JSON.parse(localStorage.getItem('mrmc_lb'))||[]}catch(e){return[]}}
+function saveScore(){
+  const lb=getLB();
+  const rec={id:S.runId,name:S.name,kelas:S.kelas,score:S.score,acc:S.accuracy,
+    time:S.timeUsed,pred:S.pred,date:new Date().toISOString()};
+  const idx=lb.findIndex(x=>x.id===S.runId);
+  if(idx>=0)lb[idx]=rec;else lb.push(rec);
+  lb.sort((a,b)=>b.score-a.score||a.time-b.time);
+  try{localStorage.setItem('mrmc_lb',JSON.stringify(lb.slice(0,30)))}catch(e){}
+}
+function renderLB(){
+  const lb=getLB(),tb=$('#lb-body');tb.innerHTML='';
+  if(!lb.length){tb.innerHTML='<tr><td colspan="6" style="color:#94a3bd">Belum ada pembalap. Jadilah yang pertama naik podium! 🏁</td></tr>';return;}
+  lb.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    if(S&&r.id===S.runId)tr.className='me';
+    tr.innerHTML=`<td>${['🥇','🥈','🥉'][i]||i+1}</td>
+      <td><b>${r.name}</b><br><small style="color:#94a3bd">${r.kelas||'-'}</small></td>
+      <td style="color:var(--gold);font-weight:900">${r.score}</td>
+      <td>${r.acc}%</td><td>${fmt(r.time)}</td><td>${r.pred}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ============================ SERTIFIKAT ============================ */
+$('#btn-cert').onclick=()=>{sfxClick();renderCert();show('certificate');};
+$('#btn-cert-back').onclick=()=>{sfxClick();show('final');};
+$('#btn-print').onclick=()=>{sfxClick();window.print();};
+function renderCert(){
+  $('#cert-name').textContent=S.name;
+  $('#cert-class').textContent='Kelas '+S.kelas+' • Teknik Sepeda Motor';
+  $('#cert-pred').textContent=S.pred.toUpperCase();
+  $('#cert-score').textContent=S.score+' poin';
+  $('#cert-acc').textContent=S.accuracy+'%';
+  $('#cert-time').textContent=fmt(S.timeUsed);
+  $('#cert-misi').textContent=S.completed.filter(Boolean).length+'/5';
+  $('#cert-id').textContent='ID Sertifikat: '+S.runId;
+  $('#cert-date').textContent=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+}
+
+/* ============================ KEYBOARD ============================ */
+document.addEventListener('keydown',e=>{
+  if(!$('#screen-quiz').classList.contains('active'))return;
+  if(!$('#modal').classList.contains('hidden')){if(e.key==='Escape')closeModal();return;}
+  if(['1','2','3'].includes(e.key)&&!S.answered){const b=$$('#options .opt')[+e.key-1];if(b)b.click();}
+  if(e.key==='Enter'&&S.answered)next();
+});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+</script>
+</body>
+</html>
