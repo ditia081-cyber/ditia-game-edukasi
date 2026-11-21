@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISSION AUTO LAB - Petualangan Dunia Zat</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
+  body {
+    background: linear-gradient(135deg, #0a0a0a 0%, #001a33 50%, #003366 100%);
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+    perspective: 1000px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 20px;
+  }
+  .screen { display:none; animation: fadeIn 0.6s ease; }
+  .screen.active { display:block; }
+  @keyframes fadeIn {
+    from { opacity:0; transform: translateY(20px) rotateX(-10deg); }
+    to { opacity:1; transform: translateY(0) rotateX(0); }
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 20px #00A8FF, 0 0 40px #00A8FF; }
+    50% { box-shadow: 0 0 30px #FF6B1A, 0 0 60px #FF6B1A; }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity:0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity:1; }
+  }
+
+  /* HEADER */
+  .game-header {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, rgba(0,168,255,0.2), rgba(255,107,26,0.2));
+    border: 2px solid #00A8FF;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    transform-style: preserve-3d;
+    box-shadow: 0 10px 40px rgba(0,168,255,0.3);
+  }
+  .game-header h1 {
+    font-size: 2.5em;
+    background: linear-gradient(90deg, #00A8FF, #FF6B1A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(0,168,255,0.5);
+    letter-spacing: 2px;
+  }
+  .game-header p { color:#ccc; margin-top:10px; font-size:1.1em; }
+
+  /* CARD */
+  .card {
+    background: rgba(10,10,30,0.85);
+    border: 2px solid #00A8FF;
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px 0;
+    box-shadow: 0 8px 30px rgba(0,168,255,0.2);
+    backdrop-filter: blur(10px);
+  }
+  .card h2 { color:#FF6B1A; margin-bottom:15px; font-size:1.6em; }
+  .card p { line-height:1.7; margin-bottom:10px; }
+
+  /* INPUT */
+  .input-group { margin: 20px 0; }
+  .input-group label { display:block; margin-bottom:8px; color:#00A8FF; font-weight:bold; }
+  input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #00A8FF;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1.1em;
+    transition: 0.3s;
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #FF6B1A;
+    box-shadow: 0 0 20px rgba(255,107,26,0.5);
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 15px 35px;
+    background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(255,107,26,0.4);
+  }
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255,107,26,0.6);
+  }
+  .btn:active { transform: translateY(0); }
+  .btn-blue {
+    background: linear-gradient(135deg, #00A8FF, #0066CC);
+    box-shadow: 0 5px 15px rgba(0,168,255,0.4);
+  }
+  .btn-blue:hover { box-shadow: 0 8px 25px rgba(0,168,255,0.6); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* LEVEL INFO */
+  .level-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .info-box {
+    background: rgba(0,168,255,0.15);
+    border: 2px solid #00A8FF;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+  }
+  .info-box .label { color:#ccc; font-size:0.85em; text-transform:uppercase; }
+  .info-box .value { color:#FF6B1A; font-size:1.5em; font-weight:bold; margin-top:5px; }
+  .info-box.timer .value { color:#fff; }
+  .info-box.timer.warning .value { color:#ff4444; animation: pulse 1s infinite; }
+
+  /* PROGRESS */
+  .progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00A8FF, #FF6B1A);
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px #00A8FF;
+  }
+
+  /* QUESTION */
+  .question-card {
+    background: linear-gradient(135deg, rgba(0,168,255,0.1), rgba(255,107,26,0.1));
+    border: 2px solid #00A8FF;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+  }
+  .question-text {
+    font-size: 1.2em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: #fff;
+  }
+  .options { display: grid; gap: 12px; }
+  .option {
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #00A8FF;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #fff;
+    text-align: left;
+    font-size: 1em;
+  }
+  .option:hover:not(:disabled) {
+    background: rgba(0,168,255,0.3);
+    transform: translateX(5px);
+    border-color: #FF6B1A;
+  }
+  .option.correct {
+    background: rgba(0,200,100,0.3);
+    border-color: #00c864;
+    animation: pop 0.4s;
+  }
+  .option.wrong {
+    background: rgba(255,50,50,0.3);
+    border-color: #ff3232;
+    animation: shake 0.4s;
+  }
+  .option:disabled { cursor: not-allowed; }
+
+  /* FEEDBACK */
+  .feedback {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    display: none;
+    animation: fadeIn 0.4s;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct {
+    background: rgba(0,200,100,0.2);
+    border: 2px solid #00c864;
+  }
+  .feedback.wrong {
+    background: rgba(255,50,50,0.2);
+    border: 2px solid #ff3232;
+  }
+  .feedback h3 { margin-bottom: 10px; }
+  .feedback.correct h3 { color: #00c864; }
+  .feedback.wrong h3 { color: #ff6666; }
+
+  /* HINT */
+  .hint-btn {
+    background: rgba(255,107,26,0.2);
+    border: 2px solid #FF6B1A;
+    color: #FF6B1A;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+  }
+  .hint-box {
+    background: rgba(255,107,26,0.15);
+    border-left: 4px solid #FF6B1A;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    display: none;
+  }
+  .hint-box.show { display: block; }
+
+  /* RESULT */
+  .result-card {
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(135deg, rgba(0,168,255,0.2), rgba(255,107,26,0.2));
+    border: 3px solid #FF6B1A;
+    border-radius: 20px;
+    animation: pop 0.6s;
+  }
+  .result-card h2 {
+    font-size: 2.5em;
+    background: linear-gradient(90deg, #00A8FF, #FF6B1A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+  }
+  .score-display {
+    font-size: 4em;
+    font-weight: bold;
+    color: #FF6B1A;
+    margin: 20px 0;
+    text-shadow: 0 0 30px rgba(255,107,26,0.5);
+  }
+  .predikat {
+    display: inline-block;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+    border-radius: 50px;
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 20px 0;
+    box-shadow: 0 5px 20px rgba(255,107,26,0.5);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 25px 0;
+  }
+  .stat-box {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #00A8FF;
+    border-radius: 10px;
+    padding: 15px;
+  }
+  .stat-box .num { font-size: 2em; color:#FF6B1A; font-weight:bold; }
+  .stat-box .lbl { color:#ccc; font-size:0.9em; }
+
+  /* CERTIFICATE */
+  .certificate {
+    background: linear-gradient(135deg, #fff, #f0f8ff);
+    color: #000;
+    padding: 40px;
+    border: 10px double #FF6B1A;
+    border-radius: 15px;
+    text-align: center;
+    margin: 20px 0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .certificate h1 {
+    color: #003366;
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+  .certificate h2 { color: #FF6B1A; margin: 15px 0; }
+  .certificate .name {
+    font-size: 1.8em;
+    color: #003366;
+    border-bottom: 2px solid #003366;
+    display: inline-block;
+    padding: 5px 30px;
+    margin: 15px 0;
+    font-weight: bold;
+  }
+  .certificate .date { color: #666; margin-top: 20px; }
+
+  /* LEVEL SELECT */
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .level-card {
+    background: rgba(0,168,255,0.1);
+    border: 2px solid #00A8FF;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+    cursor: pointer;
+  }
+  .level-card:hover {
+    transform: translateY(-5px);
+    border-color: #FF6B1A;
+    box-shadow: 0 10px 25px rgba(255,107,26,0.3);
+  }
+  .level-card.completed { border-color: #00c864; background: rgba(0,200,100,0.1); }
+  .level-card.locked { opacity: 0.5; cursor: not-allowed; }
+  .level-num {
+    font-size: 2em;
+    color: #FF6B1A;
+    font-weight: bold;
+  }
+  .level-title { color:#fff; margin: 8px 0; font-weight:bold; }
+  .level-desc { color:#ccc; font-size:0.85em; }
+
+  @media (max-width: 600px) {
+    .game-header h1 { font-size: 1.6em; }
+    .score-display { font-size: 2.5em; }
+    .question-text { font-size: 1em; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SCREEN: WELCOME -->
+  <div id="welcome-screen" class="screen active">
+    <div class="game-header">
+      <h1>🔧 MISSION AUTO LAB 🔧</h1>
+      <p>Petualangan Dunia Zat — IPAS Kelas X SMK TKR</p>
+    </div>
+    <div class="card">
+      <h2>📖 Cerita Misi</h2>
+      <p>Selamat datang, teknisi muda! Kamu sedang menjalani pelatihan di <b style="color:#FF6B1A">AUTO SCIENCE LAB</b>. Tiba-tiba, laboratorium mengalami gangguan sistem karena seluruh data tentang zat dan perubahannya terkunci!</p>
+      <p>Tugasmu: selesaikan <b>5 misi ilmiah</b> untuk mengaktifkan kembali laboratorium. Setiap misi akan mengujimu seputar zat, sifat zat, wujud zat, perubahan wujud, serta perubahan fisika dan kimia — semua dalam konteks dunia otomotif!</p>
+      <div class="input-group">
+        <label for="studentName">👤 Masukkan Nama Lengkap Kamu:</label>
+        <input type="text" id="studentName" placeholder="Contoh: Budi Santoso" maxlength="40">
+      </div>
+      <button class="btn" onclick="startGame()">🚀 MULAI MISI</button>
+    </div>
+    <div class="card">
+      <h2>⚙️ Aturan Permainan</h2>
+      <p>✅ <b>5 Level Misi</b> dengan 5 soal di setiap level (total 25 soal)</p>
+      <p>✅ Setiap jawaban benar = <b>10 poin</b> (skor maksimal 250)</p>
+      <p>✅ Kamu punya <b>3 kesempatan</b> menjawab tiap soal (semakin sering salah, poin berkurang)</p>
+      <p>✅ Gunakan <b>tombol petunjuk</b> jika kesulitan</p>
+      <p>✅ Setiap level memiliki <b>batas waktu</b></p>
+      <p>✅ Waktu bermain: <b>90 menit</b></p>
+    </div>
+  </div>
+
+  <!-- SCREEN: LEVEL SELECT -->
+  <div id="levelselect-screen" class="screen">
+    <div class="game-header">
+      <h1>🎯 PILIH MISI</h1>
+      <p id="welcomeMsg">Selamat datang, Teknisi!</p>
+    </div>
+    <div class="card">
+      <h2>📊 Status Misi</h2>
+      <div class="level-info">
+        <div class="info-box"><div class="label">Skor Saat Ini</div><div class="value" id="currentScore">0</div></div>
+        <div class="info-box"><div class="label">Level Selesai</div><div class="value" id="completedLevels">0/5</div></div>
+        <div class="info-box"><div class="label">Benar</div><div class="value" id="correctCount">0</div></div>
+      </div>
+      <div class="level-grid" id="levelGrid"></div>
+      <button class="btn btn-blue" onclick="showResult()" id="finishBtn" style="display:none;">🏁 LIHAT HASIL AKHIR</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: GAME -->
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <h1 id="levelTitle">LEVEL 1</h1>
+      <p id="levelSubtitle">Detektif Zat</p>
+    </div>
+    <div class="level-info">
+      <div class="info-box"><div class="label">Soal</div><div class="value" id="qNumber">1/5</div></div>
+      <div class="info-box"><div class="label">Skor</div><div class="value" id="gameScore">0</div></div>
+      <div class="info-box timer" id="timerBox"><div class="label">⏱ Waktu</div><div class="value" id="timer">05:00</div></div>
+      <div class="info-box"><div class="label">Kesempatan</div><div class="value" id="attempts">3</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="question-card">
+      <button class="hint-btn" onclick="toggleHint()">💡 Tampilkan Petunjuk</button>
+      <div class="hint-box" id="hintBox"></div>
+      <div class="question-text" id="questionText"></div>
+      <div class="options" id="optionsBox"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <div style="text-align:center; margin-top:20px;">
+      <button class="btn" id="nextBtn" onclick="nextQuestion()" style="display:none;">➡️ LANJUT</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: LEVEL COMPLETE -->
+  <div id="levelcomplete-screen" class="screen">
+    <div class="game-header">
+      <h1>🎉 MISI SELESAI!</h1>
+      <p id="completeMsg">Level berhasil diselesaikan</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="stats-grid">
+        <div class="stat-box"><div class="num" id="lcCorrect">0</div><div class="lbl">Jawaban Benar</div></div>
+        <div class="stat-box"><div class="num" id="lcScore">0</div><div class="lbl">Poin Level</div></div>
+        <div class="stat-box"><div class="num" id="lcTotal">0</div><div class="lbl">Total Skor</div></div>
+      </div>
+      <button class="btn" onclick="backToLevelSelect()">🔙 KEMBALI KE MENU MISI</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: RESULT -->
+  <div id="result-screen" class="screen">
+    <div class="result-card">
+      <h2>🏆 MISI SELESAI!</h2>
+      <p style="font-size:1.2em;">Teknisi: <b id="rName"></b></p>
+      <div class="score-display" id="rScore">0</div>
+      <div style="color:#ccc;">dari 250 poin</div>
+      <div class="predikat" id="rPredikat">MASTER SCIENTIST</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="num" id="rCorrect">0</div><div class="lbl">Benar</div></div>
+        <div class="stat-box"><div class="num" id="rWrong">0</div><div class="lbl">Salah</div></div>
+        <div class="stat-box"><div class="num" id="rPercent">0%</div><div class="lbl">Persentase</div></div>
+        <div class="stat-box"><div class="num" id="rValue">0</div><div class="lbl">Nilai (0-100)</div></div>
+      </div>
+    </div>
+
+    <div class="certificate" id="certificate">
+      <h1>🏆 SERTIFIKAT PRESTASI 🏆</h1>
+      <p style="color:#666;">Diberikan kepada</p>
+      <div class="name" id="certName">Nama Siswa</div>
+      <p style="color:#333; margin:15px 0;">Telah berhasil menyelesaikan seluruh misi dalam</p>
+      <h2>MISSION AUTO LAB: Petualangan Dunia Zat</h2>
+      <p style="color:#333;">Mata Pelajaran: IPAS — Materi Zat dan Perubahannya</p>
+      <p style="color:#333; margin-top:10px;">Kelas: X SMK — Teknik Kendaraan Ringan</p>
+      <p style="margin-top:15px; font-size:1.2em; color:#FF6B1A;"><b>Predikat: <span id="certPredikat">MASTER SCIENTIST</span></b></p>
+      <p style="margin-top:10px;"><b>Nilai Akhir: <span id="certScore">0</span>/100</b></p>
+      <p class="date" id="certDate"></p>
+      <p style="color:#666; margin-top:30px; font-style:italic;">Auto Science Lab — Mencetak Teknisi Berwawasan Sains</p>
+    </div>
+
+    <div style="text-align:center; margin:20px 0;">
+      <button class="btn btn-blue" onclick="window.print()">🖨️ CETAK SERTIFIKAT</button>
+      <button class="btn" onclick="restartGame()">🔄 MAIN LAGI</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ DATA SOAL ============
+const levels = [
+  {
+    title: "LEVEL 1 — DETEKTIF ZAT",
+    subtitle: "Mengidentifikasi wujud zat di bengkel otomotif",
+    time: 300,
+    questions: [
+      {
+        q: "Di bengkel otomotif, oli mesin yang tersimpan di dalam drum bersifat cair. Ciri utama zat cair adalah...",
+        options: ["Bentuk dan volumenya tetap", "Bentuk berubah mengikuti wadah, volume tetap", "Bentuk dan volumenya berubah-ubah", "Tidak dapat dialirkan"],
+        answer: 1,
+        explain: "Zat cair memiliki volume tetap tetapi bentuknya berubah mengikuti wadah yang ditempatinya.",
+        hint: "Pikirkan bagaimana oli memenuhi bentuk botol atau drum."
+      },
+      {
+        q: "Udara yang keluar dari kompresor saat mengisi angin ban termasuk wujud zat...",
+        options: ["Padat", "Cair", "Gas", "Plasma"],
+        answer: 2,
+        explain: "Udara termasuk zat gas karena bentuk dan volumenya berubah-ubah serta memenuhi ruang.",
+        hint: "Zat yang tidak terlihat tapi bisa menekan ban."
+      },
+      {
+        q: "Kunci ring, obeng, dan blok mesin termasuk contoh zat berwujud...",
+        options: ["Gas", "Cair", "Padat", "Uap"],
+        answer: 2,
+        explain: "Benda-benda tersebut memiliki bentuk dan volume tetap, sehingga termasuk zat padat.",
+        hint: "Benda yang bentuknya tidak berubah meski dipindah."
+      },
+      {
+        q: "Zat yang partikelnya sangat renggang, bergerak bebas, dan memenuhi seluruh ruangan adalah...",
+        options: ["Padat", "Cair", "Gas", "Kristal"],
+        answer: 2,
+        explain: "Gas memiliki partikel yang sangat renggang dan bergerak bebas ke segala arah.",
+        hint: "Zat yang dapat dimampatkan (dikompresi)."
+      },
+      {
+        q: "Air radiator yang berada di dalam reservoir termasuk contoh zat...",
+        options: ["Padat", "Cair", "Gas", "Campuran padat"],
+        answer: 1,
+        explain: "Air radiator berwujud cair karena memiliki volume tetap namun bentuknya mengikuti wadah (reservoir).",
+        hint: "Zat yang dapat dituang dan mengalir."
+      }
+    ]
+  },
+  {
+    title: "LEVEL 2 — LABORATORIUM SIFAT ZAT",
+    subtitle: "Mengidentifikasi sifat fisika dan kimia zat",
+    time: 300,
+    questions: [
+      {
+        q: "Bensin mudah menguap pada suhu ruang. Sifat ini termasuk sifat...",
+        options: ["Kimia", "Fisika", "Biologi", "Nuklir"],
+        answer: 1,
+        explain: "Mudah menguap (volatilitas) adalah sifat fisika karena tidak mengubah susunan kimia bensin.",
+        hint: "Apakah bensin berubah menjadi zat baru saat menguap?"
+      },
+      {
+        q: "Besi dapat berkarat jika terkena air dan udara. Kemampuan berkarat termasuk sifat...",
+        options: ["Fisika", "Kimia", "Mekanik", "Optik"],
+        answer: 1,
+        explain: "Perkaratan (oksidasi) adalah sifat kimia karena menghasilkan zat baru, yaitu karat (Fe₂O₃).",
+        hint: "Apakah terbentuk zat baru setelah besi berkarat?"
+      },
+      {
+        q: "Oli mesin memiliki sifat kental (viskositas tinggi). Viskositas termasuk sifat...",
+        options: ["Kimia", "Fisika", "Listrik", "Magnetik"],
+        answer: 1,
+        explain: "Viskositas (kekentalan) adalah sifat fisika karena dapat diamati tanpa mengubah komposisi zat.",
+        hint: "Sifat yang bisa diukur tanpa mengubah zat menjadi zat baru."
+      },
+      {
+        q: "Besi dapat ditarik oleh magnet. Sifat ini disebut...",
+        options: ["Konduktivitas", "Magnetik", "Kimia", "Elastisitas"],
+        answer: 1,
+        explain: "Kemampuan ditarik magnet adalah sifat fisika magnetik yang dimiliki besi.",
+        hint: "Sifat yang berkaitan dengan gaya tarik magnet."
+      },
+      {
+        q: "Bensin mudah terbakar. Sifat mudah terbakar termasuk sifat...",
+        options: ["Fisika", "Kimia", "Mekanik", "Termal"],
+        answer: 1,
+        explain: "Mudah terbakar (flammability) adalah sifat kimia karena saat terbakar, bensin bereaksi menghasilkan zat baru (CO₂ dan H₂O).",
+        hint: "Apakah setelah terbakar masih berupa bensin?"
+      }
+    ]
+  },
+  {
+    title: "LEVEL 3 — MISTERI PERUBAHAN WUJUD",
+    subtitle: "Menganalisis perubahan wujud zat di bengkel",
+    time: 360,
+    questions: [
+      {
+        q: "Oli padat (gemuk/grease) yang dipanaskan di dalam bearing berubah menjadi cair. Peristiwa ini disebut...",
+        options: ["Membeku", "Mencair", "Menguap", "Mengembun"],
+        answer: 1,
+        explain: "Perubahan dari padat ke cair disebut mencair (melebur), memerlukan kalor.",
+        hint: "Dari padat menjadi cair karena dipanaskan."
+      },
+      {
+        q: "Embun yang muncul di kaca mobil pada pagi hari merupakan contoh peristiwa...",
+        options: ["Menguap", "Menyublim", "Mengembun", "Mengkristal"],
+        answer: 2,
+        explain: "Embun terjadi karena uap air di udara berubah menjadi titik-titik air (gas → cair), disebut mengembun.",
+        hint: "Dari gas (uap) menjadi cair (titik air)."
+      },
+      {
+        q: "Kapur barus (kamper) yang diletakkan di lemari lama-kelamaan habis tanpa meleleh. Peristiwa ini disebut...",
+        options: ["Mencair", "Menguap", "Menyublim", "Mengkristal"],
+        answer: 2,
+        explain: "Perubahan langsung dari padat ke gas disebut menyublim.",
+        hint: "Perubahan langsung padat → gas, tanpa melalui fase cair."
+      },
+      {
+        q: "Air pendingin (coolant) di dalam radiator mesin yang panas dapat berubah menjadi uap. Perubahan ini disebut...",
+        options: ["Mencair", "Menguap", "Mengembun", "Membeku"],
+        answer: 1,
+        explain: "Perubahan dari cair ke gas disebut menguap (evaporasi), memerlukan kalor.",
+        hint: "Cair dipanaskan menjadi gas."
+      },
+      {
+        q: "Saat musim hujan, bagian luar gelas berisi es menjadi basah. Peristiwa ini adalah contoh...",
+        options: ["Menguap", "Menyublim", "Mengembun", "Mengkristal"],
+        answer: 2,
+        explain: "Uap air di udara menyentuh permukaan dingin gelas lalu berubah menjadi titik air (mengembun).",
+        hint: "Uap air di udara berubah menjadi cair karena suhu dingin."
+      }
+    ]
+  },
+  {
+    title: "LEVEL 4 — INVESTIGASI PERUBAHAN ZAT",
+    subtitle: "Membedakan perubahan fisika dan kimia",
+    time: 360,
+    questions: [
+      {
+        q: "Besi bodi mobil yang terpapar hujan dan udara lama-kelamaan berkarat. Perkaratan termasuk perubahan...",
+        options: ["Fisika", "Kimia", "Wujud", "Bentuk"],
+        answer: 1,
+        explain: "Perkaratan adalah perubahan kimia karena besi (Fe) bereaksi dengan oksigen dan air membentuk zat baru (Fe₂O₃).",
+        hint: "Apakah karat bisa kembali menjadi besi seperti semula?"
+      },
+      {
+        q: "Es batu yang diletakkan di atas kap mesin lama-kelamaan mencair. Peristiwa ini termasuk perubahan...",
+        options: ["Kimia", "Fisika", "Biologi", "Nuklir"],
+        answer: 1,
+        explain: "Es mencair adalah perubahan fisika karena hanya berubah wujud, tidak membentuk zat baru (tetap H₂O).",
+        hint: "Apakah air hasil lelehan es berbeda zatnya dengan es?"
+      },
+      {
+        q: "Kertas saringan yang terkena api akan terbakar menjadi abu. Pembakaran termasuk perubahan...",
+        options: ["Fisika", "Kimia", "Wujud", "Bentuk"],
+        answer: 1,
+        explain: "Pembakaran adalah perubahan kimia karena kertas bereaksi dengan oksigen menghasilkan zat baru (abu, CO₂, uap air).",
+        hint: "Apakah abu bisa kembali menjadi kertas?"
+      },
+      {
+        q: "Gula dilarutkan ke dalam air untuk membuat minuman manis. Pelarutan gula termasuk perubahan...",
+        options: ["Kimia", "Fisika", "Biologi", "Nuklir"],
+        answer: 1,
+        explain: "Pelarutan gula adalah perubahan fisika karena gula hanya bercampur dengan air, tidak membentuk zat baru. Rasa manis tetap dari gula.",
+        hint: "Apakah gula berubah menjadi zat lain saat larut?"
+      },
+      {
+        q: "Logam aluminium dilebur untuk membuat velg mobil baru. Peleburan logam termasuk perubahan...",
+        options: ["Kimia", "Fisika", "Biologi", "Alam"],
+        answer: 1,
+        explain: "Peleburan logam adalah perubahan fisika karena hanya berubah wujud (padat → cair), komposisi kimianya tetap aluminium.",
+        hint: "Apakah aluminium cair berbeda zatnya dengan aluminium padat?"
+      }
+    ]
+  },
+  {
+    title: "LEVEL 5 — TANTANGAN MASTER TKR",
+    subtitle: "Penerapan konsep zat dalam otomotif",
+    time: 420,
+    questions: [
+      {
+        q: "Mengapa air radiator dicampur dengan coolant khusus? Salah satu alasannya adalah...",
+        options: ["Agar air lebih cepat menguap", "Menaikkan titik didih dan mencegah korosi", "Mengubah air menjadi zat kimia baru", "Membuat air menjadi padat"],
+        answer: 1,
+        explain: "Coolant menaikkan titik didih air sehingga tidak mudah mendidih di mesin panas, sekaligus mencegah korosi pada radiator.",
+        hint: "Pikirkan agar mesin tidak cepat panas dan tidak berkarat."
+      },
+      {
+        q: "Oli mesin menjadi lebih encer saat mesin panas. Hal ini menunjukkan bahwa suhu memengaruhi...",
+        options: ["Massa oli", "Viskositas (kekentalan) oli", "Warna oli", "Jenis zat oli"],
+        answer: 1,
+        explain: "Suhu memengaruhi viskositas oli. Semakin panas, oli semakin encer (viskositas turun) karena partikel bergerak lebih cepat.",
+        hint: "Sifat fisika yang berubah saat suhu naik, bukan jenis zatnya."
+      },
+      {
+        q: "Bahan bakar bensin dibakar di dalam ruang bakar mesin. Proses pembakaran ini menghasilkan...",
+        options: ["Hanya panas", "Energi gerak dan zat baru (CO₂ + H₂O)", "Oli baru", "Air radiator"],
+        answer: 1,
+        explain: "Pembakaran bensin adalah reaksi kimia yang menghasilkan energi (gerak + panas) dan zat baru berupa CO₂ dan H₂O.",
+        hint: "Pembakaran adalah perubahan kimia yang menghasilkan energi dan zat baru."
+      },
+      {
+        q: "Knalpot mobil yang dingin di pagi hari mengeluarkan titik-titik air. Titik air ini berasal dari...",
+        options: ["Hujan masuk knalpot", "Pengembunan uap air hasil pembakaran", "Air radiator bocor", "Oli yang mencair"],
+        answer: 1,
+        explain: "Uap air (H₂O) hasil pembakaran bensin mengembun saat bertemu udara dingin di knalpot, menjadi titik air.",
+        hint: "Ingat hasil pembakaran bensin: CO₂ dan H₂O (uap)."
+      },
+      {
+        q: "Teknisi memanaskan logam yang macet agar bisa dilepas. Prinsip yang digunakan adalah...",
+        options: ["Pemuaian zat padat akibat panas", "Perubahan kimia logam", "Penyubliman logam", "Pembekuan logam"],
+        answer: 0,
+        explain: "Logam yang dipanaskan akan memuai (ukurannya bertambah) karena partikelnya bergerak lebih cepat. Ini adalah perubahan fisika.",
+        hint: "Saat dipanaskan, partikel zat padat bergerak lebih cepat dan jaraknya menjauh."
+      }
+    ]
+  }
+];
+
+// ============ STATE ============
+let studentName = "";
+let currentLevel = 0;
+let currentQuestion = 0;
+let attemptsLeft = 3;
+let score = 0;
+let totalCorrect = 0;
+let levelScores = [0,0,0,0,0];
+let levelCorrect = [0,0,0,0,0];
+let levelCompleted = [false,false,false,false,false];
+let timerInterval = null;
+let timeLeft = 0;
+let answered = false;
+
+// ============ AUDIO ============
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function playSound(type) {
+  try {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if (type === 'correct') {
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(900, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'wrong') {
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'levelup') {
+      [523, 659, 784, 1047].forEach((f, i) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.2, audioCtx.currentTime + i*0.1);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i*0.1 + 0.2);
+        o.start(audioCtx.currentTime + i*0.1);
+        o.stop(audioCtx.currentTime + i*0.1 + 0.2);
+      });
+    }
+  } catch(e) {}
+}
+
+// ============ NAVIGATION ============
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startGame() {
+  const name = document.getElementById('studentName').value.trim();
+  if (!name) { alert("Masukkan nama kamu terlebih dahulu!"); return; }
+  studentName = name;
+  document.getElementById('welcomeMsg').textContent = `Selamat berjuang, ${studentName}!`;
+  renderLevelSelect();
+  showScreen('levelselect-screen');
+}
+
+function renderLevelSelect() {
+  document.getElementById('currentScore').textContent = score;
+  document.getElementById('completedLevels').textContent = levelCompleted.filter(x=>x).length + "/5";
+  document.getElementById('correctCount').textContent = totalCorrect;
+
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  levels.forEach((lv, i) => {
+    const unlocked = i === 0 || levelCompleted[i-1];
+    const completed = levelCompleted[i];
+    const card = document.createElement('div');
+    card.className = 'level-card' + (completed ? ' completed' : '') + (!unlocked ? ' locked' : '');
+    card.innerHTML = `
+      <div class="level-num">${completed ? '✅' : (i+1)}</div>
+      <div class="level-title">Level ${i+1}</div>
+      <div class="level-desc">${lv.subtitle}</div>
+      <div style="margin-top:10px; color:#FF6B1A; font-weight:bold;">${completed ? 'Skor: '+levelScores[i]+'/50' : (unlocked ? '▶ MULAI' : '🔒 TERKUNCI')}</div>
+    `;
+    if (unlocked && !completed) {
+      card.onclick = () => startLevel(i);
+    } else if (completed) {
+      card.onclick = () => { if(confirm("Ulangi level ini? Skor lama akan diganti.")) startLevel(i); };
+    }
+    grid.appendChild(card);
+  });
+
+  const allDone = levelCompleted.every(x => x);
+  document.getElementById('finishBtn').style.display = allDone ? 'inline-block' : 'none';
+}
+
+function backToLevelSelect() {
+  renderLevelSelect();
+  showScreen('levelselect-screen');
+}
+
+// ============ GAMEPLAY ============
+function startLevel(idx) {
+  currentLevel = idx;
+  currentQuestion = 0;
+  const lv = levels[idx];
+  document.getElementById('levelTitle').textContent = lv.title;
+  document.getElementById('levelSubtitle').textContent = lv.subtitle;
+  showScreen('game-screen');
+  loadQuestion();
+  startTimer(lv.time);
+}
+
+function startTimer(seconds) {
+  timeLeft = seconds;
+  updateTimerDisplay();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert("⏰ Waktu habis! Level akan diselesaikan.");
+      finishLevel();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  document.getElementById('timer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const box = document.getElementById('timerBox');
+  if (timeLeft <= 30) box.classList.add('warning');
+  else box.classList.remove('warning');
+}
+
+function loadQuestion() {
+  answered = false;
+  attemptsLeft = 3;
+  const q = levels[currentLevel].questions[currentQuestion];
+  document.getElementById('qNumber').textContent = `${currentQuestion+1}/5`;
+  document.getElementById('gameScore').textContent = score;
+  document.getElementById('attempts').textContent = attemptsLeft;
+  document.getElementById('progressFill').style.width = `${(currentQuestion/5)*100}%`;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('hintBox').textContent = "💡 " + q.hint;
+  document.getElementById('hintBox').classList.remove('show');
+  document.getElementById('feedback').classList.remove('show');
+  document.getElementById('feedback').classList.remove('correct','wrong');
+  document.getElementById('nextBtn').style.display = 'none';
+
+  const optBox = document.getElementById('optionsBox');
+  optBox.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = `${String.fromCharCode(65+i)}. ${opt}`;
+    btn.onclick = () => selectAnswer(i, btn);
+    optBox.appendChild(btn);
+  });
+}
+
+function toggleHint() {
+  document.getElementById('hintBox').classList.toggle('show');
+}
+
+function selectAnswer(idx, btn) {
+  if (answered) return;
+  const q = levels[currentLevel].questions[currentQuestion];
+  const allBtns = document.querySelectorAll('.option');
+
+  if (idx === q.answer) {
+    // BENAR
+    answered = true;
+    btn.classList.add('correct');
+    allBtns.forEach(b => b.disabled = true);
+    let points = 0;
+    if (attemptsLeft === 3) points = 10;
+    else if (attemptsLeft === 2) points = 7;
+    else if (attemptsLeft === 1) points = 4;
+    score += points;
+    totalCorrect++;
+    levelScores[currentLevel] += points;
+    levelCorrect[currentLevel]++;
+    playSound('correct');
+    showFeedback(true, `✅ BENAR! +${points} poin. ${q.explain}`);
+    document.getElementById('gameScore').textContent = score;
+    document.getElementById('nextBtn').style.display = 'inline-block';
+  } else {
+    // SALAH
+    btn.classList.add('wrong');
+    btn.disabled = true;
+    attemptsLeft--;
+    document.getElementById('attempts').textContent = attemptsLeft;
+    playSound('wrong');
+    if (attemptsLeft === 0) {
+      answered = true;
+      allBtns.forEach(b => b.disabled = true);
+      // tandai jawaban benar
+      allBtns[q.answer].classList.add('correct');
+      showFeedback(false, `❌ Jawaban yang benar: ${String.fromCharCode(65+q.answer)}. ${q.explain}`);
+      document.getElementById('nextBtn').style.display = 'inline-block';
+    } else {
+      showFeedback(false, `❌ Salah! Kamu masih punya ${attemptsLeft} kesempatan. Coba lagi!`);
+      setTimeout(() => {
+        document.getElementById('feedback').classList.remove('show');
+      }, 2000);
+    }
+  }
+}
+
+function showFeedback(isCorrect, msg) {
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('correct','wrong');
+  fb.classList.add(isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = `<h3>${isCorrect ? '🎉 Jawaban Benar!' : '💭 Pembahasan:'}</h3><p>${msg}</p>`;
+  fb.classList.add('show');
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion >= 5) {
+    finishLevel();
+  } else {
+    loadQuestion();
+  }
+}
+
+function finishLevel() {
+  clearInterval(timerInterval);
+  levelCompleted[currentLevel] = true;
+  playSound('levelup');
+  document.getElementById('lcCorrect').textContent = levelCorrect[currentLevel];
+  document.getElementById('lcScore').textContent = levelScores[currentLevel];
+  document.getElementById('lcTotal').textContent = score;
+  document.getElementById('completeMsg').textContent = `${levels[currentLevel].title} berhasil diselesaikan!`;
+  showScreen('levelcomplete-screen');
+}
+
+// ============ RESULT ============
+function showResult() {
+  if (!levelCompleted.every(x => x)) {
+    if (!confirm("Kamu belum menyelesaikan semua level. Tetap lihat hasil?")) return;
+  }
+  const maxScore = 250;
+  const nilai = Math.round((score / maxScore) * 100);
+  const percent = Math.round((totalCorrect / 25) * 100);
+  let predikat = "SCIENCE TRAINEE";
+  if (nilai >= 90) predikat = "MASTER SCIENTIST";
+  else if (nilai >= 80) predikat = "EXPERT TECHNICIAN";
+  else if (nilai >= 70) predikat = "JUNIOR TECHNICIAN";
+
+  document.getElementById('rName').textContent = studentName;
+  document.getElementById('rScore').textContent = score;
+  document.getElementById('rPredikat').textContent = predikat;
+  document.getElementById('rCorrect').textContent = totalCorrect;
+  document.getElementById('rWrong').textContent = 25 - totalCorrect;
+  document.getElementById('rPercent').textContent = percent + "%";
+  document.getElementById('rValue').textContent = nilai;
+
+  document.getElementById('certName').textContent = studentName;
+  document.getElementById('certPredikat').textContent = predikat;
+  document.getElementById('certScore').textContent = nilai;
+  const today = new Date();
+  document.getElementById('certDate').textContent = `Diterbitkan: ${today.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}`;
+
+  showScreen('result-screen');
+  playSound('levelup');
+}
+
+function restartGame() {
+  if (!confirm("Mulai permainan baru? Semua progres akan direset.")) return;
+  score = 0; totalCorrect = 0;
+  levelScores = [0,0,0,0,0];
+  levelCorrect = [0,0,0,0,0];
+  levelCompleted = [false,false,false,false,false];
+  document.getElementById('studentName').value = "";
+  showScreen('welcome-screen');
+}
+</script>
+</body>
+</html>
